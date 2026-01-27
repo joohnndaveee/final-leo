@@ -20,6 +20,9 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
         overflow: hidden;
+        display: block;
+        text-decoration: none;
+        cursor: pointer;
     }
 
     .stat-card::before {
@@ -42,6 +45,24 @@
 
     .stat-card:hover::before {
         transform: translate(20%, -20%) scale(1.2);
+    }
+
+    /* Clickable card indicator */
+    a.stat-card::after {
+        content: '\f054';
+        font-family: 'Font Awesome 5 Free';
+        font-weight: 900;
+        position: absolute;
+        bottom: 1.5rem;
+        right: 1.5rem;
+        font-size: 1.4rem;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+
+    a.stat-card:hover::after {
+        opacity: 0.7;
+        right: 1.2rem;
     }
 
     /* Different gradient colors for each card */
@@ -108,6 +129,15 @@
         box-shadow: 0 10px 30px rgba(255, 154, 86, 0.25);
     }
 
+    .stat-card.revenue {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+    }
+
+    .stat-card.revenue:hover {
+        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25);
+    }
+
     .stat-card .icon {
         font-size: 3rem;
         margin-bottom: 1rem;
@@ -172,60 +202,53 @@
 <div class="stats-container">
     
     {{-- Row 1 --}}
-    {{-- Card 1: Total Pendings --}}
-    <div class="stat-card pending">
+    {{-- Card 1: Pending Orders --}}
+    <a href="{{ route('admin.orders') }}?status=pending" class="stat-card pending" style="text-decoration: none; color: white;">
         <i class="fas fa-clock icon"></i>
-        <h3>₱{{ number_format($total_pendings) }}/-</h3>
-        <p>Total Pendings</p>
-    </div>
+        <h3>{{ $pending_orders }}</h3>
+        <p>Pending Orders</p>
+    </a>
 
     {{-- Card 2: Total Sales (Completed) --}}
     <div class="stat-card completed">
         <i class="fas fa-check-circle icon"></i>
-        <h3>₱{{ number_format($total_completes) }}/-</h3>
+        <h3>₱{{ number_format($total_sales) }}/-</h3>
         <p>Total Sales</p>
     </div>
 
     {{-- Card 3: Orders Placed --}}
-    <div class="stat-card orders">
+    <a href="{{ route('admin.orders') }}" class="stat-card orders" style="text-decoration: none; color: white;">
         <i class="fas fa-shopping-bag icon"></i>
         <h3>{{ $number_of_orders }}</h3>
         <p>Orders Placed</p>
-    </div>
+    </a>
 
     {{-- Card 4: Products Added --}}
-    <div class="stat-card products">
+    <a href="{{ route('admin.products.index') }}" class="stat-card products" style="text-decoration: none; color: white;">
         <i class="fas fa-box icon"></i>
         <h3>{{ $number_of_products }}</h3>
         <p>Products Added</p>
-    </div>
+    </a>
 
     {{-- Row 2 --}}
-    {{-- Card 5: Normal Users --}}
-    <div class="stat-card users">
+    {{-- Card 5: Registered Users --}}
+    <a href="{{ route('admin.users') }}" class="stat-card users" style="text-decoration: none; color: white;">
         <i class="fas fa-users icon"></i>
         <h3>{{ $number_of_users }}</h3>
-        <p>Normal Users</p>
-    </div>
+        <p>Registered Users</p>
+    </a>
 
-    {{-- Card 6: Admin Users --}}
-    <div class="stat-card admins">
-        <i class="fas fa-user-tie icon"></i>
-        <h3>{{ $number_of_admins }}</h3>
-        <p>Admin Users</p>
-    </div>
-
-    {{-- Card 7: New Messages --}}
-    <div class="stat-card messages">
+    {{-- Card 6: Customer Messages --}}
+    <a href="{{ route('admin.messages') }}" class="stat-card messages" style="text-decoration: none; color: white;">
         <i class="fas fa-envelope icon"></i>
         <h3>{{ $number_of_messages }}</h3>
-        <p>New Messages</p>
-    </div>
+        <p>Customer Messages</p>
+    </a>
 
-    {{-- Card 8: Total Revenue --}}
-    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    {{-- Card 7: Total Revenue --}}
+    <div class="stat-card revenue">
         <i class="fas fa-dollar-sign icon"></i>
-        <h3>₱{{ number_format($total_pendings + $total_completes) }}/-</h3>
+        <h3>₱{{ number_format($total_sales) }}/-</h3>
         <p>Total Revenue</p>
     </div>
 

@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login Page</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('css/admin_style.css') }}">
 </head>
@@ -50,8 +53,6 @@
                oninput="this.value = this.value.replace(/\s/g, '')">
         
         <input type="submit" value="login now" class="btn" name="submit">
-        
-        <a href="/" class="option-btn">BACK</a>
     </form>
 </section>
    

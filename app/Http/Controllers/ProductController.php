@@ -47,8 +47,6 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0|max:9999999999',
             'details' => 'required|string|max:500',
             'type' => 'nullable|string|max:255',
-            'size' => 'nullable|string|max:10',
-            'color' => 'nullable|string|max:50',
             'image_01' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_02' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_03' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -71,8 +69,6 @@ class ProductController extends Controller
                 'price' => $request->price,
                 'details' => $request->details,
                 'type' => $request->type ?? '',
-                'size' => $request->size ?? '',
-                'color' => $request->color ?? '',
                 'image_01' => $image01Name,
                 'image_02' => $image02Name,
                 'image_03' => $image03Name,
@@ -144,8 +140,6 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0|max:9999999999',
             'details' => 'required|string|max:500',
             'type' => 'nullable|string|max:255',
-            'size' => 'nullable|string|max:10',
-            'color' => 'nullable|string|max:50',
             'image_01' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_02' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_03' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -159,8 +153,7 @@ class ProductController extends Controller
             $product->price = $request->price;
             $product->details = $request->details;
             $product->type = $request->type ?? '';
-            $product->size = $request->size ?? '';
-            $product->color = $request->color ?? '';
+
 
             // Update images if new ones are uploaded
             if ($request->hasFile('image_01')) {

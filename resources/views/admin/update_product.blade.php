@@ -264,10 +264,10 @@
                        value="{{ old('price', $product->price) }}">
             </div>
 
-            {{-- Row 2: Type and Size --}}
+            {{-- Row 2: Type --}}
             <div class="input-group">
                 <label>Product Type</label>
-                <select name="type" id="productType" onchange="updateSizeOptions()">
+                <select name="type" id="productType">
                     <option value="">Select Type</option>
                     <option value="Polo" {{ old('type', $product->type) == 'Polo' ? 'selected' : '' }}>Polo</option>
                     <option value="T-Shirt" {{ old('type', $product->type) == 'T-Shirt' ? 'selected' : '' }}>T-Shirt</option>
@@ -280,22 +280,6 @@
                 </select>
             </div>
 
-            <div class="input-group">
-                <label>Size</label>
-                <select name="size" id="productSize">
-                    <option value="">Select Size</option>
-                </select>
-            </div>
-
-            {{-- Row 3: Color --}}
-            <div class="input-group">
-                <label>Color</label>
-                <input type="text" 
-                       name="color" 
-                       maxlength="50"
-                       placeholder="Enter color" 
-                       value="{{ old('color', $product->color) }}">
-            </div>
 
             {{-- Full Width: Details --}}
             <div class="input-group full-width">
@@ -348,47 +332,6 @@
 
 @push('scripts')
 <script>
-function updateSizeOptions() {
-    var type = document.getElementById("productType").value;
-    var sizeSelect = document.getElementById("productSize");
-    var currentSize = "{{ old('size', $product->size ?? '') }}";
-
-    var sizeOptions = {
-        "Polo": ["XS", "S", "M", "L", "XL", "XXL"],
-        "T-Shirt": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Dress": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Pants": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Jacket": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Heels": ["35", "36", "37", "38", "39", "40"],
-        "Shoes": ["36", "37", "38", "39", "40", "42", "43", "44"],
-        "Cap": ["One Size"]
-    };
-
-    sizeSelect.innerHTML = '<option value="">Select Size</option>';
-    
-    if (type && sizeOptions[type]) {
-        sizeOptions[type].forEach(function(size) {
-            var option = document.createElement("option");
-            option.value = size;
-            option.text = size;
-            if (size === currentSize) {
-                option.selected = true;
-            }
-            sizeSelect.add(option);
-        });
-    } else if (currentSize) {
-        // If no type selected but there's a current size, add it
-        var option = document.createElement("option");
-        option.value = currentSize;
-        option.text = currentSize;
-        option.selected = true;
-        sizeSelect.add(option);
-    }
-}
-
-// Initialize size options on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateSizeOptions();
-});
+// Placeholder for future JavaScript functionality
 </script>
 @endpush

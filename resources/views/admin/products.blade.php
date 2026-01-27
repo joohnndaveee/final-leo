@@ -322,10 +322,10 @@
                        value="{{ old('price') }}">
             </div>
 
-            {{-- Row 2: Type and Size --}}
+            {{-- Row 2: Type --}}
             <div class="input-group">
                 <label>Product Type</label>
-                <select name="type" id="productType" onchange="updateSizeOptions()">
+                <select name="type" id="productType">
                     <option value="">Select Type</option>
                     <option value="Polo" {{ old('type') == 'Polo' ? 'selected' : '' }}>Polo</option>
                     <option value="T-Shirt" {{ old('type') == 'T-Shirt' ? 'selected' : '' }}>T-Shirt</option>
@@ -338,22 +338,6 @@
                 </select>
             </div>
 
-            <div class="input-group">
-                <label>Size</label>
-                <select name="size" id="productSize">
-                    <option value="">Select Size</option>
-                </select>
-            </div>
-
-            {{-- Row 3: Color --}}
-            <div class="input-group">
-                <label>Color</label>
-                <input type="text" 
-                       name="color" 
-                       placeholder="Enter color"
-                       maxlength="50"
-                       value="{{ old('color') }}">
-            </div>
 
             {{-- Row 4: Images --}}
             <div class="input-group">
@@ -415,11 +399,9 @@
                         <div class="product-name">{{ $product->name }}</div>
                         <div class="product-details">{{ $product->details }}</div>
                         
-                        @if($product->type || $product->size || $product->color)
+                        @if($product->type)
                             <div class="product-meta">
                                 @if($product->type)<span><i class="fas fa-tag"></i> {{ $product->type }}</span>@endif
-                                @if($product->size)<span><i class="fas fa-ruler"></i> {{ $product->size }}</span>@endif
-                                @if($product->color)<span><i class="fas fa-palette"></i> {{ $product->color }}</span>@endif
                             </div>
                         @endif
                         
@@ -450,36 +432,6 @@
 
 @push('scripts')
 <script>
-function updateSizeOptions() {
-    var type = document.getElementById("productType").value;
-    var sizeSelect = document.getElementById("productSize");
-
-    var sizeOptions = {
-        "Polo": ["XS", "S", "M", "L", "XL", "XXL"],
-        "T-Shirt": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Dress": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Pants": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Jacket": ["XS", "S", "M", "L", "XL", "XXL"],
-        "Heels": ["35", "36", "37", "38", "39", "40"],
-        "Shoes": ["36", "37", "38", "39", "40", "42", "43", "44"],
-        "Cap": ["One Size"]
-    };
-
-    sizeSelect.innerHTML = '<option value="">Select Size</option>';
-    
-    if (type && sizeOptions[type]) {
-        sizeOptions[type].forEach(function(size) {
-            var option = document.createElement("option");
-            option.value = size;
-            option.text = size;
-            sizeSelect.add(option);
-        });
-    }
-}
-
-// Initialize size options on page load
-document.addEventListener('DOMContentLoaded', function() {
-    updateSizeOptions();
-});
+// Placeholder for future JavaScript functionality
 </script>
 @endpush

@@ -8,18 +8,20 @@ use App\Models\Product;
 class HomeController extends Controller
 {
     /**
-     * Display the home page with random products.
+     * Display the home page with featured products slider and all products slider.
      *
      * @return \Illuminate\View\View
      */
     public function index()
     {
-        // Fetch 6 random products from the database
-        $products = Product::inRandomOrder()
-                           ->limit(6)
-                           ->get();
+        // Fetch only necessary products for featured slider (limit to 10 most recent)
+        $featuredProducts = Product::orderBy('id', 'desc')->limit(10)->get();
+        
+        // Fetch products for all products slider (limit to 20 most recent)
+        $products = Product::orderBy('id', 'desc')->limit(20)->get();
 
         return view('home', [
+            'featuredProducts' => $featuredProducts,
             'products' => $products
         ]);
     }

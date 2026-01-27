@@ -17,6 +17,11 @@ class AdminController extends Controller
      */
     public function showLoginForm()
     {
+        // Check if admin is already logged in
+        if (Auth::guard('admin')->check()) {
+            return redirect()->route('admin.dashboard');
+        }
+        
         return view('admin.login');
     }
 
@@ -34,17 +39,11 @@ class AdminController extends Controller
         $name = $request->input('name');
         $password = $request->input('password');
 
-        // TODO: Migrate to Hash::check() for secure password comparison
-        // Currently using plain-text password comparison for migration compatibility
-        // Future: Update passwords to use Hash::make() and verify with Hash::check()
-        // Then you can use: Auth::guard('admin')->attempt(['name' => $name, 'password' => $password])
-        
-        $admin = Admin::where('name', $name)
-                     ->where('password', $password)
-                     ->first();
+        // Find admin by username
+        $admin = Admin::where('name', $name)->first();
 
-        if ($admin) {
-            // Use Laravel's auth system to log in the admin
+        if ($admin && \Illuminate\Support\Facades\Hash::check($password, $admin->password)) {
+            // Password is correct, log in the admin
             Auth::guard('admin')->login($admin);
             
             // Also store in session for backward compatibility
@@ -72,11 +71,11 @@ class AdminController extends Controller
         }
 
         // Calculate dashboard statistics
-        // 1. Total Pendings - Sum of total_price where order_status = 'pending'
-        $total_pendings = Order::where('order_status', 'pending')->sum('total_price');
+        // 1. Pending Orders - Count of orders where payment_status = 'pending'
+        $pending_orders = Order::where('payment_status', 'pending')->count();
 
-        // 2. Total Completes/Sales - Sum of total_price where order_status = 'delivered'
-        $total_completes = Order::where('order_status', 'delivered')->sum('total_price');
+        // 2. Total Sales - Sum of total_price where payment_status = 'complete' or 'delivered'
+        $total_sales = Order::whereIn('payment_status', ['complete', 'completed', 'delivered'])->sum('total_price');
 
         // 3. Orders Placed - Count of all orders
         $number_of_orders = Order::count();
@@ -84,28 +83,196 @@ class AdminController extends Controller
         // 4. Products Added - Count of all products
         $number_of_products = Product::count();
 
-        // 5. Normal Users - Count of all users
+        // 5. Registered Users - Count of all users
         $number_of_users = User::count();
 
-        // 6. Admin Users - Count of all admins
-        $number_of_admins = Admin::count();
-
-        // 7. New Messages - Count of all messages
+        // 6. Customer Messages - Count of all messages
         $number_of_messages = Message::count();
 
         // Get admin info
         $admin = Auth::guard('admin')->user();
 
         return view('admin.dashboard', compact(
-            'total_pendings',
-            'total_completes',
+            'pending_orders',
+            'total_sales',
             'number_of_orders',
             'number_of_products',
             'number_of_users',
-            'number_of_admins',
             'number_of_messages',
             'admin'
         ));
+    }
+
+    /**
+     * Show all customer orders
+     */
+    public function adminOrders()
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->withErrors(['login' => 'Please login first']);
+        }
+
+        // Fetch all orders with user information, ordered by newest first
+        $orders = Order::with('user')
+                      ->orderBy('id', 'desc')
+                      ->get();
+
+        $admin = Auth::guard('admin')->user();
+
+        return view('admin.orders', compact('orders', 'admin'));
+    }
+
+    /**
+     * Show specific order details for admin
+     */
+    public function showOrderDetails($orderId)
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->withErrors(['login' => 'Please login first']);
+        }
+
+        $order = Order::with('orderItems')->find($orderId);
+
+        if (!$order) {
+            return redirect()->route('admin.orders')
+                           ->with('error', 'Order not found!');
+        }
+
+        $admin = Auth::guard('admin')->user();
+
+        return view('admin.order-details', compact('order', 'admin'));
+    }
+
+    /**
+     * Update order status
+     */
+    public function updateOrderStatus(Request $request, $orderId)
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        // Validate the status
+        $request->validate([
+            'status' => 'required|in:pending,completed,cancelled'
+        ]);
+
+        $order = Order::find($orderId);
+
+        if (!$order) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Order not found!'
+            ], 404);
+        }
+
+        $order->payment_status = $request->status;
+        $order->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Order status updated successfully!'
+        ]);
+    }
+
+    /**
+     * Display all users
+     */
+    public function users()
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->with('error', 'Please login to access admin panel!');
+        }
+
+        $users = User::orderBy('created_at', 'desc')->get();
+        
+        return view('admin.users', compact('users'));
+    }
+
+    /**
+     * Delete a user
+     */
+    public function deleteUser($id)
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $user = User::find($id);
+
+        if (!$user) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'User not found!'
+            ], 404);
+        }
+
+        $user->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User deleted successfully!'
+        ]);
+    }
+
+    /**
+     * Display all messages
+     */
+    public function messages()
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->with('error', 'Please login to access admin panel!');
+        }
+
+        $messages = Message::orderBy('created_at', 'desc')->get();
+        
+        return view('admin.messages', compact('messages'));
+    }
+
+    /**
+     * Delete a message
+     */
+    public function deleteMessage($id)
+    {
+        // Check if admin is logged in
+        if (!Auth::guard('admin')->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $message = Message::find($id);
+
+        if (!$message) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Message not found!'
+            ], 404);
+        }
+
+        $message->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Message deleted successfully!'
+        ]);
     }
 
     /**

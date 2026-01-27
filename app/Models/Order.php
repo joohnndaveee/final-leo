@@ -19,6 +19,22 @@ class Order extends Model
         'total_products',
         'total_price',
         'placed_on',
-        'order_status'
+        'payment_status'
     ];
+
+    /**
+     * Get the user that owns this order
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the order items for this order
+     */
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
 }

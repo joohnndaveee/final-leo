@@ -6,6 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Panel')</title>
 
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -45,8 +48,8 @@
 
         .dashboard-sidebar .admin-profile {
             text-align: center;
-            margin-bottom: 4rem;
-            padding-bottom: 3rem;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
             border-bottom: 1px solid rgba(255, 215, 0, 0.2);
             padding-top: 2rem;
         }
@@ -148,32 +151,34 @@
             text-align: center;
         }
 
-        .dashboard-sidebar .nav-menu button {
+        .dashboard-sidebar .nav-menu button.logout-link {
             background: none;
             border: none;
             color: white;
             width: 100%;
             text-align: left;
             cursor: pointer;
-            padding: 0;
-        }
-
-        .dashboard-sidebar .nav-menu .logout-link {
             display: flex;
             align-items: center;
             padding: 1.5rem 2rem;
-            color: white;
-            text-decoration: none;
             font-size: 1.6rem;
             font-weight: 500;
             border-radius: 1rem;
             transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0);
         }
 
-        .dashboard-sidebar .nav-menu .logout-link:hover {
-            background: rgba(255, 255, 255, 0.2);
+        .dashboard-sidebar .nav-menu button.logout-link:hover {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.2) 0%, transparent 100%);
+            border-left: 4px solid #ffd700;
+            padding-left: calc(2rem - 4px);
             transform: translateX(5px);
+        }
+
+        .dashboard-sidebar .nav-menu button.logout-link i {
+            margin-right: 1.5rem;
+            font-size: 1.8rem;
+            width: 25px;
+            text-align: center;
         }
 
         /* Main Content Area with Background Image */
@@ -376,7 +381,6 @@
             </div>
             <div class="admin-name">{{ Auth::guard('admin')->user()->name ?? 'Admin' }}</div>
             <div class="admin-role">Administrator</div>
-            <a href="#" class="update-btn">Update Profile</a>
         </div>
 
         {{-- Navigation Menu --}}
@@ -395,37 +399,29 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="{{ request()->routeIs('admin.orders.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.orders') }}" class="{{ request()->routeIs('admin.orders*') ? 'active' : '' }}">
                         <i class="fas fa-shopping-bag"></i>
                         <span>Orders</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="{{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">
                         <i class="fas fa-users"></i>
                         <span>Users</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="{{ request()->routeIs('admin.messages.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.messages') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">
                         <i class="fas fa-envelope"></i>
                         <span>Messages</span>
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="{{ request()->routeIs('admin.admins.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Admins</span>
-                    </a>
-                </li>
-                <li>
                     <form action="{{ route('admin.logout') }}" method="POST" style="margin: 0;">
                         @csrf
-                        <button type="submit">
-                            <span class="logout-link">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </span>
+                        <button type="submit" class="logout-link">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
                         </button>
                     </form>
                 </li>

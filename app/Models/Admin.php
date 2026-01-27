@@ -7,8 +7,8 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 
 class Admin extends Authenticatable implements AuthenticatableContract
 {
-    protected $table = 'admins'; // Uses your existing table name
-    public $timestamps = false;  // Prevents errors since your SQL doesn't have created_at
+    protected $table = 'admins'; // Uses admins table for admin login
+    public $timestamps = false;  // Admins table doesn't have timestamps
 
     protected $fillable = ['name', 'password'];
 
