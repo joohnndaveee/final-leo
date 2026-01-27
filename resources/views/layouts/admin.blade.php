@@ -296,6 +296,10 @@
             background: linear-gradient(135deg, rgba(255, 87, 34, 0.9) 0%, rgba(255, 138, 101, 0.9) 100%) !important;
         }
 
+        .stat-card.chats {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.9) 0%, rgba(16, 185, 129, 0.9) 100%) !important;
+        }
+
         .price-badge {
             background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%) !important;
             color: #1a3009 !important;
@@ -411,9 +415,15 @@
                     </a>
                 </li>
                 <li>
+                    <a href="{{ route('admin.chats.index') }}" class="{{ request()->routeIs('admin.chats*') ? 'active' : '' }}">
+                        <i class="fas fa-comments"></i>
+                        <span>Live Chats</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.messages') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">
                         <i class="fas fa-envelope"></i>
-                        <span>Messages</span>
+                        <span>Contact Inquiries</span>
                     </a>
                 </li>
                 <li>

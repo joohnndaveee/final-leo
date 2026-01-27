@@ -280,6 +280,17 @@
                 </select>
             </div>
 
+            {{-- Row 3: Stock --}}
+            <div class="input-group">
+                <label>Stock Quantity <span class="required">*</span></label>
+                <input type="number" 
+                       name="stock" 
+                       required 
+                       min="0" 
+                       max="999999"
+                       placeholder="Enter stock quantity"
+                       value="{{ old('stock', $product->stock ?? 0) }}">
+            </div>
 
             {{-- Full Width: Details --}}
             <div class="input-group full-width">

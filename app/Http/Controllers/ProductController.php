@@ -47,6 +47,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0|max:9999999999',
             'details' => 'required|string|max:500',
             'type' => 'nullable|string|max:255',
+            'stock' => 'required|integer|min:0|max:999999',
             'image_01' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_02' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_03' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -69,6 +70,7 @@ class ProductController extends Controller
                 'price' => $request->price,
                 'details' => $request->details,
                 'type' => $request->type ?? '',
+                'stock' => $request->stock,
                 'image_01' => $image01Name,
                 'image_02' => $image02Name,
                 'image_03' => $image03Name,
@@ -140,6 +142,7 @@ class ProductController extends Controller
             'price' => 'required|numeric|min:0|max:9999999999',
             'details' => 'required|string|max:500',
             'type' => 'nullable|string|max:255',
+            'stock' => 'required|integer|min:0|max:999999',
             'image_01' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_02' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'image_03' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
@@ -153,6 +156,7 @@ class ProductController extends Controller
             $product->price = $request->price;
             $product->details = $request->details;
             $product->type = $request->type ?? '';
+            $product->stock = $request->stock;
 
 
             // Update images if new ones are uploaded

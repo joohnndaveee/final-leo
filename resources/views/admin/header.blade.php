@@ -25,7 +25,7 @@
             <a href="{{ route('admin.dashboard') }}">Dashboard</a>
             <a href="{{ route('admin.products.index') }}">Products</a>
             <a href="{{ route('admin.orders') }}">Orders</a>
-            <a href="{{ route('admin.messages') }}">Messages</a>
+            <a href="{{ route('admin.messages') }}">Contact Inquiries</a>
         </nav>
 
         <div class="icons">

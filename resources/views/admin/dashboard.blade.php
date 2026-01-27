@@ -129,6 +129,15 @@
         box-shadow: 0 10px 30px rgba(255, 154, 86, 0.25);
     }
 
+    .stat-card.chats {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.15);
+    }
+
+    .stat-card.chats:hover {
+        box-shadow: 0 10px 30px rgba(52, 211, 153, 0.25);
+    }
+
     .stat-card.revenue {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
@@ -238,14 +247,21 @@
         <p>Registered Users</p>
     </a>
 
-    {{-- Card 6: Customer Messages --}}
+    {{-- Card 6: Contact Inquiries --}}
     <a href="{{ route('admin.messages') }}" class="stat-card messages" style="text-decoration: none; color: white;">
         <i class="fas fa-envelope icon"></i>
         <h3>{{ $number_of_messages }}</h3>
-        <p>Customer Messages</p>
+        <p>Contact Inquiries</p>
     </a>
 
-    {{-- Card 7: Total Revenue --}}
+    {{-- Card 7: Live Chats --}}
+    <a href="{{ route('admin.chats.index') }}" class="stat-card chats" style="text-decoration: none; color: white;">
+        <i class="fas fa-comments icon"></i>
+        <h3>{{ $number_of_chats }}</h3>
+        <p>Live Chats</p>
+    </a>
+
+    {{-- Card 8: Total Revenue --}}
     <div class="stat-card revenue">
         <i class="fas fa-dollar-sign icon"></i>
         <h3>₱{{ number_format($total_sales) }}/-</h3>

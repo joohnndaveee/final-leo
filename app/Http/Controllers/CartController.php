@@ -36,14 +36,31 @@ class CartController extends Controller
         // Get product details
         $product = Product::findOrFail($productId);
 
+        // Check if product is in stock
+        if ($product->stock <= 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sorry, this product is out of stock!'
+            ], 400);
+        }
+
         // Check if item already exists in user's cart
         $cartItem = Cart::where('user_id', $userId)
                        ->where('pid', $productId)
                        ->first();
 
         if ($cartItem) {
-            // Item exists, increment quantity
-            $cartItem->quantity += $quantity;
+            // Item exists, check if requested quantity exceeds stock
+            $newQuantity = $cartItem->quantity + $quantity;
+            if ($newQuantity > $product->stock) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Only {$product->stock} items available in stock!"
+                ], 400);
+            }
+            
+            // Increment quantity
+            $cartItem->quantity = $newQuantity;
             $cartItem->save();
 
             return response()->json([
@@ -53,6 +70,14 @@ class CartController extends Controller
                 'cart_count' => Cart::where('user_id', $userId)->sum('quantity')
             ]);
         } else {
+            // Check if requested quantity exceeds stock
+            if ($quantity > $product->stock) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Only {$product->stock} items available in stock!"
+                ], 400);
+            }
+            
             // Item doesn't exist, create new cart entry
             Cart::create([
                 'user_id' => $userId,
@@ -126,6 +151,17 @@ class CartController extends Controller
         $cartItem = Cart::where('id', $id)
                        ->where('user_id', Auth::id())
                        ->firstOrFail();
+
+        // Get product to check stock
+        $product = Product::findOrFail($cartItem->pid);
+
+        // Check if requested quantity exceeds stock
+        if ($request->quantity > $product->stock) {
+            return response()->json([
+                'success' => false,
+                'message' => "Only {$product->stock} items available in stock!"
+            ], 400);
+        }
 
         $cartItem->quantity = $request->quantity;
         $cartItem->save();

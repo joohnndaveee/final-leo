@@ -10,6 +10,8 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\UserProfileController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ChatController;
+use App\Http\Controllers\Admin\ChatController as AdminChatController;
 
 // Home route
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -50,6 +52,13 @@ Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 Route::post('/order/place', [OrderController::class, 'placeOrder'])->name('order.place');
 Route::get('/order/thank-you/{orderId}', [OrderController::class, 'thankYou'])->name('order.thankyou');
 
+// Chat routes (user side - requires authentication)
+Route::middleware('auth')->group(function () {
+    Route::get('/chat', [ChatController::class, 'index'])->name('chat');
+    Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.getMessages');
+});
+
 // Admin routes
 Route::get('/admin/login', [AdminController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.post');
@@ -61,6 +70,9 @@ Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users
 Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
 Route::get('/admin/messages', [AdminController::class, 'messages'])->name('admin.messages');
 Route::delete('/admin/messages/{id}', [AdminController::class, 'deleteMessage'])->name('admin.messages.delete');
+Route::post('/admin/messages/{id}/mark-read', [AdminController::class, 'markMessageAsRead'])->name('admin.messages.markRead');
+Route::post('/admin/messages/bulk-delete', [AdminController::class, 'bulkDeleteMessages'])->name('admin.messages.bulkDelete');
+Route::get('/admin/messages/export', [AdminController::class, 'exportMessages'])->name('admin.messages.export');
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
 // Admin Product Management routes
@@ -71,3 +83,19 @@ Route::prefix('admin')->group(function () {
     Route::post('/products/{id}', [ProductController::class, 'update'])->name('admin.products.update');
     Route::get('/products/{id}/delete', [ProductController::class, 'destroy'])->name('admin.products.destroy');
 });
+
+// Admin Chat routes
+Route::prefix('admin')->group(function () {
+    Route::get('/chats', [AdminChatController::class, 'index'])->name('admin.chats.index');
+    Route::get('/chats/{userId}', [AdminChatController::class, 'show'])->name('admin.chats.show');
+    Route::post('/chats/{userId}/reply', [AdminChatController::class, 'reply'])->name('admin.chats.reply');
+    Route::get('/chats/{userId}/messages', [AdminChatController::class, 'getMessages'])->name('admin.chats.getMessages');
+    Route::delete('/chats/{userId}', [AdminChatController::class, 'destroy'])->name('admin.chats.destroy');
+});
+
+// Review routes
+Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+Route::get('/reviews/product/{productId}', [App\Http\Controllers\ReviewController::class, 'getProductReviews'])->name('reviews.product');
+
+// Product Detail route
+Route::get('/product/{id}', [App\Http\Controllers\ProductDetailController::class, 'show'])->name('product.detail');

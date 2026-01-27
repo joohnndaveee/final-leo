@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'U-KAY HUB - Online Shop')</title>
 
     <!-- Favicon -->
@@ -469,6 +470,11 @@
         <p>&copy; {{ date('Y') }} <span>U-KAY HUB</span> by 4in1 Tech. All Rights Reserved.</p>
     </div>
 </footer>
+
+{{-- Floating Chat Widget (Only for logged-in users) --}}
+@if(Auth::check())
+    @include('components.chat-widget')
+@endif
 
 {{-- Scripts --}}
 <script src="{{ asset('js/script.js') }}"></script>

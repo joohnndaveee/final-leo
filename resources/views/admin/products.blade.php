@@ -196,6 +196,25 @@
         border-radius: 0.5rem;
     }
 
+    .product-card .stock-badge {
+        font-weight: 600;
+    }
+
+    .product-card .stock-badge.in-stock {
+        background: #d4edda !important;
+        color: #155724 !important;
+    }
+
+    .product-card .stock-badge.low-stock {
+        background: #fff3cd !important;
+        color: #856404 !important;
+    }
+
+    .product-card .stock-badge.out-of-stock {
+        background: #f8d7da !important;
+        color: #721c24 !important;
+    }
+
     .product-card .card-actions {
         display: flex;
         gap: 1rem;
@@ -338,6 +357,17 @@
                 </select>
             </div>
 
+            {{-- Row 3: Stock --}}
+            <div class="input-group">
+                <label>Stock Quantity <span class="required">*</span></label>
+                <input type="number" 
+                       name="stock" 
+                       required 
+                       min="0" 
+                       max="999999"
+                       placeholder="Enter stock quantity"
+                       value="{{ old('stock', 0) }}">
+            </div>
 
             {{-- Row 4: Images --}}
             <div class="input-group">
@@ -399,11 +429,21 @@
                         <div class="product-name">{{ $product->name }}</div>
                         <div class="product-details">{{ $product->details }}</div>
                         
-                        @if($product->type)
-                            <div class="product-meta">
-                                @if($product->type)<span><i class="fas fa-tag"></i> {{ $product->type }}</span>@endif
-                            </div>
-                        @endif
+                        <div class="product-meta">
+                            @if($product->type)
+                                <span><i class="fas fa-tag"></i> {{ $product->type }}</span>
+                            @endif
+                            <span class="stock-badge {{ $product->stock <= 0 ? 'out-of-stock' : ($product->stock <= 10 ? 'low-stock' : 'in-stock') }}">
+                                <i class="fas fa-box"></i> 
+                                @if($product->stock <= 0)
+                                    Out of Stock
+                                @elseif($product->stock <= 10)
+                                    Low Stock ({{ $product->stock }})
+                                @else
+                                    In Stock ({{ $product->stock }})
+                                @endif
+                            </span>
+                        </div>
                         
                         <div class="card-actions">
                             <a href="{{ route('admin.products.edit', $product->id) }}" class="btn-update">

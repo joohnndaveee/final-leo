@@ -179,6 +179,8 @@
         display: flex;
         flex-direction: column;
         height: 100%;
+        cursor: pointer;
+        position: relative;
     }
 
     .product-card:hover {
@@ -194,6 +196,22 @@
         margin-bottom: 1.5rem;
         border-radius: 0.5rem;
         background: rgba(245, 245, 245, 0.5);
+    }
+
+    .product-rating {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        font-size: 1.4rem;
+    }
+
+    .product-rating .stars {
+        color: #ffd700;
+    }
+
+    .product-rating .rating-text {
+        color: #666;
     }
 
     .product-card .product-name {
@@ -265,6 +283,41 @@
     .product-card .btn-add-cart:hover {
         background: var(--black);
         transform: translateY(-2px);
+    }
+
+    /* Out of Stock Badge */
+    .out-of-stock-badge {
+        width: 100%;
+        background: #f8d7da;
+        color: #721c24;
+        padding: 1.2rem 2rem;
+        border-radius: 0.5rem;
+        font-size: 1.7rem;
+        text-align: center;
+        font-weight: 600;
+        border: 2px solid #f5c6cb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.8rem;
+        margin-top: auto;
+    }
+
+    /* Low Stock Warning */
+    .low-stock-warning {
+        background: #fff3cd;
+        color: #856404;
+        padding: 0.8rem 1.2rem;
+        border-radius: 0.5rem;
+        font-size: 1.4rem;
+        text-align: center;
+        font-weight: 600;
+        border: 1px solid #ffeaa7;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
     }
 
     /* Empty State */
@@ -466,7 +519,11 @@
         {{-- Products Grid --}}
         <div class="products-grid">
             @foreach($products as $product)
-                <div class="product-card">
+                @php
+                    $averageRating = $product->reviews()->avg('rating') ?? 0;
+                    $totalReviews = $product->reviews()->count();
+                @endphp
+                <div class="product-card" onclick="window.location.href='{{ route('product.detail', $product->id) }}'">
                     {{-- Product Image --}}
                     <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
                          alt="{{ $product->name }}" 
@@ -476,6 +533,26 @@
 
                     {{-- Product Name --}}
                     <span class="product-name">{{ $product->name }}</span>
+
+                    {{-- Product Rating --}}
+                    <div class="product-rating">
+                        <span class="stars">
+                            @for($i = 1; $i <= 5; $i++)
+                                @if($i <= round($averageRating))
+                                    ★
+                                @else
+                                    ☆
+                                @endif
+                            @endfor
+                        </span>
+                        <span class="rating-text">
+                            @if($totalReviews > 0)
+                                {{ number_format($averageRating, 1) }} ({{ $totalReviews }})
+                            @else
+                                No reviews yet
+                            @endif
+                        </span>
+                    </div>
 
                     {{-- Product Details --}}
                     @if($product->details)
@@ -495,17 +572,31 @@
                     {{-- Product Price --}}
                     <div class="product-price">₱{{ number_format($product->price, 2) }}</div>
 
-                    {{-- Add to Cart Button --}}
-                    <form action="#" method="POST">
-                        @csrf
-                        <input type="hidden" name="pid" value="{{ $product->id }}">
-                        <input type="hidden" name="name" value="{{ $product->name }}">
-                        <input type="hidden" name="price" value="{{ $product->price }}">
-                        <input type="hidden" name="image" value="{{ $product->image_01 }}">
-                        <button type="submit" class="btn-add-cart">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </form>
+                    {{-- Stock Status & Add to Cart Button --}}
+                    @php
+                        $stock = $product->stock ?? 0;
+                    @endphp
+                    @if($stock <= 0)
+                        <div class="out-of-stock-badge">
+                            <i class="fas fa-times-circle"></i> Out of Stock
+                        </div>
+                    @else
+                        @if($stock <= 10)
+                            <div class="low-stock-warning">
+                                <i class="fas fa-exclamation-triangle"></i> Only {{ $stock }} left!
+                            </div>
+                        @endif
+                        <form action="#" method="POST" onclick="event.stopPropagation();">
+                            @csrf
+                            <input type="hidden" name="pid" value="{{ $product->id }}">
+                            <input type="hidden" name="name" value="{{ $product->name }}">
+                            <input type="hidden" name="price" value="{{ $product->price }}">
+                            <input type="hidden" name="image" value="{{ $product->image_01 }}">
+                            <button type="submit" class="btn-add-cart">
+                                <i class="fas fa-shopping-cart"></i> Add to Cart
+                            </button>
+                        </form>
+                    @endif
                 </div>
             @endforeach
         </div>

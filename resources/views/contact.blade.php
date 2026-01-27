@@ -103,6 +103,12 @@
         box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
     }
 
+    .form-group input:disabled {
+        background: #f0f0f0;
+        cursor: not-allowed;
+        color: #666;
+    }
+
     .form-group textarea {
         resize: vertical;
         min-height: 150px;
@@ -286,13 +292,23 @@
                     {{-- Name Field --}}
                     <div class="form-group">
                         <label for="name">Your Name <span style="color: red;">*</span></label>
-                        <input type="text" id="name" name="name" placeholder="Enter your name" required>
+                        <input type="text" id="name" name="name" placeholder="Enter your name" 
+                               value="{{ Auth::check() ? Auth::user()->name : '' }}" 
+                               {{ Auth::check() ? 'disabled' : '' }} required>
+                        @if(Auth::check())
+                            <input type="hidden" name="name" value="{{ Auth::user()->name }}">
+                        @endif
                     </div>
 
                     {{-- Email Field --}}
                     <div class="form-group">
                         <label for="email">Your Email <span style="color: red;">*</span></label>
-                        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                        <input type="email" id="email" name="email" placeholder="Enter your email" 
+                               value="{{ Auth::check() ? Auth::user()->email : '' }}" 
+                               {{ Auth::check() ? 'disabled' : '' }} required>
+                        @if(Auth::check())
+                            <input type="hidden" name="email" value="{{ Auth::user()->email }}">
+                        @endif
                     </div>
 
                     {{-- Subject Field --}}

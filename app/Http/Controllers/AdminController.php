@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Models\Admin;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use App\Models\Message;
+use App\Models\Chat;
 
 class AdminController extends Controller
 {
@@ -89,6 +91,9 @@ class AdminController extends Controller
         // 6. Customer Messages - Count of all messages
         $number_of_messages = Message::count();
 
+        // 7. Live Chats - Count of unique user conversations
+        $number_of_chats = Chat::select('user_id')->distinct()->count();
+
         // Get admin info
         $admin = Auth::guard('admin')->user();
 
@@ -99,6 +104,7 @@ class AdminController extends Controller
             'number_of_products',
             'number_of_users',
             'number_of_messages',
+            'number_of_chats',
             'admin'
         ));
     }
@@ -230,9 +236,9 @@ class AdminController extends Controller
     }
 
     /**
-     * Display all messages
+     * Display all messages with filtering and search
      */
-    public function messages()
+    public function messages(Request $request)
     {
         // Check if admin is logged in
         if (!Auth::guard('admin')->check()) {
@@ -240,9 +246,42 @@ class AdminController extends Controller
                            ->with('error', 'Please login to access admin panel!');
         }
 
-        $messages = Message::orderBy('created_at', 'desc')->get();
+        $query = Message::query();
+
+        // Search functionality
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+
+        // Status filter
+        if ($request->filled('status')) {
+            $query->status($request->status);
+        }
+
+        // Date filter
+        if ($request->filled('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+
+        if ($request->filled('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Sort
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $messages = $query->paginate(10);
+
+        // Statistics
+        $stats = [
+            'total' => Message::count(),
+            'unread' => Message::where('status', 'unread')->count(),
+            'read' => Message::where('status', 'read')->count(),
+        ];
         
-        return view('admin.messages', compact('messages'));
+        return view('admin.messages', compact('messages', 'stats'));
     }
 
     /**
@@ -273,6 +312,115 @@ class AdminController extends Controller
             'status' => 'success',
             'message' => 'Message deleted successfully!'
         ]);
+    }
+
+    /**
+     * Mark message as read
+     */
+    public function markMessageAsRead($id)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $message = Message::find($id);
+
+        if (!$message) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Message not found!'
+            ], 404);
+        }
+
+        $message->markAsRead();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Message marked as read!'
+        ]);
+    }
+
+    /**
+     * Bulk delete messages
+     */
+    public function bulkDeleteMessages(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'exists:messages,id'
+        ]);
+
+        Message::whereIn('id', $request->ids)->delete();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => count($request->ids) . ' message(s) deleted successfully!'
+        ]);
+    }
+
+    /**
+     * Export messages to CSV
+     */
+    public function exportMessages(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login');
+        }
+
+        $query = Message::query();
+
+        // Apply same filters as the messages page
+        if ($request->filled('status')) {
+            $query->status($request->status);
+        }
+
+        if ($request->filled('search')) {
+            $query->search($request->search);
+        }
+
+        $messages = $query->orderBy('created_at', 'desc')->get();
+
+        $filename = 'contact_inquiries_' . date('Y-m-d_His') . '.csv';
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        $callback = function() use ($messages) {
+            $file = fopen('php://output', 'w');
+            
+            // Add CSV headers
+            fputcsv($file, ['ID', 'Name', 'Email', 'Subject', 'Message', 'Status', 'Created At', 'Read At']);
+            
+            // Add data
+            foreach ($messages as $message) {
+                fputcsv($file, [
+                    $message->id,
+                    $message->name,
+                    $message->email,
+                    $message->subject,
+                    $message->message,
+                    ucfirst($message->status),
+                    $message->created_at->format('Y-m-d H:i:s'),
+                    $message->read_at ? $message->read_at->format('Y-m-d H:i:s') : ''
+                ]);
+            }
+            
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 
     /**

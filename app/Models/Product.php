@@ -18,9 +18,34 @@ class Product extends Model
         'image_02',
         'image_03',
         'size',
-        'color'
+        'color',
+        'stock'
     ];
 
     // Ensure guarded is empty
     protected $guarded = [];
+
+    /**
+     * Get reviews for this product
+     */
+    public function reviews()
+    {
+        return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Get average rating for this product
+     */
+    public function averageRating()
+    {
+        return $this->reviews()->avg('rating') ?? 0;
+    }
+
+    /**
+     * Get total reviews count
+     */
+    public function reviewsCount()
+    {
+        return $this->reviews()->count();
+    }
 }
