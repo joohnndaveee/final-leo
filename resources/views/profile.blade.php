@@ -218,9 +218,10 @@
                     <input type="password" id="new_password_confirmation" name="new_password_confirmation" placeholder="Confirm your new password">
                 </div>
             </div>
-
             <button type="submit" class="update-btn">Update Profile</button>
         </form>
     </div>
+
+    {{-- Seller section removed: sellers now have a dedicated seller/login page --}}
 </section>
 @endsection

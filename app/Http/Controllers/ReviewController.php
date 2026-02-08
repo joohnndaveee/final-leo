@@ -34,7 +34,10 @@ class ReviewController extends Controller
         // Verify the order belongs to the user and is completed
         $order = Order::where('id', $request->order_id)
                       ->where('user_id', Auth::id())
-                      ->whereIn('payment_status', ['completed', 'complete', 'delivered'])
+                      ->where(function ($q) {
+                          $q->whereIn('payment_status', ['completed', 'complete', 'delivered'])
+                            ->orWhereIn('status', ['delivered', 'paid']);
+                      })
                       ->first();
 
         if (!$order) {

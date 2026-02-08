@@ -8,6 +8,7 @@ class Chat extends Model
 {
     protected $fillable = [
         'user_id',
+        'order_id',
         'message',
         'sender_type',
         'is_read',
@@ -25,5 +26,13 @@ class Chat extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Optional order that the message is about.
+     */
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
     }
 }

@@ -318,7 +318,10 @@
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
                 'Accept': 'application/json',
             },
-            body: JSON.stringify({ message: message })
+            body: JSON.stringify({ 
+                message: message,
+                order_id: document.getElementById('orderSelect')?.value || null,
+            })
         })
         .then(response => response.json())
         .then(data => {
@@ -395,11 +398,13 @@
                 hour12: true
             });
 
+            const orderTag = msg.order_id ? `<div style="font-size:1.2rem;color:#555;margin-bottom:0.4rem;">Order #${msg.order_id}</div>` : '';
+
             if (msg.sender_type === 'user') {
                 return `
                     <div class="message-wrapper user">
                         <div>
-                            <div class="chat-bubble">${escapeHtml(msg.message)}</div>
+                            <div class="chat-bubble">${orderTag}${escapeHtml(msg.message)}</div>
                             <div class="message-time">${formattedDate}</div>
                         </div>
                     </div>
@@ -411,7 +416,7 @@
                             <i class="fas fa-user-shield"></i>
                         </div>
                         <div>
-                            <div class="chat-bubble">${escapeHtml(msg.message)}</div>
+                            <div class="chat-bubble">${orderTag}${escapeHtml(msg.message)}</div>
                             <div class="message-time">${formattedDate}</div>
                         </div>
                     </div>

@@ -35,54 +35,17 @@ class ProductController extends Controller
 
     /**
      * Store a newly created product in storage
+     *
+     * Note: Admin product creation is disabled; use seller accounts to add products.
      */
     public function store(Request $request)
     {
         $authCheck = $this->checkAuth();
         if ($authCheck) return $authCheck;
 
-        // Validate the request
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0|max:9999999999',
-            'details' => 'required|string|max:500',
-            'type' => 'nullable|string|max:255',
-            'stock' => 'required|integer|min:0|max:999999',
-            'image_01' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_02' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_03' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
-
-        try {
-            // Handle image uploads
-            $image01Name = time() . '_1_' . $request->file('image_01')->getClientOriginalName();
-            $image02Name = time() . '_2_' . $request->file('image_02')->getClientOriginalName();
-            $image03Name = time() . '_3_' . $request->file('image_03')->getClientOriginalName();
-
-            // Move images to public/uploaded_img
-            $request->file('image_01')->move(public_path('uploaded_img'), $image01Name);
-            $request->file('image_02')->move(public_path('uploaded_img'), $image02Name);
-            $request->file('image_03')->move(public_path('uploaded_img'), $image03Name);
-
-            // Create the product
-            Product::create([
-                'name' => $request->name,
-                'price' => $request->price,
-                'details' => $request->details,
-                'type' => $request->type ?? '',
-                'stock' => $request->stock,
-                'image_01' => $image01Name,
-                'image_02' => $image02Name,
-                'image_03' => $image03Name,
-            ]);
-
-            return redirect()->route('admin.products.index')
-                           ->with('success', 'New product added!');
-        } catch (\Exception $e) {
-            return back()
-                ->withErrors(['error' => 'Failed to add product: ' . $e->getMessage()])
-                ->withInput();
-        }
+        return redirect()
+            ->route('admin.products.index')
+            ->withErrors(['error' => 'Admin product creation is disabled. Please use a seller account to add products.']);
     }
 
     /**

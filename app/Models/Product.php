@@ -10,6 +10,7 @@ class Product extends Model
     public $timestamps = false;
 
     protected $fillable = [
+        'seller_id',
         'name',
         'details',
         'price',
@@ -31,6 +32,14 @@ class Product extends Model
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    /**
+     * Seller that owns the product.
+     */
+    public function seller()
+    {
+        return $this->belongsTo(User::class, 'seller_id');
     }
 
     /**

@@ -380,8 +380,13 @@
 
         {{-- User Profile Dropdown --}}
         <div class="profile">
-            @auth
-                <p>{{ Auth::user()->name }}</p>
+            @php
+                $webUser = Auth::user();
+                $isSeller = $webUser && (($webUser->role ?? 'buyer') === 'seller');
+            @endphp
+
+            @if($webUser && !$isSeller)
+                <p>{{ $webUser->name }}</p>
                 <a href="{{ route('profile.edit') }}" class="btn">Update Profile</a>
                 <a href="{{ route('orders') }}" class="btn">Orders</a>
                 <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
@@ -396,7 +401,7 @@
                     <a href="{{ route('register') }}" class="option-btn">Register</a>
                     <a href="{{ route('login') }}" class="option-btn">Login</a>
                 </div>
-            @endauth
+            @endif
         </div>
     </section>
 </header>
@@ -441,6 +446,13 @@
                     <li><a href="{{ route('about') }}"><i class="fas fa-angle-right"></i> About Us</a></li>
                     <li><a href="{{ route('shop') }}"><i class="fas fa-angle-right"></i> Shop</a></li>
                     <li><a href="{{ route('contact') }}"><i class="fas fa-angle-right"></i> Contact</a></li>
+                    @if(request()->routeIs('home'))
+                        <li>
+                            <a href="{{ route('seller.register') }}">
+                                <i class="fas fa-angle-right"></i> Become a Seller
+                            </a>
+                        </li>
+                    @endif
                 </ul>
             </div>
 

@@ -397,33 +397,21 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.products.index') }}" class="{{ request()->routeIs('admin.products.*') ? 'active' : '' }}">
-                        <i class="fas fa-box"></i>
-                        <span>Products</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.orders') }}" class="{{ request()->routeIs('admin.orders*') ? 'active' : '' }}">
-                        <i class="fas fa-shopping-bag"></i>
-                        <span>Orders</span>
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('admin.users') }}" class="{{ request()->routeIs('admin.users*') ? 'active' : '' }}">
-                        <i class="fas fa-users"></i>
+                        <i class="fas fa-user"></i>
                         <span>Users</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.chats.index') }}" class="{{ request()->routeIs('admin.chats*') ? 'active' : '' }}">
-                        <i class="fas fa-comments"></i>
-                        <span>Live Chats</span>
+                    <a href="{{ route('admin.sellers') }}" class="{{ request()->routeIs('admin.sellers*') ? 'active' : '' }}">
+                        <i class="fas fa-store"></i>
+                        <span>Sellers</span>
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.messages') }}" class="{{ request()->routeIs('admin.messages*') ? 'active' : '' }}">
-                        <i class="fas fa-envelope"></i>
-                        <span>Contact Inquiries</span>
+                    <a href="{{ route('admin.messages') }}" class="{{ request()->routeIs('admin.messages*') || request()->routeIs('admin.chats*') ? 'active' : '' }}">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <span>Messages</span>
                     </a>
                 </li>
                 <li>

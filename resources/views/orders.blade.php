@@ -106,10 +106,18 @@
 
     .status-complete,
     .status-completed,
+    .status-paid,
+    .status-shipped,
     .status-delivered {
         background: #d4edda;
         color: #155724;
         border: 1px solid #28a745;
+    }
+
+    .status-refunded {
+        background: #e8f4fd;
+        color: #0c5460;
+        border: 1px solid #17a2b8;
     }
 
     .status-cancelled {
@@ -258,10 +266,16 @@
 
                         <div class="order-detail-item">
                             <span class="detail-label">Status</span>
-                            <span class="status-badge status-{{ strtolower($order->payment_status) }}">
-                                {{ $order->payment_status }}
+                            <span class="status-badge status-{{ strtolower($order->status ?? $order->payment_status) }}">
+                                {{ strtoupper($order->status ?? $order->payment_status) }}
                             </span>
                         </div>
+                        @if($order->tracking_number)
+                            <div class="order-detail-item">
+                                <span class="detail-label">Tracking</span>
+                                <span class="detail-value">{{ $order->tracking_number }} ({{ $order->shipping_method }})</span>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="order-actions">

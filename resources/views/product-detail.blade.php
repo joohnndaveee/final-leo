@@ -3,6 +3,9 @@
 @section('title', $product->name . ' - U-KAY HUB')
 
 @push('styles')
+<!-- SweetAlert2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
 <style>
     .product-detail-section {
         padding: 2rem;
@@ -455,7 +458,7 @@
             </div>
             @endif
 
-            <form action="{{ route('cart.add') }}" method="POST">
+            <form id="add-to-cart-form" action="{{ route('cart.add') }}" method="POST">
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 <input type="hidden" name="product_name" value="{{ $product->name }}">
@@ -547,17 +550,114 @@
 </section>
 
 @push('scripts')
+<!-- SweetAlert2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
-function changeImage(element) {
-    // Update main image
-    document.getElementById('mainImage').src = element.src;
-    
-    // Update active thumbnail
-    document.querySelectorAll('.thumbnail').forEach(thumb => {
-        thumb.classList.remove('active');
+    // Function to change the main product image when a thumbnail is clicked
+    function changeImage(element) {
+        // Update main image source
+        document.getElementById('mainImage').src = element.src;
+        
+        // Update the 'active' class on thumbnails
+        document.querySelectorAll('.thumbnail').forEach(thumb => {
+            thumb.classList.remove('active');
+        });
+        element.classList.add('active');
+    }
+
+    // Intercept the 'Add to Cart' form submission
+    document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevent the default form submission
+
+        const form = this;
+        const button = form.querySelector('.add-to-cart-btn');
+        const formData = new FormData(form);
+
+        // Disable button and show loading state
+        button.disabled = true;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+        fetch(form.action, {
+            method: 'POST',
+            headers: {
+                // The 'X-CSRF-TOKEN' is crucial for Laravel's security
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update cart count in the header
+                updateCartCount(data.cart_count);
+
+                // Show a success notification
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added to Cart!',
+                    text: data.message,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                });
+            } else if (data.redirect) {
+                // This handles cases where the user is not logged in
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Login Required',
+                    text: data.message,
+                    showCancelButton: true,
+                    confirmButtonText: 'Login',
+                    cancelButtonText: 'Cancel'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = data.redirect;
+                    }
+                });
+            } else {
+                // Handle other server-side errors (e.g., out of stock)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Action Failed',
+                    text: data.message || 'Could not add item to cart.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Something went wrong. Please try again.',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        })
+        .finally(() => {
+            // Re-enable the button and restore its text
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
+        });
     });
-    element.classList.add('active');
-}
+
+    // Function to update the cart count in the header
+    function updateCartCount(count) {
+        // This selector might need to be adjusted based on your header's HTML structure
+        const cartCountElements = document.querySelectorAll('.header .icons a[href*="cart"] span');
+        cartCountElements.forEach(element => {
+            element.textContent = `(${count})`;
+        });
+    }
 </script>
 @endpush
 @endsection

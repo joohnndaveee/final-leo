@@ -249,7 +249,6 @@
                         <th>Phone</th>
                         <th>Address</th>
                         <th>Registered Date</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -303,13 +302,6 @@
                                         <span class="badge-missing">N/A</span>
                                     @endif
                                 </div>
-                            </td>
-
-                            {{-- Actions --}}
-                            <td>
-                                <button class="btn-delete-user" onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')">
-                                    <i class="fas fa-trash"></i> Delete
-                                </button>
                             </td>
                         </tr>
                     @endforeach
@@ -412,6 +404,38 @@
                         confirmButtonColor: '#4caf50'
                     });
                 });
+            }
+        });
+    }
+
+    function updateUserRole(userId, role, sellerStatus) {
+        fetch(`/admin/users/${userId}/role`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role, seller_status: sellerStatus })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                Swal.fire({ icon: 'success', title: 'Role updated', timer: 1200, showConfirmButton: false });
+            }
+        });
+    }
+
+    function updateUserSellerStatus(userId, sellerStatus, role) {
+        fetch(`/admin/users/${userId}/role`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ role, seller_status: sellerStatus })
+        }).then(res => res.json()).then(data => {
+            if (data.status === 'success') {
+                Swal.fire({ icon: 'success', title: 'Seller status updated', timer: 1200, showConfirmButton: false });
             }
         });
     }

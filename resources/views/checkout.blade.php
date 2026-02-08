@@ -242,6 +242,22 @@
                     <textarea id="address" name="address" placeholder="House/Unit No., Street, Barangay, City, Province" required>{{ Auth::user()->address ?? '' }}</textarea>
                 </div>
 
+                <div class="form-group">
+                    <label for="shipping_method">Shipping Method</label>
+                    <select id="shipping_method" name="shipping_method" style="width:100%;padding:1.2rem;border:2px solid #ddd;border-radius:8px;">
+                        <option value="Standard">Standard (Free)</option>
+                        <option value="Express">Express</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="payment_method">Payment Method</label>
+                    <select id="payment_method" name="payment_method" style="width:100%;padding:1.2rem;border:2px solid #ddd;border-radius:8px;">
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Mock Wallet">Mock Wallet</option>
+                    </select>
+                </div>
+
                 <button type="submit" class="place-order-btn" id="place-order-btn">
                     Place Order (Cash on Delivery)
                 </button>

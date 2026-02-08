@@ -304,14 +304,20 @@
             </div>
             <div class="info-row">
                 <span class="info-label">Status:</span>
-                <span class="status-badge status-{{ strtolower($order->payment_status) }}">
-                    {{ $order->payment_status }}
+                <span class="status-badge status-{{ strtolower($order->status ?? $order->payment_status) }}">
+                    {{ strtoupper($order->status ?? $order->payment_status) }}
                 </span>
             </div>
             <div class="info-row">
                 <span class="info-label">Payment Method:</span>
                 <span class="info-value">{{ $order->method }}</span>
             </div>
+            @if($order->tracking_number)
+                <div class="info-row">
+                    <span class="info-label">Tracking #:</span>
+                    <span class="info-value">{{ $order->tracking_number }} ({{ $order->shipping_method }})</span>
+                </div>
+            @endif
         </div>
 
         <!-- Delivery Information -->
@@ -341,7 +347,8 @@
         <h2>Products Ordered</h2>
         @foreach($order->orderItems as $item)
             @php
-                $isCompleted = in_array(strtolower($order->payment_status), ['completed', 'complete', 'delivered']);
+                $statusValue = strtolower($order->status ?? $order->payment_status);
+                $isCompleted = in_array($statusValue, ['completed', 'complete', 'delivered', 'paid']);
                 $hasReviewed = false;
                 if (Auth::check()) {
                     $hasReviewed = \App\Models\Review::where('user_id', Auth::id())

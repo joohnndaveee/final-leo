@@ -19,7 +19,15 @@ class Order extends Model
         'total_products',
         'total_price',
         'placed_on',
-        'payment_status'
+        'payment_status',
+        'status',
+        'payment_reference',
+        'shipping_method',
+        'shipping_fee',
+        'tracking_number',
+        'shipped_at',
+        'delivered_at',
+        'cancelled_at',
     ];
 
     /**

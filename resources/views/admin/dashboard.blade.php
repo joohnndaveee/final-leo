@@ -111,15 +111,6 @@
         box-shadow: 0 10px 30px rgba(48, 207, 208, 0.25);
     }
 
-    .stat-card.admins {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        box-shadow: 0 4px 15px rgba(168, 237, 234, 0.15);
-    }
-
-    .stat-card.admins:hover {
-        box-shadow: 0 10px 30px rgba(168, 237, 234, 0.25);
-    }
-
     .stat-card.messages {
         background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);
         box-shadow: 0 4px 15px rgba(255, 154, 86, 0.15);
@@ -127,15 +118,6 @@
 
     .stat-card.messages:hover {
         box-shadow: 0 10px 30px rgba(255, 154, 86, 0.25);
-    }
-
-    .stat-card.chats {
-        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-        box-shadow: 0 4px 15px rgba(52, 211, 153, 0.15);
-    }
-
-    .stat-card.chats:hover {
-        box-shadow: 0 10px 30px rgba(52, 211, 153, 0.25);
     }
 
     .stat-card.revenue {
@@ -210,36 +192,36 @@
 {{-- Stats Grid - 4x2 Layout --}}
 <div class="stats-container">
     
-    {{-- Row 1 --}}
-    {{-- Card 1: Pending Orders --}}
-    <a href="{{ route('admin.orders') }}?status=pending" class="stat-card pending" style="text-decoration: none; color: white;">
+    {{-- Row 1: Orders & Revenue --}}
+    {{-- Card 1: Pending Orders (read-only, no orders route) --}}
+    <div class="stat-card pending">
         <i class="fas fa-clock icon"></i>
         <h3>{{ $pending_orders }}</h3>
         <p>Pending Orders</p>
-    </a>
+    </div>
 
-    {{-- Card 2: Total Sales (Completed) --}}
+    {{-- Card 2: Total Revenue (Completed) --}}
     <div class="stat-card completed">
         <i class="fas fa-check-circle icon"></i>
         <h3>₱{{ number_format($total_sales) }}/-</h3>
-        <p>Total Sales</p>
+        <p>Total Revenue</p>
     </div>
 
-    {{-- Card 3: Orders Placed --}}
-    <a href="{{ route('admin.orders') }}" class="stat-card orders" style="text-decoration: none; color: white;">
+    {{-- Card 3: Total Orders (read-only, no orders route) --}}
+    <div class="stat-card orders">
         <i class="fas fa-shopping-bag icon"></i>
         <h3>{{ $number_of_orders }}</h3>
-        <p>Orders Placed</p>
-    </a>
+        <p>Total Orders</p>
+    </div>
 
-    {{-- Card 4: Products Added --}}
+    {{-- Card 4: Products in Catalog --}}
     <a href="{{ route('admin.products.index') }}" class="stat-card products" style="text-decoration: none; color: white;">
         <i class="fas fa-box icon"></i>
         <h3>{{ $number_of_products }}</h3>
         <p>Products Added</p>
     </a>
 
-    {{-- Row 2 --}}
+    {{-- Row 2: Users, Sellers & Messages --}}
     {{-- Card 5: Registered Users --}}
     <a href="{{ route('admin.users') }}" class="stat-card users" style="text-decoration: none; color: white;">
         <i class="fas fa-users icon"></i>
@@ -247,25 +229,25 @@
         <p>Registered Users</p>
     </a>
 
-    {{-- Card 6: Contact Inquiries --}}
-    <a href="{{ route('admin.messages') }}" class="stat-card messages" style="text-decoration: none; color: white;">
-        <i class="fas fa-envelope icon"></i>
-        <h3>{{ $number_of_messages }}</h3>
-        <p>Contact Inquiries</p>
+    {{-- Card 6: Total Sellers --}}
+    <a href="{{ route('admin.users') }}#sellers" class="stat-card messages" style="text-decoration: none; color: white;">
+        <i class="fas fa-store icon"></i>
+        <h3>{{ $total_sellers }}</h3>
+        <p>Total Sellers</p>
     </a>
 
-    {{-- Card 7: Live Chats --}}
-    <a href="{{ route('admin.chats.index') }}" class="stat-card chats" style="text-decoration: none; color: white;">
-        <i class="fas fa-comments icon"></i>
-        <h3>{{ $number_of_chats }}</h3>
-        <p>Live Chats</p>
+    {{-- Card 7: Pending Seller Applications --}}
+    <a href="{{ route('admin.users') }}#sellers" class="stat-card chats" style="text-decoration: none; color: white;">
+        <i class="fas fa-user-clock icon"></i>
+        <h3>{{ $pending_sellers }}</h3>
+        <p>Pending Sellers</p>
     </a>
 
-    {{-- Card 8: Total Revenue --}}
+    {{-- Card 8: Unread Messages --}}
     <div class="stat-card revenue">
-        <i class="fas fa-dollar-sign icon"></i>
-        <h3>₱{{ number_format($total_sales) }}/-</h3>
-        <p>Total Revenue</p>
+        <i class="fas fa-envelope-open icon"></i>
+        <h3>{{ $unread_messages }}</h3>
+        <p>Unread Messages</p>
     </div>
 
 </div>

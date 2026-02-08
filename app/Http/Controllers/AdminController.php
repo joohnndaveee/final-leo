@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Models\Message;
 use App\Models\Chat;
+use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
 {
@@ -88,10 +89,17 @@ class AdminController extends Controller
         // 5. Registered Users - Count of all users
         $number_of_users = User::count();
 
-        // 6. Customer Messages - Count of all messages
-        $number_of_messages = Message::count();
+        // Seller metrics (based on seller_status)
+        $total_sellers = User::whereNotNull('seller_status')->count();
+        $pending_sellers = User::where('seller_status', 'pending')->count();
+        $approved_sellers = User::where('seller_status', 'approved')->count();
+        $rejected_sellers = User::where('seller_status', 'rejected')->count();
 
-        // 7. Live Chats - Count of unique user conversations
+        // 6. Customer Messages - Count of all messages and unread
+        $number_of_messages = Message::count();
+        $unread_messages = Message::where('status', 'unread')->count();
+
+        // 7. Live Chats - Count of unique user conversations (kept for reference)
         $number_of_chats = Chat::select('user_id')->distinct()->count();
 
         // Get admin info
@@ -103,7 +111,12 @@ class AdminController extends Controller
             'number_of_orders',
             'number_of_products',
             'number_of_users',
+            'total_sellers',
+            'pending_sellers',
+            'approved_sellers',
+            'rejected_sellers',
             'number_of_messages',
+            'unread_messages',
             'number_of_chats',
             'admin'
         ));
@@ -168,7 +181,7 @@ class AdminController extends Controller
 
         // Validate the status
         $request->validate([
-            'status' => 'required|in:pending,completed,cancelled'
+            'status' => 'required|in:pending,paid,shipped,delivered,cancelled,refunded'
         ]);
 
         $order = Order::find($orderId);
@@ -180,8 +193,30 @@ class AdminController extends Controller
             ], 404);
         }
 
-        $order->payment_status = $request->status;
+        $order->payment_status = in_array($request->status, ['paid', 'shipped', 'delivered']) ? 'completed' : $request->status;
+        $order->status = $request->status;
+
+        if ($request->status === 'shipped') {
+            $order->shipped_at = now();
+        }
+
+        if ($request->status === 'delivered') {
+            $order->delivered_at = now();
+        }
+
+        if ($request->status === 'cancelled') {
+            $order->cancelled_at = now();
+        }
         $order->save();
+
+        if ($order->email) {
+            Mail::raw(
+                "Your order #{$order->id} status updated to {$order->status}.",
+                function ($message) use ($order) {
+                    $message->to($order->email)->subject('Order status updated');
+                }
+            );
+        }
 
         return response()->json([
             'status' => 'success',
@@ -200,9 +235,93 @@ class AdminController extends Controller
                            ->with('error', 'Please login to access admin panel!');
         }
 
-        $users = User::orderBy('created_at', 'desc')->get();
+        // Buyers and non-seller accounts only
+        $users = User::where('role', '!=', 'seller')
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return view('admin.users', compact('users'));
+    }
+
+    /**
+     * Display all sellers
+     */
+    public function sellers()
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->with('error', 'Please login to access admin panel!');
+        }
+
+        // Show all users who have a seller_status (applied or active sellers)
+        $query = User::whereNotNull('seller_status');
+
+        if (request()->filled('status')) {
+            $status = request()->get('status');
+            if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+                $query->where('seller_status', $status);
+            }
+        }
+
+        $sellers = $query->orderBy('created_at', 'desc')->get();
+
+        return view('admin.sellers', compact('sellers'));
+    }
+
+    /**
+     * Show a single seller's application details.
+     */
+    public function showSeller($id)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->with('error', 'Please login to access admin panel!');
+        }
+
+        $seller = User::where('id', $id)->firstOrFail();
+
+        return view('admin.seller_show', compact('seller'));
+    }
+
+    /**
+     * Update a user's role or seller status.
+     */
+    public function updateUserRole(Request $request, $id)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized'
+            ], 401);
+        }
+
+        $request->validate([
+            'role' => 'nullable|in:buyer,seller,admin',
+            'seller_status' => 'nullable|in:pending,approved,rejected',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        // Optional direct role changes (not used by seller status UI)
+        if ($request->filled('role')) {
+            $user->role = $request->role;
+        }
+
+        if ($request->filled('seller_status')) {
+            $user->seller_status = $request->seller_status;
+
+            // If seller is approved, enforce role = seller
+            if ($request->seller_status === 'approved') {
+                $user->role = 'seller';
+            }
+        }
+
+        $user->save();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'User updated',
+        ]);
     }
 
     /**

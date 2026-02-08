@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chat;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,13 +24,15 @@ class ChatController extends Controller
             ->orderBy('created_at', 'asc')
             ->get();
 
+        $orders = Order::where('user_id', Auth::id())->orderByDesc('id')->limit(10)->get();
+
         // Mark admin messages as read
         Chat::where('user_id', Auth::id())
             ->where('sender_type', 'admin')
             ->where('is_read', false)
             ->update(['is_read' => true]);
 
-        return view('chat', compact('messages'));
+        return view('chat', compact('messages', 'orders'));
     }
 
     /**
@@ -43,10 +46,19 @@ class ChatController extends Controller
 
         $request->validate([
             'message' => 'required|string|max:1000',
+            'order_id' => 'nullable|exists:orders,id',
         ]);
+
+        if ($request->filled('order_id')) {
+            $ownsOrder = Order::where('id', $request->order_id)->where('user_id', Auth::id())->exists();
+            if (!$ownsOrder) {
+                return response()->json(['success' => false, 'message' => 'Invalid order reference'], 403);
+            }
+        }
 
         $chat = Chat::create([
             'user_id' => Auth::id(),
+            'order_id' => $request->order_id,
             'message' => $request->message,
             'sender_type' => 'user',
             'is_read' => false,

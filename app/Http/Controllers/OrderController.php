@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\MockPaymentService;
 
 class OrderController extends Controller
 {
@@ -49,11 +51,13 @@ class OrderController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:500',
-            'phone' => 'required|string|max:20'
+            'phone' => 'required|string|max:20',
+            'shipping_method' => 'nullable|string|max:100',
+            'payment_method' => 'nullable|string|max:100',
         ]);
 
         $userId = Auth::id();
-        $cartItems = Cart::where('user_id', $userId)->get();
+        $cartItems = Cart::where('user_id', $userId)->with('product')->get();
 
         if ($cartItems->isEmpty()) {
             return response()->json([
@@ -66,15 +70,19 @@ class OrderController extends Controller
             // Use Database Transaction to ensure all-or-nothing
             DB::beginTransaction();
 
-            // Calculate total price
-            $totalPrice = $cartItems->sum(function($item) {
+            // Calculate totals
+            $subtotal = $cartItems->sum(function($item) {
                 return $item->price * $item->quantity;
             });
+            $shippingFee = 0;
+            $grandTotal = $subtotal + $shippingFee;
 
             // Prepare total_products string (e.g., "Product1 (2), Product2 (1)")
             $totalProducts = $cartItems->map(function($item) {
                 return $item->name . ' (' . $item->quantity . ')';
             })->implode(', ');
+
+            $paymentResult = (new MockPaymentService())->charge(Auth::user(), $grandTotal, $request->input('payment_method', 'COD'));
 
             // Create the order
             $order = Order::create([
@@ -82,16 +90,26 @@ class OrderController extends Controller
                 'name' => $request->name,
                 'number' => $request->phone,
                 'email' => Auth::user()->email,
-                'method' => 'Cash on Delivery', // Default payment method
+                'method' => $request->input('payment_method', 'Cash on Delivery'),
                 'address' => $request->address,
                 'total_products' => $totalProducts,
-                'total_price' => $totalPrice,
+                'total_price' => $grandTotal,
                 'placed_on' => date('Y-m-d'), // MySQL DATE format
-                'payment_status' => 'pending'
+                'payment_status' => $paymentResult['status'],
+                'status' => $paymentResult['status'] === 'paid' ? 'paid' : 'pending',
+                'shipping_method' => $request->shipping_method ?? 'Standard',
+                'shipping_fee' => $shippingFee,
+                'payment_reference' => $paymentResult['reference'],
             ]);
 
             // Move items from cart to order_items
             foreach ($cartItems as $cartItem) {
+                $product = $cartItem->product;
+
+                if (!$product || $product->stock < $cartItem->quantity) {
+                    throw new \RuntimeException("Insufficient stock for {$cartItem->name}");
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->pid,
@@ -100,6 +118,9 @@ class OrderController extends Controller
                     'quantity' => $cartItem->quantity,
                     'image' => $cartItem->image
                 ]);
+
+                // Decrease stock atomically
+                $product->decrement('stock', $cartItem->quantity);
             }
 
             // Empty the user's cart
@@ -107,6 +128,14 @@ class OrderController extends Controller
 
             // Commit the transaction
             DB::commit();
+
+            // Notify user via email
+            Mail::raw(
+                "Your order #{$order->id} has been placed. Status: {$order->status}. Total: {$order->total_price}",
+                function ($message) use ($order) {
+                    $message->to($order->email)->subject('Order placed');
+                }
+            );
 
             return response()->json([
                 'status' => 'success',

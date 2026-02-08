@@ -158,6 +158,40 @@
         color: white;
     }
 
+    .filter-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+        align-items: end;
+    }
+
+    .filter-bar label {
+        font-size: 1.3rem;
+        color: var(--light-color);
+        display: block;
+        margin-bottom: 0.4rem;
+    }
+
+    .filter-bar input,
+    .filter-bar select {
+        width: 100%;
+        padding: 0.9rem 1.2rem;
+        border-radius: 0.6rem;
+        border: 1px solid #e5e7eb;
+        font-size: 1.4rem;
+    }
+
+    .filter-bar button {
+        padding: 1rem 1.2rem;
+        background: var(--main-color);
+        border: none;
+        color: #fff;
+        border-radius: 0.6rem;
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+
     /* Products Grid */
     .products-grid {
         display: grid;
@@ -198,6 +232,21 @@
         background: rgba(245, 245, 245, 0.5);
     }
 
+    .product-card .thumb-strip {
+        display: flex;
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .product-card .thumb-strip img {
+        width: 42px;
+        height: 42px;
+        border-radius: 0.4rem;
+        object-fit: cover;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
     .product-rating {
         display: flex;
         align-items: center;
@@ -221,6 +270,12 @@
         margin-bottom: 0.8rem;
         display: block;
         min-height: 2.5rem;
+    }
+
+    .product-card .product-seller {
+        font-size: 1.35rem;
+        color: var(--light-color);
+        margin-bottom: 0.6rem;
     }
 
     .product-card .product-details {
@@ -475,6 +530,37 @@
         </div>
     </div>
 
+    {{-- Filters --}}
+    <form method="GET" action="{{ route('shop') }}" class="filter-bar">
+        @if($category)
+            <input type="hidden" name="category" value="{{ $category }}">
+        @endif
+        <div>
+            <label for="search">Search</label>
+            <input type="text" id="search" name="q" value="{{ $search }}" placeholder="Product name or keyword">
+        </div>
+        <div>
+            <label for="price_min">Min Price</label>
+            <input type="number" step="0.01" id="price_min" name="price_min" value="{{ $priceMin }}" placeholder="0">
+        </div>
+        <div>
+            <label for="price_max">Max Price</label>
+            <input type="number" step="0.01" id="price_max" name="price_max" value="{{ $priceMax }}" placeholder="1000">
+        </div>
+        <div>
+            <label for="sort">Sort</label>
+            <select name="sort" id="sort">
+                <option value="newest" @selected($sort === 'newest')>Newest</option>
+                <option value="price_asc" @selected($sort === 'price_asc')>Price: Low to High</option>
+                <option value="price_desc" @selected($sort === 'price_desc')>Price: High to Low</option>
+                <option value="rating" @selected($sort === 'rating')>Top Rated</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit">Apply</button>
+        </div>
+    </form>
+
     {{-- Category Filter Pills --}}
     <div class="category-filter">
         <a href="{{ route('shop') }}" class="category-pill {{ !$category ? 'active' : '' }}">
@@ -531,8 +617,30 @@
                          loading="lazy"
                          onerror="this.src='{{ asset('images/logo.png') }}'">
 
+                    {{-- Thumbnail strip for additional images --}}
+                    @if($product->image_02 || $product->image_03)
+                        <div class="thumb-strip" onclick="event.stopPropagation();">
+                            @if($product->image_01)
+                                <img src="{{ asset('uploaded_img/' . $product->image_01) }}" alt="">
+                            @endif
+                            @if($product->image_02)
+                                <img src="{{ asset('uploaded_img/' . $product->image_02) }}" alt="">
+                            @endif
+                            @if($product->image_03)
+                                <img src="{{ asset('uploaded_img/' . $product->image_03) }}" alt="">
+                            @endif
+                        </div>
+                    @endif
+
                     {{-- Product Name --}}
                     <span class="product-name">{{ $product->name }}</span>
+
+                    {{-- Seller Shop Name --}}
+                    @if($product->seller && $product->seller->shop_name)
+                        <div class="product-seller">
+                            Sold by: <strong>{{ $product->seller->shop_name }}</strong>
+                        </div>
+                    @endif
 
                     {{-- Product Rating --}}
                     <div class="product-rating">
@@ -586,7 +694,7 @@
                                 <i class="fas fa-exclamation-triangle"></i> Only {{ $stock }} left!
                             </div>
                         @endif
-                        <form action="#" method="POST" onclick="event.stopPropagation();">
+                        <form action="{{ route('cart.add') }}" method="POST" onclick="event.stopPropagation();">
                             @csrf
                             <input type="hidden" name="pid" value="{{ $product->id }}">
                             <input type="hidden" name="name" value="{{ $product->name }}">
@@ -604,7 +712,13 @@
         {{-- Pagination Links --}}
         @if($products->hasPages())
             <div class="pagination-wrapper" style="margin-top: 4rem; display: flex; justify-content: center;">
-                {{ $products->appends(['category' => $category])->links() }}
+                {{ $products->appends([
+                    'category' => $category,
+                    'q' => $search,
+                    'sort' => $sort,
+                    'price_min' => $priceMin,
+                    'price_max' => $priceMax,
+                ])->links() }}
             </div>
         @endif
     @else
@@ -689,6 +803,17 @@
                     if (result.isConfirmed) {
                         window.location.href = data.redirect;
                     }
+                });
+            } else {
+                // Handle other errors (e.g., out of stock)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Action Failed',
+                    text: data.message || 'Could not add item to cart.',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
                 });
             }
         })
