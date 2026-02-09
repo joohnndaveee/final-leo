@@ -203,4 +203,40 @@ class SellerController extends Controller
 
         return redirect()->route('seller.orders.index')->with('success', 'Order marked as shipped.');
     }
+
+    public function markDelivered(Order $order)
+    {
+        $sellerId = Auth::id();
+
+        $ownsOrder = $order->orderItems()
+            ->whereHas('product', function ($query) use ($sellerId) {
+                $query->where('seller_id', $sellerId);
+            })
+            ->exists();
+
+        if (!$ownsOrder) {
+            abort(403);
+        }
+
+        if (strtolower($order->status ?? '') !== 'shipped') {
+            return redirect()->route('seller.orders.index')
+                ->with('error', 'Only shipped orders can be marked as delivered.');
+        }
+
+        $order->status = 'delivered';
+        $order->payment_status = 'completed';
+        $order->delivered_at = now();
+        $order->save();
+
+        if ($order->email) {
+            Mail::raw(
+                "Your order #{$order->id} has been delivered. Thank you for shopping with us!",
+                function ($message) use ($order) {
+                    $message->to($order->email)->subject('Order delivered');
+                }
+            );
+        }
+
+        return redirect()->route('seller.orders.index')->with('success', 'Order marked as delivered.');
+    }
 }

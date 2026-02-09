@@ -168,7 +168,7 @@
                             <td>{{ $seller->name }}</td>
                             <td>
                                 <a href="{{ route('admin.sellers.show', $seller->id) }}" style="font-size:1.3rem;color:var(--main-color);text-decoration:none;">
-                                    View full application
+                                    View Details
                                 </a>
                             </td>
                             <td>

@@ -327,29 +327,7 @@
 </head>
 <body>
 
-{{-- Messages --}}
-@if ($errors->any())
-    @foreach ($errors->all() as $error)
-        <div class="message">
-            <span>{{ $error }}</span>
-            <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
-        </div>
-    @endforeach
-@endif
-
-@if (session('success'))
-    <div class="message">
-        <span>{{ session('success') }}</span>
-        <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
-    </div>
-@endif
-
-@if (session('info'))
-    <div class="message">
-        <span>{{ session('info') }}</span>
-        <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
-    </div>
-@endif
+{{-- SweetAlert2 messages --}}
 
 {{-- Header --}}
 <header class="header">
@@ -380,28 +358,51 @@
 
         {{-- User Profile Dropdown --}}
         <div class="profile">
-            @php
-                $webUser = Auth::user();
-                $isSeller = $webUser && (($webUser->role ?? 'buyer') === 'seller');
-            @endphp
+            <div class="profile-card">
+                @php
+                    $webUser = Auth::user();
+                    $isSeller = $webUser && (($webUser->role ?? 'buyer') === 'seller');
+                    $displayName = $webUser->name ?? 'User';
+                    $initial = strtoupper(substr($displayName, 0, 1));
+                @endphp
 
-            @if($webUser && !$isSeller)
-                <p>{{ $webUser->name }}</p>
-                <a href="{{ route('profile.edit') }}" class="btn">Update Profile</a>
-                <a href="{{ route('orders') }}" class="btn">Orders</a>
-                <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
-                    @csrf
-                    <button type="submit" class="delete-btn" onclick="return confirm('Logout from the website?');" style="width: 100%; border: none; cursor: pointer;">
-                        Logout
-                    </button>
-                </form>
-            @else
-                <p>Please login or register first!</p>
-                <div class="flex-btn">
-                    <a href="{{ route('register') }}" class="option-btn">Register</a>
-                    <a href="{{ route('login') }}" class="option-btn">Login</a>
-                </div>
-            @endif
+                @if($webUser && !$isSeller)
+                    <div class="profile-header">
+                        <div class="profile-avatar">{{ $initial }}</div>
+                        <div class="profile-meta">
+                            <div class="profile-name">{{ $displayName }}</div>
+                            <div class="profile-email">{{ $webUser->email }}</div>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a href="{{ route('profile.edit') }}" class="profile-btn primary">
+                            <i class="fas fa-user-edit"></i> Update Profile
+                        </a>
+                        <a href="{{ route('orders') }}" class="profile-btn">
+                            <i class="fas fa-receipt"></i> Orders
+                        </a>
+                    </div>
+                    <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
+                        @csrf
+                        <button type="submit" class="profile-btn danger" onclick="return confirm('Logout from the website?');">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </form>
+                @else
+                    <div class="profile-guest">
+                        <div class="profile-guest-title">Welcome back</div>
+                        <div class="profile-guest-text">Sign in to manage your account.</div>
+                        <div class="profile-actions">
+                            <a href="{{ route('login') }}" class="profile-btn primary">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                            <a href="{{ route('register') }}" class="profile-btn">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </div>
+                    </div>
+                @endif
+            </div>
         </div>
     </section>
 </header>
@@ -489,7 +490,39 @@
 @endif
 
 {{-- Scripts --}}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{{ asset('js/script.js') }}"></script>
+
+<script>
+    @if ($errors->any())
+        Swal.fire({
+            icon: 'error',
+            title: 'Please check the form',
+            html: {!! json_encode('<ul style="text-align:left;margin:0;padding-left:1.2rem;">' . implode('', array_map(fn($e) => '<li>' . e($e) . '</li>', $errors->all())) . '</ul>') !!},
+            confirmButtonText: 'OK'
+        });
+    @endif
+
+    @if (session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success',
+            text: @json(session('success')),
+            timer: 2200,
+            showConfirmButton: false
+        });
+    @endif
+
+    @if (session('info'))
+        Swal.fire({
+            icon: 'info',
+            title: 'Notice',
+            text: @json(session('info')),
+            timer: 2200,
+            showConfirmButton: false
+        });
+    @endif
+</script>
 
 <script>
     // Mobile menu toggle

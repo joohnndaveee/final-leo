@@ -120,4 +120,5 @@ Route::prefix('seller')->middleware(['auth:seller', 'role:seller,admin'])->group
 
     Route::get('/orders', [\App\Http\Controllers\SellerController::class, 'orders'])->name('seller.orders.index');
     Route::post('/orders/{order}/ship', [\App\Http\Controllers\SellerController::class, 'markShipped'])->name('seller.orders.ship');
+    Route::post('/orders/{order}/deliver', [\App\Http\Controllers\SellerController::class, 'markDelivered'])->name('seller.orders.deliver');
 });

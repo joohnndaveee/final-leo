@@ -347,8 +347,9 @@
         <h2>Products Ordered</h2>
         @foreach($order->orderItems as $item)
             @php
-                $statusValue = strtolower($order->status ?? $order->payment_status);
-                $isCompleted = in_array($statusValue, ['completed', 'complete', 'delivered', 'paid']);
+                $statusValue = strtolower($order->status ?? $order->payment_status ?? '');
+                $isCompleted = in_array($statusValue, ['completed', 'complete', 'delivered', 'paid']) || 
+                              in_array(strtolower($order->payment_status ?? ''), ['completed', 'complete', 'delivered']);
                 $hasReviewed = false;
                 if (Auth::check()) {
                     $hasReviewed = \App\Models\Review::where('user_id', Auth::id())

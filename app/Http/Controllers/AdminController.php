@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Admin;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\User;
 use App\Models\Message;
 use App\Models\Chat;
@@ -271,7 +273,7 @@ class AdminController extends Controller
     /**
      * Show a single seller's application details.
      */
-    public function showSeller($id)
+    public function showSeller(Request $request, $id)
     {
         if (!Auth::guard('admin')->check()) {
             return redirect()->route('admin.login')
@@ -280,7 +282,135 @@ class AdminController extends Controller
 
         $seller = User::where('id', $id)->firstOrFail();
 
-        return view('admin.seller_show', compact('seller'));
+        // Get seller's products
+        $sellerProducts = Product::where('seller_id', $id)->get();
+
+        // ===== ORDERS FILTERS =====
+        $ordersQuery = Order::whereHas('orderItems.product', function ($query) use ($id) {
+            $query->where('seller_id', $id);
+        });
+
+        // Filter by order status
+        if ($request->has('order_status') && $request->order_status !== '') {
+            $ordersQuery->where('status', $request->order_status);
+        }
+
+        // Filter by payment status
+        if ($request->has('payment_status') && $request->payment_status !== '') {
+            $ordersQuery->where('payment_status', $request->payment_status);
+        }
+
+        // Filter by date range
+        if ($request->has('order_date_range') && $request->order_date_range !== '') {
+            $now = now();
+            switch ($request->order_date_range) {
+                case '7days':
+                    $ordersQuery->where('placed_on', '>=', $now->copy()->subDays(7));
+                    break;
+                case '30days':
+                    $ordersQuery->where('placed_on', '>=', $now->copy()->subDays(30));
+                    break;
+                case '90days':
+                    $ordersQuery->where('placed_on', '>=', $now->copy()->subDays(90));
+                    break;
+            }
+        }
+
+        $orders = $ordersQuery->orderByDesc('id')->get();
+
+        // ===== REVIEWS FILTERS =====
+        $reviewsQuery = Review::whereIn('product_id', $sellerProducts->pluck('id'))->with('user', 'product');
+
+        // Filter by rating
+        if ($request->has('review_rating') && $request->review_rating !== '') {
+            $reviewsQuery->where('rating', $request->review_rating);
+        }
+
+        // Filter by review date range
+        if ($request->has('review_date_range') && $request->review_date_range !== '') {
+            $now = now();
+            switch ($request->review_date_range) {
+                case 'latest':
+                    // Already ordered by latest below
+                    break;
+                case 'oldest':
+                    $reviewsQuery->orderBy('created_at', 'asc');
+                    break;
+                case '7days':
+                    $reviewsQuery->where('created_at', '>=', $now->copy()->subDays(7));
+                    break;
+                case '30days':
+                    $reviewsQuery->where('created_at', '>=', $now->copy()->subDays(30));
+                    break;
+            }
+        }
+
+        // Search reviews by comment
+        if ($request->has('review_search') && $request->review_search !== '') {
+            $searchTerm = '%' . $request->review_search . '%';
+            $reviewsQuery->where('comment', 'like', $searchTerm)
+                        ->orWhereHas('user', function ($q) use ($searchTerm) {
+                            $q->where('name', 'like', $searchTerm);
+                        });
+        }
+
+        $reviews = $reviewsQuery->orderByDesc('created_at')->get();
+
+        // ===== PRODUCTS FILTERS =====
+        $productsQuery = Product::where('seller_id', $id);
+
+        // Filter by stock status
+        if ($request->has('stock_status') && $request->stock_status !== '') {
+            switch ($request->stock_status) {
+                case 'in_stock':
+                    $productsQuery->where('stock', '>', 10);
+                    break;
+                case 'low_stock':
+                    $productsQuery->whereBetween('stock', [1, 10]);
+                    break;
+                case 'out_of_stock':
+                    $productsQuery->where('stock', 0);
+                    break;
+            }
+        }
+
+        // Filter by price range
+        if ($request->has('price_min') && $request->price_min !== '') {
+            $productsQuery->where('price', '>=', $request->price_min);
+        }
+        if ($request->has('price_max') && $request->price_max !== '') {
+            $productsQuery->where('price', '<=', $request->price_max);
+        }
+
+        // Sort products
+        if ($request->has('product_sort') && $request->product_sort !== '') {
+            switch ($request->product_sort) {
+                case 'newest':
+                    $productsQuery->orderByDesc('id');
+                    break;
+                case 'price_high':
+                    $productsQuery->orderByDesc('price');
+                    break;
+                case 'price_low':
+                    $productsQuery->orderBy('price');
+                    break;
+            }
+        } else {
+            $productsQuery->orderByDesc('id');
+        }
+
+        $filteredProducts = $productsQuery->get();
+
+        // Calculate statistics
+        $totalOrders = $orders->count();
+        $totalRevenue = OrderItem::whereIn('product_id', $sellerProducts->pluck('id'))->sum(DB::raw('price * quantity'));
+        $averageRating = Review::whereIn('product_id', $sellerProducts->pluck('id'))->avg('rating') ?? 0;
+        $totalReviews = $reviews->count();
+
+        return view('admin.seller_show', compact(
+            'seller', 'orders', 'reviews', 'sellerProducts', 'filteredProducts',
+            'totalOrders', 'totalRevenue', 'averageRating', 'totalReviews'
+        ));
     }
 
     /**
