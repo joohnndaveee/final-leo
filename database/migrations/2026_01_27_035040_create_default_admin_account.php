@@ -11,13 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Insert default admin account
+        // Insert default admin account if it doesn't exist
         // Username: admin
         // Password: admin
-        DB::table('admins')->insert([
-            'name' => 'admin',
-            'password' => Hash::make('admin'),
-        ]);
+        if (!DB::table('admins')->where('name', 'admin')->exists()) {
+            DB::table('admins')->insert([
+                'name' => 'admin',
+                'email' => 'admin@shop.com',
+                'password' => Hash::make('admin'),
+            ]);
+        }
     }
 
     /**

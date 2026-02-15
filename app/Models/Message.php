@@ -12,7 +12,9 @@ class Message extends Model
         'subject',
         'message',
         'status',
-        'read_at'
+        'read_at',
+        'source',
+        'seller_id',
     ];
 
     protected $casts = [
@@ -48,6 +50,22 @@ class Message extends Model
               ->orWhere('subject', 'like', "%{$search}%")
               ->orWhere('message', 'like', "%{$search}%");
         });
+    }
+
+    /**
+     * Get the seller that sent the message (for source=seller).
+     */
+    public function seller()
+    {
+        return $this->belongsTo(Seller::class);
+    }
+
+    /**
+     * Scope to filter by source (guest, user, seller)
+     */
+    public function scopeSource($query, $source)
+    {
+        return $query->where('source', $source);
     }
 
     /**

@@ -38,7 +38,7 @@ Route::post('/contact', [ContactController::class, 'store'])->name('contact.stor
 Route::get('/search', function () { return view('search'); })->name('search');
 Route::get('/wishlist', function () { return view('wishlist'); })->name('wishlist');
 
-Route::middleware(['auth', 'role:buyer,admin'])->group(function () {
+Route::middleware(['auth:web'])->group(function () {
     // Order routes
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
     Route::get('/order/{id}/details', [OrderController::class, 'show'])->name('order.details');
@@ -62,44 +62,57 @@ Route::middleware(['auth', 'role:buyer,admin'])->group(function () {
 });
 
 // Chat routes (user side - requires authentication)
-Route::middleware('auth')->group(function () {
+Route::middleware('auth:web')->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.getMessages');
 });
 
-// Admin routes
+// Admin routes (public)
 Route::get('/admin/login', [AdminController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [AdminController::class, 'login'])->name('admin.login.post');
-Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-Route::get('/admin/users', [AdminController::class, 'users'])->name('admin.users');
-Route::get('/admin/sellers', [AdminController::class, 'sellers'])->name('admin.sellers');
-Route::get('/admin/sellers/{id}', [AdminController::class, 'showSeller'])->name('admin.sellers.show');
-Route::post('/admin/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
-Route::delete('/admin/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
-Route::get('/admin/messages', [AdminController::class, 'messages'])->name('admin.messages');
-Route::delete('/admin/messages/{id}', [AdminController::class, 'deleteMessage'])->name('admin.messages.delete');
-Route::post('/admin/messages/{id}/mark-read', [AdminController::class, 'markMessageAsRead'])->name('admin.messages.markRead');
-Route::post('/admin/messages/bulk-delete', [AdminController::class, 'bulkDeleteMessages'])->name('admin.messages.bulkDelete');
-Route::get('/admin/messages/export', [AdminController::class, 'exportMessages'])->name('admin.messages.export');
-Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
-// Admin Product Management routes
-Route::prefix('admin')->group(function () {
+// Admin routes (protected)
+Route::prefix('admin')->middleware('auth:admin')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
+    Route::get('/sellers', [AdminController::class, 'sellers'])->name('admin.sellers');
+    Route::get('/sellers/{id}', [AdminController::class, 'showSeller'])->name('admin.sellers.show');
+    Route::post('/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
+    Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
+    Route::get('/messages', [AdminController::class, 'messages'])->name('admin.messages');
+    Route::delete('/messages/{id}', [AdminController::class, 'deleteMessage'])->name('admin.messages.delete');
+    Route::post('/messages/{id}/mark-read', [AdminController::class, 'markMessageAsRead'])->name('admin.messages.markRead');
+    Route::post('/messages/bulk-delete', [AdminController::class, 'bulkDeleteMessages'])->name('admin.messages.bulkDelete');
+    Route::get('/messages/export', [AdminController::class, 'exportMessages'])->name('admin.messages.export');
+    Route::post('/logout', [AdminController::class, 'logout'])->name('admin.logout');
+    
+    // Admin Product Management routes
     Route::get('/products', [ProductController::class, 'index'])->name('admin.products.index');
     Route::post('/products', [ProductController::class, 'store'])->name('admin.products.store');
     Route::get('/products/{id}/edit', [ProductController::class, 'edit'])->name('admin.products.edit');
     Route::post('/products/{id}', [ProductController::class, 'update'])->name('admin.products.update');
     Route::get('/products/{id}/delete', [ProductController::class, 'destroy'])->name('admin.products.destroy');
-});
-
-// Admin Chat routes
-Route::prefix('admin')->group(function () {
+    
+    // Admin Chat routes
     Route::get('/chats', [AdminChatController::class, 'index'])->name('admin.chats.index');
     Route::get('/chats/{userId}', [AdminChatController::class, 'show'])->name('admin.chats.show');
     Route::post('/chats/{userId}/reply', [AdminChatController::class, 'reply'])->name('admin.chats.reply');
     Route::get('/chats/{userId}/messages', [AdminChatController::class, 'getMessages'])->name('admin.chats.getMessages');
     Route::delete('/chats/{userId}', [AdminChatController::class, 'destroy'])->name('admin.chats.destroy');
+
+    // Admin Seller Chat routes
+    Route::get('/seller-chats', [\App\Http\Controllers\Admin\SellerChatController::class, 'index'])->name('admin.seller-chats.index');
+    Route::get('/seller-chats/{sellerId}', [\App\Http\Controllers\Admin\SellerChatController::class, 'show'])->name('admin.seller-chats.show');
+    Route::post('/seller-chats/{sellerId}/reply', [\App\Http\Controllers\Admin\SellerChatController::class, 'reply'])->name('admin.seller-chats.reply');
+    Route::get('/seller-chats/{sellerId}/messages', [\App\Http\Controllers\Admin\SellerChatController::class, 'getMessages'])->name('admin.seller-chats.getMessages');
+
+    // Seller subscription management routes
+    Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('admin.subscriptions');
+    Route::post('/sellers/{sellerId}/subscription/notify', [\App\Http\Controllers\SellerSubscriptionController::class, 'toggleNotification'])->name('admin.seller.notify');
+    Route::post('/sellers/{sellerId}/subscription/mark-paid', [\App\Http\Controllers\SellerSubscriptionController::class, 'markAsPaid'])->name('admin.seller.mark-paid');
+    Route::post('/sellers/{sellerId}/subscription/disable', [\App\Http\Controllers\SellerSubscriptionController::class, 'disableSeller'])->name('admin.seller.disable');
+    Route::post('/sellers/{sellerId}/subscription/unsuspend', [\App\Http\Controllers\SellerSubscriptionController::class, 'unsuspendSeller'])->name('admin.seller.unsuspend');
 });
 
 // Review routes
@@ -110,7 +123,8 @@ Route::get('/reviews/product/{productId}', [App\Http\Controllers\ReviewControlle
 Route::get('/product/{id}', [App\Http\Controllers\ProductDetailController::class, 'show'])->name('product.detail');
 
 // Seller portal (approved sellers)
-Route::prefix('seller')->middleware(['auth:seller', 'role:seller,admin'])->group(function () {
+// Routes that require active subscription
+Route::prefix('seller')->middleware(['auth:seller', 'check.seller.subscription'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\SellerController::class, 'dashboard'])->name('seller.dashboard');
     Route::get('/products', [\App\Http\Controllers\SellerController::class, 'products'])->name('seller.products.index');
     Route::post('/products', [\App\Http\Controllers\SellerController::class, 'storeProduct'])->name('seller.products.store');
@@ -121,4 +135,69 @@ Route::prefix('seller')->middleware(['auth:seller', 'role:seller,admin'])->group
     Route::get('/orders', [\App\Http\Controllers\SellerController::class, 'orders'])->name('seller.orders.index');
     Route::post('/orders/{order}/ship', [\App\Http\Controllers\SellerController::class, 'markShipped'])->name('seller.orders.ship');
     Route::post('/orders/{order}/deliver', [\App\Http\Controllers\SellerController::class, 'markDelivered'])->name('seller.orders.deliver');
+
+    // Subscription routes
+    Route::get('/subscription', [\App\Http\Controllers\SellerSubscriptionController::class, 'show'])->name('seller.subscription.show');
+    Route::post('/subscription', [\App\Http\Controllers\SellerSubscriptionController::class, 'store'])->name('seller.subscription.store');
+    Route::put('/subscription/{subscriptionId}', [\App\Http\Controllers\SellerSubscriptionController::class, 'update'])->name('seller.subscription.update');
+});
+
+// Routes accessible even with expired subscription (settings and wallet)
+Route::prefix('seller')->middleware('auth:seller')->group(function () {
+    // Wallet routes (allow payment even when expired)
+    Route::get('/wallet', [\App\Http\Controllers\WalletController::class, 'index'])->name('seller.wallet.index');
+    Route::get('/wallet/deposit', [\App\Http\Controllers\WalletController::class, 'showDepositForm'])->name('seller.wallet.deposit.form');
+    Route::post('/wallet/deposit', [\App\Http\Controllers\WalletController::class, 'deposit'])->name('seller.wallet.deposit');
+    Route::get('/wallet/pay-rent', [\App\Http\Controllers\WalletController::class, 'showPayRentForm'])->name('seller.wallet.pay-rent.form');
+    Route::post('/wallet/pay-rent', [\App\Http\Controllers\WalletController::class, 'payRent'])->name('seller.wallet.pay-rent');
+    Route::get('/wallet/payment-receipt/{payment}', [\App\Http\Controllers\WalletController::class, 'showPaymentReceipt'])->name('seller.wallet.payment-receipt');
+    Route::get('/wallet/withdraw', [\App\Http\Controllers\WalletController::class, 'showWithdrawalForm'])->name('seller.wallet.withdraw.form');
+    Route::post('/wallet/withdraw', [\App\Http\Controllers\WalletController::class, 'withdraw'])->name('seller.wallet.withdraw');
+
+    // Settings route (allow access even when expired)
+    Route::get('/settings', [\App\Http\Controllers\SellerController::class, 'settings'])->name('seller.settings');
+    Route::put('/settings', [\App\Http\Controllers\SellerController::class, 'updateSettings'])->name('seller.settings.update');
+
+    // Violations page (for suspended sellers to view suspension details)
+    Route::get('/violations', [\App\Http\Controllers\SellerController::class, 'violations'])->name('seller.violations');
+    Route::post('/support-message', [\App\Http\Controllers\SellerController::class, 'sendSupportMessage'])->name('seller.support.send');
+
+    // Seller live chat with admin (accessible even when suspended)
+    Route::get('/chat', [\App\Http\Controllers\SellerChatController::class, 'index'])->name('seller.chat');
+    Route::post('/chat/send', [\App\Http\Controllers\SellerChatController::class, 'send'])->name('seller.chat.send');
+    Route::get('/chat/messages', [\App\Http\Controllers\SellerChatController::class, 'getMessages'])->name('seller.chat.messages');
+    
+    // Temporary debug route
+    Route::get('/debug-wallet', function() {
+        $seller = auth('seller')->user();
+        
+        if (!$seller) {
+            return response()->json(['error' => 'Not logged in as seller']);
+        }
+        
+        $wallet = $seller->wallet;
+        $subscription = $seller->sellerSubscriptions()->latest()->first();
+        
+        return response()->json([
+            'seller' => [
+                'id' => $seller->id,
+                'name' => $seller->name,
+                'email' => $seller->email,
+                'subscription_status' => $seller->subscription_status,
+                'subscription_end_date' => $seller->subscription_end_date,
+            ],
+            'wallet' => $wallet ? [
+                'id' => $wallet->id,
+                'balance' => $wallet->balance,
+                'total_deposited' => $wallet->total_deposited,
+            ] : 'NO WALLET FOUND',
+            'subscription' => $subscription ? [
+                'id' => $subscription->id,
+                'amount' => $subscription->amount,
+                'status' => $subscription->status,
+                'end_date' => $subscription->end_date,
+            ] : 'NO SUBSCRIPTION FOUND',
+            'can_pay' => $wallet && $subscription && $wallet->balance >= $subscription->amount,
+        ]);
+    });
 });

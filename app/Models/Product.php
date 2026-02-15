@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Product extends Model
 {
     protected $table = 'products';
-    public $timestamps = false;
+    public $timestamps = true;
 
     protected $fillable = [
         'seller_id',
@@ -39,7 +39,7 @@ class Product extends Model
      */
     public function seller()
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(Seller::class, 'seller_id');
     }
 
     /**

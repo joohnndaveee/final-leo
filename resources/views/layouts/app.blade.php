@@ -360,13 +360,13 @@
         <div class="profile">
             <div class="profile-card">
                 @php
-                    $webUser = Auth::user();
-                    $isSeller = $webUser && (($webUser->role ?? 'buyer') === 'seller');
-                    $displayName = $webUser->name ?? 'User';
+                    $webUser = Auth::guard('web')->user();
+                    $sellerUser = Auth::guard('seller')->user();
+                    $displayName = $webUser ? $webUser->name : ($sellerUser ? $sellerUser->name : 'User');
                     $initial = strtoupper(substr($displayName, 0, 1));
                 @endphp
 
-                @if($webUser && !$isSeller)
+                @if($webUser)
                     <div class="profile-header">
                         <div class="profile-avatar">{{ $initial }}</div>
                         <div class="profile-meta">
@@ -503,21 +503,26 @@
         });
     @endif
 
-    @if (session('success'))
+    @php
+        $successMessage = session()->pull('success');
+        $infoMessage = session()->pull('info');
+    @endphp
+
+    @if ($successMessage)
         Swal.fire({
             icon: 'success',
             title: 'Success',
-            text: @json(session('success')),
+            text: @json($successMessage),
             timer: 2200,
             showConfirmButton: false
         });
     @endif
 
-    @if (session('info'))
+    @if ($infoMessage)
         Swal.fire({
             icon: 'info',
             title: 'Notice',
-            text: @json(session('info')),
+            text: @json($infoMessage),
             timer: 2200,
             showConfirmButton: false
         });

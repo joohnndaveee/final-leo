@@ -172,8 +172,8 @@
                                 </a>
                             </td>
                             <td>
-                                <span class="badge-status {{ $seller->seller_status ?? 'pending' }}">
-                                    {{ ucfirst($seller->seller_status ?? 'pending') }}
+                                <span class="badge-status {{ $seller->status ?? 'pending' }}">
+                                    {{ ucfirst($seller->status ?? 'pending') }}
                                 </span>
                             </td>
                         </tr>

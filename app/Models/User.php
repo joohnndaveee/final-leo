@@ -35,15 +35,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'phone',
-        'address',
-        'role',
-        'shop_name',
-        'seller_status',
-        'business_address',
-        'business_id_number',
-        'business_notes',
-        'seller_approved_notified',
     ];
 
     /**
@@ -101,28 +92,5 @@ class User extends Authenticatable
     public function messages()
     {
         return $this->hasMany(Message::class);
-    }
-
-    /**
-     * Products owned by the seller.
-     */
-    public function sellerProducts()
-    {
-        return $this->hasMany(Product::class, 'seller_id');
-    }
-
-    public function isBuyer(): bool
-    {
-        return $this->role === 'buyer';
-    }
-
-    public function isSeller(): bool
-    {
-        return $this->role === 'seller';
-    }
-
-    public function isAdmin(): bool
-    {
-        return $this->role === 'admin';
     }
 }

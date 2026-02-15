@@ -22,8 +22,8 @@ class ContactController extends Controller
             'message' => 'required|string|max:1000',
         ]);
 
-        // Save the message to database
-        Message::create($validated);
+        // Save the message to database (guest = contact form)
+        Message::create(array_merge($validated, ['source' => 'guest']));
 
         // Return success response for AJAX
         return response()->json([

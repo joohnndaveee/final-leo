@@ -15,7 +15,8 @@ class SellerController extends Controller
 {
     public function dashboard()
     {
-        $sellerId = Auth::id();
+        $seller = Auth::user();
+        $sellerId = $seller->id;
 
         $productsCount = Product::where('seller_id', $sellerId)->count();
         $ordersCount = OrderItem::whereHas('product', function ($query) use ($sellerId) {
@@ -30,14 +31,15 @@ class SellerController extends Controller
             $query->where('seller_id', $sellerId);
         })->orderByDesc('id')->limit(5)->get();
 
-        return view('seller.dashboard', compact('productsCount', 'ordersCount', 'salesTotal', 'recentOrders'));
+        return view('seller.dashboard', compact('seller', 'productsCount', 'ordersCount', 'salesTotal', 'recentOrders'));
     }
 
     public function products()
     {
-        $products = Product::where('seller_id', Auth::id())->orderByDesc('id')->paginate(20);
+        $seller = Auth::user();
+        $products = Product::where('seller_id', $seller->id)->orderByDesc('id')->paginate(20);
 
-        return view('seller.products', compact('products'));
+        return view('seller.products', compact('seller', 'products'));
     }
 
     public function storeProduct(Request $request)
@@ -162,7 +164,8 @@ class SellerController extends Controller
 
     public function orders()
     {
-        $sellerId = Auth::id();
+        $seller = Auth::user();
+        $sellerId = $seller->id;
 
         $orders = Order::whereHas('orderItems.product', function ($query) use ($sellerId) {
             $query->where('seller_id', $sellerId);
@@ -175,7 +178,7 @@ class SellerController extends Controller
             ->orderByDesc('id')
             ->paginate(20);
 
-        return view('seller.orders', compact('orders'));
+        return view('seller.orders', compact('seller', 'orders'));
     }
 
     public function markShipped(Request $request, Order $order)
@@ -238,5 +241,99 @@ class SellerController extends Controller
         }
 
         return redirect()->route('seller.orders.index')->with('success', 'Order marked as delivered.');
+    }
+
+    /**
+     * Show seller settings page
+     */
+    public function settings()
+    {
+        $seller = Auth::user();
+        $wallet = $seller->wallet ?? \App\Models\SellerWallet::create(['seller_id' => $seller->id]);
+        $subscription = $seller->sellerSubscriptions()->latest()->first();
+        $payments = $seller->sellerPayments()->latest()->paginate(10);
+        $transactions = $seller->walletTransactions()->latest()->paginate(10);
+
+        return view('seller.settings', compact('seller', 'wallet', 'subscription', 'payments', 'transactions'));
+    }
+
+    /**
+     * Update seller settings
+     */
+    public function updateSettings(Request $request)
+    {
+        $seller = Auth::user();
+
+        $section = $request->input('section', 'profile');
+
+        if ($section === 'profile') {
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'email' => 'required|email|unique:sellers,email,' . $seller->id,
+                'phone' => 'nullable|string|max:20',
+            ]);
+            $seller->update($validated);
+        } elseif ($section === 'business') {
+            $validated = $request->validate([
+                'shop_name' => 'required|string|max:100',
+                'shop_description' => 'nullable|string|max:500',
+            ]);
+            $seller->update($validated);
+        } elseif ($section === 'password') {
+            $validated = $request->validate([
+                'current_password' => 'required|string',
+                'password' => 'required|string|min:6|confirmed',
+            ]);
+
+            // Check current password using SHA1
+            if (!hash_equals($seller->password, sha1($validated['current_password']))) {
+                return redirect()->back()->with('error', 'Current password is incorrect');
+            }
+
+            $seller->update(['password' => sha1($validated['password'])]);
+        }
+
+        return redirect()->back()->with('success', 'Settings updated successfully');
+    }
+
+    /**
+     * Show seller violation/suspension details page
+     * For sellers suspended due to policy violation, reviews, etc.
+     */
+    public function violations()
+    {
+        $seller = Auth::user();
+
+        // Redirect to dashboard if not suspended
+        if ($seller->subscription_status !== 'suspended') {
+            return redirect()->route('seller.dashboard')->with('info', 'Your account is not suspended.');
+        }
+
+        return view('seller.violations', compact('seller'));
+    }
+
+    /**
+     * Send support message to admin (from violations page or anywhere)
+     */
+    public function sendSupportMessage(Request $request)
+    {
+        $seller = Auth::user();
+
+        $request->validate([
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:1000',
+        ]);
+
+        \App\Models\Message::create([
+            'name' => $seller->name,
+            'email' => $seller->email,
+            'subject' => $request->subject,
+            'message' => $request->message,
+            'source' => 'seller',
+            'seller_id' => $seller->id,
+            'status' => 'unread',
+        ]);
+
+        return redirect()->back()->with('success', 'Your message has been sent. Admin will get back to you soon.');
     }
 }

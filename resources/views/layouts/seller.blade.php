@@ -181,9 +181,9 @@
 </head>
 <body>
 @php
-    $seller = Auth::user();
+    $seller = Auth::guard('seller')->user();
     $shopName = $seller->shop_name ?? $seller->name ?? 'My Shop';
-    $sellerStatus = $seller->seller_status ?? 'pending';
+    $sellerStatus = $seller->status ?? 'pending';
 @endphp
 
 <header class="seller-header">
@@ -206,6 +206,9 @@
             <a href="{{ route('seller.orders.index') }}" class="{{ request()->routeIs('seller.orders.*') ? 'active' : '' }}">
                 <i class="fas fa-shopping-bag"></i> Orders
             </a>
+            <a href="{{ route('seller.chat') }}" class="{{ request()->routeIs('seller.chat*') ? 'active' : '' }}">
+                <i class="fas fa-comments"></i> Chat with Admin
+            </a>
         </nav>
 
         <div class="seller-user">
@@ -215,13 +218,18 @@
                     {{ ucfirst($sellerStatus) }}
                 </span>
             </div>
-            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
-                @csrf
-                <button type="submit" class="seller-logout-btn">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
-                </button>
-            </form>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="{{ route('seller.settings') }}" class="seller-logout-btn" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; margin: 0;">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                <form action="{{ route('logout') }}" method="POST" style="margin:0;">
+                    @csrf
+                    <button type="submit" class="seller-logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </header>
@@ -250,6 +258,9 @@
         </div>
     @endif
 </div>
+
+<!-- Display subscription warning -->
+@include('components.subscription-warning')
 
 <main class="seller-main">
     @yield('content')

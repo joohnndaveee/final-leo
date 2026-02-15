@@ -11,6 +11,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Review;
 use App\Models\User;
+use App\Models\Seller;
 use App\Models\Message;
 use App\Models\Chat;
 use Illuminate\Support\Facades\Mail;
@@ -37,22 +38,19 @@ class AdminController extends Controller
     {
         // Validate the input
         $request->validate([
-            'name' => 'required|string|max:20',
+            'name' => 'required|email|max:50',
             'password' => 'required|string|max:20',
         ]);
 
-        $name = $request->input('name');
-        $password = $request->input('password');
+        $email = $request->input('name'); // Using name field but checking email
+        $password = sha1($request->input('password')); // Using SHA1 like the system
 
-        // Find admin by username
-        $admin = Admin::where('name', $name)->first();
+        // Find admin by email
+        $admin = Admin::where('email', $email)->first();
 
-        if ($admin && \Illuminate\Support\Facades\Hash::check($password, $admin->password)) {
+        if ($admin && hash_equals($admin->password, $password)) {
             // Password is correct, log in the admin
             Auth::guard('admin')->login($admin);
-            
-            // Also store in session for backward compatibility
-            session(['admin_id' => $admin->id]);
             
             return redirect()->route('admin.dashboard')
                            ->with('success', 'Login successful!');
@@ -91,11 +89,11 @@ class AdminController extends Controller
         // 5. Registered Users - Count of all users
         $number_of_users = User::count();
 
-        // Seller metrics (based on seller_status)
-        $total_sellers = User::whereNotNull('seller_status')->count();
-        $pending_sellers = User::where('seller_status', 'pending')->count();
-        $approved_sellers = User::where('seller_status', 'approved')->count();
-        $rejected_sellers = User::where('seller_status', 'rejected')->count();
+        // Seller metrics (based on status in sellers table)
+        $total_sellers = Seller::count();
+        $pending_sellers = Seller::where('status', 'pending')->count();
+        $approved_sellers = Seller::where('status', 'approved')->count();
+        $rejected_sellers = Seller::where('status', 'rejected')->count();
 
         // 6. Customer Messages - Count of all messages and unread
         $number_of_messages = Message::count();
@@ -237,10 +235,8 @@ class AdminController extends Controller
                            ->with('error', 'Please login to access admin panel!');
         }
 
-        // Buyers and non-seller accounts only
-        $users = User::where('role', '!=', 'seller')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        // Get all buyers/customers from users table
+        $users = User::orderBy('created_at', 'desc')->get();
         
         return view('admin.users', compact('users'));
     }
@@ -255,13 +251,13 @@ class AdminController extends Controller
                            ->with('error', 'Please login to access admin panel!');
         }
 
-        // Show all users who have a seller_status (applied or active sellers)
-        $query = User::whereNotNull('seller_status');
+        // Get all sellers from sellers table
+        $query = Seller::query();
 
         if (request()->filled('status')) {
             $status = request()->get('status');
             if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
-                $query->where('seller_status', $status);
+                $query->where('status', $status);
             }
         }
 
@@ -280,7 +276,7 @@ class AdminController extends Controller
                            ->with('error', 'Please login to access admin panel!');
         }
 
-        $seller = User::where('id', $id)->firstOrFail();
+        $seller = Seller::where('id', $id)->firstOrFail();
 
         // Get seller's products
         $sellerProducts = Product::where('seller_id', $id)->get();
@@ -416,6 +412,9 @@ class AdminController extends Controller
     /**
      * Update a user's role or seller status.
      */
+    /**
+     * Update seller status (approve/reject/suspend)
+     */
     public function updateUserRole(Request $request, $id)
     {
         if (!Auth::guard('admin')->check()) {
@@ -426,32 +425,32 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'role' => 'nullable|in:buyer,seller,admin',
-            'seller_status' => 'nullable|in:pending,approved,rejected',
+            'seller_status' => 'required|in:pending,approved,rejected,suspended',
         ]);
 
-        $user = User::findOrFail($id);
+        // Check if this is a seller ID
+        $seller = Seller::find($id);
 
-        // Optional direct role changes (not used by seller status UI)
-        if ($request->filled('role')) {
-            $user->role = $request->role;
-        }
-
-        if ($request->filled('seller_status')) {
-            $user->seller_status = $request->seller_status;
-
-            // If seller is approved, enforce role = seller
-            if ($request->seller_status === 'approved') {
-                $user->role = 'seller';
+        if ($seller) {
+            $seller->status = $request->seller_status;
+            
+            if ($request->seller_status === 'approved' && !$seller->approved_at) {
+                $seller->approved_at = now();
+                $seller->approved_notified = false; // Will show message on next login
             }
-        }
+            
+            $seller->save();
 
-        $user->save();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Seller status updated successfully',
+            ]);
+        }
 
         return response()->json([
-            'status' => 'success',
-            'message' => 'User updated',
-        ]);
+            'status' => 'error',
+            'message' => 'Seller not found',
+        ], 404);
     }
 
     /**
@@ -497,6 +496,18 @@ class AdminController extends Controller
 
         $query = Message::query();
 
+        // Source filter (guest, seller) - Messages page shows contact/guest messages
+        // Use whereRaw for backwards compatibility with existing rows that may not have source
+        if ($request->filled('source')) {
+            $query->where(function ($q) use ($request) {
+                if ($request->source === 'guest') {
+                    $q->where('source', 'guest')->orWhereNull('source');
+                } else {
+                    $q->where('source', $request->source);
+                }
+            });
+        }
+
         // Search functionality
         if ($request->filled('search')) {
             $query->search($request->search);
@@ -523,11 +534,21 @@ class AdminController extends Controller
 
         $messages = $query->paginate(10);
 
-        // Statistics
+        // Statistics (scoped by source if filtering)
+        $statsQuery = Message::query();
+        if ($request->filled('source')) {
+            if ($request->source === 'guest') {
+                $statsQuery->where(function ($q) {
+                    $q->where('source', 'guest')->orWhereNull('source');
+                });
+            } else {
+                $statsQuery->where('source', $request->source);
+            }
+        }
         $stats = [
-            'total' => Message::count(),
-            'unread' => Message::where('status', 'unread')->count(),
-            'read' => Message::where('status', 'read')->count(),
+            'total' => (clone $statsQuery)->count(),
+            'unread' => (clone $statsQuery)->where('status', 'unread')->count(),
+            'read' => (clone $statsQuery)->where('status', 'read')->count(),
         ];
         
         return view('admin.messages', compact('messages', 'stats'));
@@ -670,6 +691,56 @@ class AdminController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    /**
+     * Display all seller subscriptions
+     */
+    public function subscriptions(Request $request)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('admin.login')
+                           ->with('error', 'Please login to access admin panel!');
+        }
+
+        $query = Seller::with(['sellerSubscriptions' => function($q) {
+            $q->latest();
+        }]);
+
+        // Filter by subscription status
+        if ($request->filled('subscription_status')) {
+            $query->where('subscription_status', $request->subscription_status);
+        }
+
+        // Filter by seller status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Search by shop name or email
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('shop_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $sellers = $query->orderBy('subscription_end_date', 'asc')->get();
+
+        // Calculate statistics
+        $stats = [
+            'total' => Seller::count(),
+            'active' => Seller::where('subscription_status', 'active')->count(),
+            'expired' => Seller::where('subscription_status', 'expired')->count(),
+            'suspended' => Seller::where('subscription_status', 'suspended')->count(),
+            'expiring_soon' => Seller::where('subscription_status', 'active')
+                                    ->where('subscription_end_date', '<=', now()->addDays(7))
+                                    ->where('subscription_end_date', '>=', now())
+                                    ->count(),
+        ];
+
+        return view('admin.subscriptions', compact('sellers', 'stats'));
     }
 
     /**

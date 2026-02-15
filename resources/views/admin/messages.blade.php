@@ -130,6 +130,22 @@
         color: var(--light-color);
     }
 
+    .messages-tab.active {
+        background: var(--main-color) !important;
+        color: white !important;
+    }
+
+    .message-source-badge {
+        display: inline-block;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .message-source-badge.guest { background: #e5e7eb; color: #374151; }
+    .message-source-badge.seller { background: #dbeafe; color: #1e40af; }
+
     @media (max-width: 640px) {
         .message-header {
             flex-direction: column;
@@ -148,8 +164,24 @@
     <div class="page-header">
         <h1>
             <i class="fas fa-envelope"></i>
-            Contact Inquiries
+            @if(request('source') === 'seller')
+                Seller Messages
+            @else
+                Guest Inquiries
+            @endif
         </h1>
+        <div class="messages-source-tabs" style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
+            <a href="{{ route('admin.messages', array_merge(request()->except('source'), ['source' => 'guest'])) }}"
+               class="messages-tab {{ !request('source') || request('source') === 'guest' ? 'active' : '' }}"
+               style="padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.4rem; background: #e5e7eb; color: #374151;">
+                <i class="fas fa-user-clock"></i> Guests
+            </a>
+            <a href="{{ route('admin.messages', array_merge(request()->except('source'), ['source' => 'seller'])) }}"
+               class="messages-tab {{ request('source') === 'seller' ? 'active' : '' }}"
+               style="padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.4rem; background: #e5e7eb; color: #374151;">
+                <i class="fas fa-store"></i> Sellers
+            </a>
+        </div>
     </div>
 
     @if($messages->count() > 0)
@@ -158,7 +190,9 @@
                 <div class="message-card">
                     <div class="message-header">
                         <div class="message-name-email">
-                            <div class="message-name">{{ $message->name }}</div>
+                            <div class="message-name">{{ $message->name }}
+                                <span class="message-source-badge {{ $message->source ?? 'guest' }}">{{ $message->source ?? 'guest' }}</span>
+                            </div>
                             <div class="message-email">
                                 <a href="mailto:{{ $message->email }}">{{ $message->email }}</a>
                             </div>
@@ -186,8 +220,14 @@
     @else
         <div class="empty-messages">
             <i class="fas fa-inbox"></i>
-            <h2>No Contact Inquiries Found</h2>
-            <p>Customer inquiries from the contact form will appear here.</p>
+            <h2>No Messages Found</h2>
+            <p>
+                @if(request('source') === 'seller')
+                    Seller support messages will appear here when sellers contact admin.
+                @else
+                    Guest inquiries from the contact form will appear here.
+                @endif
+            </p>
         </div>
     @endif
 </div>

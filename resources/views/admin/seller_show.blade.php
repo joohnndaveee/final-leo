@@ -204,8 +204,8 @@
             <p style="margin-top:0.5rem;font-size:1.4rem;color:#6b7280;">{{ $seller->name }} - {{ $seller->email }}</p>
         </div>
         <div>
-            <span class="badge-status {{ $seller->seller_status ?? 'pending' }}" style="display:inline-block;padding:0.6rem 1.2rem;border-radius:999px;font-size:1.3rem;text-transform:capitalize;">
-                {{ ucfirst($seller->seller_status ?? 'pending') }}
+            <span class="badge-status {{ $seller->status ?? 'pending' }}" style="display:inline-block;padding:0.6rem 1.2rem;border-radius:999px;font-size:1.3rem;text-transform:capitalize;">
+                {{ ucfirst($seller->status ?? 'pending') }}
             </span>
         </div>
     </div>
@@ -264,8 +264,8 @@
             </div>
             <div class="info-item">
                 <strong>Status</strong>
-                <span class="badge badge-{{ $seller->seller_status === 'approved' ? 'success' : ($seller->seller_status === 'rejected' ? 'danger' : 'warning') }}">
-                    {{ ucfirst($seller->seller_status ?? 'pending') }}
+                <span class="badge badge-{{ $seller->status === 'approved' ? 'success' : ($seller->status === 'rejected' ? 'danger' : 'warning') }}">
+                    {{ ucfirst($seller->status ?? 'pending') }}
                 </span>
             </div>
         </div>
@@ -284,15 +284,156 @@
             <div>
                 <label for="seller-status-select" style="font-size:1.4rem;color:#374151;display:block;margin-bottom:0.5rem;">Change Status</label>
                 <select id="seller-status-select" style="padding:0.8rem 1.2rem;border:1px solid #d1d5db;border-radius:0.6rem;font-size:1.4rem;">
-                    <option value="pending" @selected($seller->seller_status === 'pending')>Pending</option>
-                    <option value="approved" @selected($seller->seller_status === 'approved')>Approved</option>
-                    <option value="rejected" @selected($seller->seller_status === 'rejected')>Rejected</option>
+                    <option value="pending" @selected($seller->status === 'pending')>Pending</option>
+                    <option value="approved" @selected($seller->status === 'approved')>Approved</option>
+                    <option value="rejected" @selected($seller->status === 'rejected')>Rejected</option>
                 </select>
             </div>
             <button type="button" onclick="updateSellerStatus()" style="padding:0.8rem 2rem;background:var(--main-color);color:#fff;border:none;border-radius:0.6rem;font-size:1.4rem;cursor:pointer;font-weight:600;align-self:flex-end;">
                 <i class="fas fa-save"></i> Update Status
             </button>
         </div>
+    </div>
+
+    <!-- Subscription Management Section -->
+    <div class="info-card">
+        <h3><i class="fas fa-credit-card" style="color:var(--main-color);margin-right:0.5rem;"></i> Subscription Management</h3>
+        
+        @php
+            $subscription = $seller->sellerSubscriptions()->latest()->first();
+            $lastPayment = $seller->sellerPayments()->latest()->first();
+        @endphp
+
+        @if ($subscription)
+            <div class="info-grid" style="margin-bottom: 1.5rem;">
+                <div class="info-item">
+                    <strong>Subscription Status</strong>
+                    <span>
+                        @if ($seller->subscription_status === 'suspended')
+                            <span class="badge badge-danger">Suspended</span>
+                        @elseif ($subscription->isExpired())
+                            <span class="badge badge-danger">Expired</span>
+                        @elseif ($subscription->isActive())
+                            <span class="badge badge-success">Active</span>
+                        @else
+                            <span class="badge badge-warning">Inactive</span>
+                        @endif
+                    </span>
+                </div>
+                <div class="info-item">
+                    <strong>Monthly Rent</strong>
+                    <span>${{ number_format($subscription->amount, 2) }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Expires On</strong>
+                    <span>{{ $subscription->end_date->format('M d, Y') }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Last Payment</strong>
+                    <span>{{ $lastPayment?->paid_at?->format('M d, Y') ?? 'Never' }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Subscription Type</strong>
+                    <span class="text-capitalize">{{ $subscription->subscription_type }}</span>
+                </div>
+                <div class="info-item">
+                    <strong>Notification Sent</strong>
+                    <span>{{ $seller->payment_notification_sent ? '✓ Yes' : '✗ No' }}</span>
+                </div>
+                @if($seller->subscription_status === 'suspended' && $seller->suspension_reason)
+                <div class="info-item" style="grid-column: 1 / -1;">
+                    <strong>Suspension Reason</strong>
+                    <span>{{ $seller->suspension_reason }}</span>
+                    @if($seller->suspension_notes)
+                        <p style="margin: 0.5rem 0 0 0; font-size: 1.3rem; color: #6b7280; font-style: italic;">{{ $seller->suspension_notes }}</p>
+                    @endif
+                </div>
+                @endif
+            </div>
+
+            <!-- Action Buttons: 3 Toggles -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                <!-- Toggle 1: Notify Seller -->
+                <form action="{{ route('admin.seller.notify', $seller->id) }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn-toggle" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #3b82f6, #1e40af); color: white; border: none; border-radius: 0.6rem; font-size: 1.4rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-bell"></i> Send Payment Reminder
+                    </button>
+                </form>
+
+                <!-- Toggle 2: Mark as Paid -->
+                <form action="{{ route('admin.seller.mark-paid', $seller->id) }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn-toggle" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 0.6rem; font-size: 1.4rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;" onclick="return confirm('Mark subscription as paid and activate?');">
+                        <i class="fas fa-check-circle"></i> Mark as Paid
+                    </button>
+                </form>
+
+                <!-- Toggle 3: Suspend / Reactivate Seller -->
+                @if ($seller->subscription_status !== 'suspended')
+                <form id="suspend-form-seller-{{ $seller->id }}" action="{{ route('admin.seller.disable', $seller->id) }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <input type="hidden" name="suspension_reason" id="suspension-reason-{{ $seller->id }}" value="">
+                    <input type="hidden" name="suspension_notes" id="suspension-notes-{{ $seller->id }}" value="">
+                    <button type="button" class="btn-toggle suspend-account-btn" data-seller-id="{{ $seller->id }}" data-shop-name="{{ $seller->shop_name ?? 'Seller' }}" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; border-radius: 0.6rem; font-size: 1.4rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-ban"></i> Suspend Account
+                    </button>
+                </form>
+                @else
+                <form action="{{ route('admin.seller.unsuspend', $seller->id) }}" method="POST" style="margin: 0;">
+                    @csrf
+                    <button type="submit" class="btn-toggle" onclick="return confirm('Reactivate this seller subscription?');" style="width: 100%; padding: 1rem; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 0.6rem; font-size: 1.4rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-check-circle"></i> Reactivate Account
+                    </button>
+                </form>
+                @endif
+            </div>
+
+            <!-- Payment History Table -->
+            <div style="margin-top: 2rem;">
+                <h4 style="font-size: 1.5rem; margin: 0 0 1rem 0; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Recent Payments</h4>
+                @if ($seller->sellerPayments->count() > 0)
+                    <div class="table-wrapper">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Method</th>
+                                    <th>Status</th>
+                                    <th>Reference</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($seller->sellerPayments()->latest()->take(5)->get() as $payment)
+                                    <tr>
+                                        <td>{{ $payment->paid_at?->format('M d, Y') ?? '—' }}</td>
+                                        <td><strong>${{ number_format($payment->amount, 2) }}</strong></td>
+                                        <td>{{ str_replace('_', ' ', $payment->payment_method) }}</td>
+                                        <td>
+                                            @if ($payment->isCompleted())
+                                                <span class="badge badge-success">Completed</span>
+                                            @elseif ($payment->isPending())
+                                                <span class="badge badge-warning">Pending</span>
+                                            @else
+                                                <span class="badge badge-danger">{{ $payment->payment_status }}</span>
+                                            @endif
+                                        </td>
+                                        <td><small>{{ $payment->reference_number ?? '—' }}</small></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                @else
+                    <p style="color: #9ca3af; font-size: 1.4rem;">No payments recorded yet</p>
+                @endif
+            </div>
+        @else
+            <div style="padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0.4rem; color: #92400e;">
+                <i class="fas fa-exclamation-triangle"></i> No active subscription found. Contact seller or admin.
+            </div>
+        @endif
     </div>
 
     <!-- Orders Section -->
@@ -771,5 +912,56 @@
             });
         });
     }
+
+    // Suspend Account popup with options
+    document.querySelectorAll('.suspend-account-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const sellerId = this.dataset.sellerId;
+            const shopName = this.dataset.shopName;
+
+            Swal.fire({
+                title: `Suspend Account: ${shopName}`,
+                html: `
+                    <div style="text-align: left; font-size: 1.4rem;">
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Suspension Reason:</label>
+                        <select id="swal-reason" class="swal2-input" style="width: 100%; margin: 0 0 1.5rem 0;">
+                            <option value="Overdue Payment">Overdue Payment</option>
+                            <option value="Policy Violation">Policy Violation</option>
+                            <option value="Negative Reviews">Negative Reviews</option>
+                            <option value="Quality Issues">Quality Issues</option>
+                            <option value="Customer Complaints">Customer Complaints</option>
+                            <option value="Fraudulent Activity">Fraudulent Activity</option>
+                            <option value="Other">Other</option>
+                        </select>
+
+                        <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Additional Notes (Optional):</label>
+                        <textarea id="swal-notes" class="swal2-textarea" style="width: 100%; margin: 0; min-height: 80px;" placeholder="Enter details here..."></textarea>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'Suspend Account',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#ef4444',
+                preConfirm: () => {
+                    const reasonSelect = document.getElementById('swal-reason');
+                    const reason = reasonSelect?.value;
+                    const notes = document.getElementById('swal-notes')?.value || '';
+
+                    if (!reason) {
+                        Swal.showValidationMessage('Please select a reason');
+                        return false;
+                    }
+
+                    return { reason, notes };
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    document.getElementById(`suspension-reason-${sellerId}`).value = result.value.reason;
+                    document.getElementById(`suspension-notes-${sellerId}`).value = result.value.notes;
+                    document.getElementById(`suspend-form-seller-${sellerId}`).submit();
+                }
+            });
+        });
+    });
 </script>
 @endpush

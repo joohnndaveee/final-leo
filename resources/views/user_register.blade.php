@@ -649,11 +649,15 @@
         });
     @endif
 
-    @if (session('success'))
+    @php
+        $successMessage = session()->pull('success');
+    @endphp
+
+    @if ($successMessage)
         Swal.fire({
             icon: 'success',
             title: 'Success',
-            text: @json(session('success')),
+            text: @json($successMessage),
             timer: 2200,
             showConfirmButton: false
         });

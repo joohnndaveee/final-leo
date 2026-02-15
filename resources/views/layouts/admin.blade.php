@@ -15,7 +15,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ asset('css/admin_style.css') }}">
+    {{-- Bust cache to ensure updated stylesheet loads when APP_URL changes --}}
+    <link rel="stylesheet" href="{{ url('css/admin_style.css') }}?v=20260210">
     
     <style>
         /* Modern Dashboard Layout */
@@ -23,6 +24,7 @@
             font-family: 'Inter', sans-serif;
             margin: 0;
             padding: 0;
+            background: #f5f5f5;
         }
 
         .dashboard-layout {
@@ -179,6 +181,43 @@
             font-size: 1.8rem;
             width: 25px;
             text-align: center;
+        }
+
+        /* Nav dropdown for Messages */
+        .dashboard-sidebar .nav-dropdown {
+            position: relative;
+        }
+        .dashboard-sidebar .nav-dropdown .nav-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .dashboard-sidebar .nav-dropdown .nav-dropdown-arrow {
+            margin-right: 0;
+            margin-left: auto;
+            transition: transform 0.3s;
+        }
+        .dashboard-sidebar .nav-dropdown.open .nav-dropdown-arrow {
+            transform: rotate(180deg);
+        }
+        .dashboard-sidebar .nav-dropdown-menu {
+            list-style: none;
+            padding: 0.5rem 0 0.5rem 1rem;
+            margin: 0 0 1rem 2rem;
+            border-left: 2px solid rgba(255, 215, 0, 0.3);
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .dashboard-sidebar .nav-dropdown.open .nav-dropdown-menu {
+            max-height: 200px;
+        }
+        .dashboard-sidebar .nav-dropdown-menu li {
+            margin-bottom: 0.3rem;
+        }
+        .dashboard-sidebar .nav-dropdown-menu a {
+            padding: 1rem 1.5rem;
+            font-size: 1.4rem;
         }
 
         /* Main Content Area with Background Image */
@@ -408,11 +447,18 @@
                         <span>Sellers</span>
                     </a>
                 </li>
-                <li>
-                    <a href="{{ route('admin.messages') }}" class="{{ request()->routeIs('admin.messages*') || request()->routeIs('admin.chats*') ? 'active' : '' }}">
+                <li class="nav-dropdown {{ request()->routeIs('admin.messages*') || request()->routeIs('admin.chats*') || request()->routeIs('admin.seller-chats*') ? 'active open' : '' }}">
+                    <a href="#" class="nav-dropdown-toggle" onclick="event.preventDefault(); this.parentElement.classList.toggle('open');">
                         <i class="fas fa-envelope-open-text"></i>
                         <span>Messages</span>
+                        <i class="fas fa-chevron-down nav-dropdown-arrow"></i>
                     </a>
+                    <ul class="nav-dropdown-menu">
+                        <li><a href="{{ route('admin.chats.index') }}" class="{{ request()->routeIs('admin.chats*') ? 'active' : '' }}"><i class="fas fa-users"></i> Users</a></li>
+                        <li><a href="{{ route('admin.seller-chats.index') }}" class="{{ request()->routeIs('admin.seller-chats*') ? 'active' : '' }}"><i class="fas fa-store"></i> Seller Chats</a></li>
+                        <li><a href="{{ route('admin.messages', ['source' => 'guest']) }}" class="{{ request()->routeIs('admin.messages*') && request('source') !== 'seller' ? 'active' : '' }}"><i class="fas fa-user-clock"></i> Guests</a></li>
+                        <li><a href="{{ route('admin.messages', ['source' => 'seller']) }}" class="{{ request()->routeIs('admin.messages*') && request('source') === 'seller' ? 'active' : '' }}"><i class="fas fa-envelope"></i> Seller Messages</a></li>
+                    </ul>
                 </li>
                 <li>
                     <form action="{{ route('admin.logout') }}" method="POST" style="margin: 0;">

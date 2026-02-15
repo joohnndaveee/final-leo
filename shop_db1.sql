@@ -55,8 +55,6 @@ CREATE TABLE `admins` (
 -- Insert default admin for login
 -- Username: admin
 -- Password: admin (bcrypt hashed)
-INSERT INTO `admins` (`id`, `name`, `password`) VALUES
-(1, 'admin', '$2y$12$43BvGZe0JAEHss1McqE3DumNP8iLJfz4ckKkT0MkEq8wjxBWu2Cqm');
 
 -- ============================================================
 -- Table: products
