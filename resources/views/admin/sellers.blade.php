@@ -126,6 +126,7 @@
         background: #f8d7da;
         color: #721c24;
     }
+
 </style>
 @endpush
 
@@ -190,4 +191,3 @@
     @endif
 </div>
 @endsection
-

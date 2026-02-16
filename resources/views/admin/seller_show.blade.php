@@ -264,7 +264,7 @@
             </div>
             <div class="info-item">
                 <strong>Status</strong>
-                <span class="badge badge-{{ $seller->status === 'approved' ? 'success' : ($seller->status === 'rejected' ? 'danger' : 'warning') }}">
+                <span class="badge badge-{{ $seller->status === 'approved' ? 'success' : (($seller->status === 'rejected' || $seller->status === 'suspended') ? 'danger' : 'warning') }}">
                     {{ ucfirst($seller->status ?? 'pending') }}
                 </span>
             </div>
@@ -283,15 +283,22 @@
         <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
             <div>
                 <label for="seller-status-select" style="font-size:1.4rem;color:#374151;display:block;margin-bottom:0.5rem;">Change Status</label>
-                <select id="seller-status-select" style="padding:0.8rem 1.2rem;border:1px solid #d1d5db;border-radius:0.6rem;font-size:1.4rem;">
+                <select id="seller-status-select" style="padding:0.8rem 1.2rem;border:1px solid #d1d5db;border-radius:0.6rem;font-size:1.4rem;" @disabled(($seller->status ?? 'pending') === 'approved')>
                     <option value="pending" @selected($seller->status === 'pending')>Pending</option>
                     <option value="approved" @selected($seller->status === 'approved')>Approved</option>
                     <option value="rejected" @selected($seller->status === 'rejected')>Rejected</option>
                 </select>
+                @if(($seller->status ?? 'pending') === 'approved')
+                    <div style="margin-top:0.6rem;color:#6b7280;font-size:1.25rem;">
+                        This seller is already approved. Status is locked.
+                    </div>
+                @endif
             </div>
-            <button type="button" onclick="updateSellerStatus()" style="padding:0.8rem 2rem;background:var(--main-color);color:#fff;border:none;border-radius:0.6rem;font-size:1.4rem;cursor:pointer;font-weight:600;align-self:flex-end;">
-                <i class="fas fa-save"></i> Update Status
-            </button>
+            @if(($seller->status ?? 'pending') !== 'approved')
+                <button type="button" onclick="updateSellerStatus()" style="padding:0.8rem 2rem;background:var(--main-color);color:#fff;border:none;border-radius:0.6rem;font-size:1.4rem;cursor:pointer;font-weight:600;align-self:flex-end;">
+                    <i class="fas fa-save"></i> Update Status
+                </button>
+            @endif
         </div>
     </div>
 

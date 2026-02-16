@@ -425,13 +425,21 @@ class AdminController extends Controller
         }
 
         $request->validate([
-            'seller_status' => 'required|in:pending,approved,rejected,suspended',
+            'seller_status' => 'required|in:pending,approved,rejected',
         ]);
 
         // Check if this is a seller ID
         $seller = Seller::find($id);
 
         if ($seller) {
+            // Once approved, lock the application status (cannot be changed anymore).
+            if ($seller->status === 'approved' && $request->seller_status !== 'approved') {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'This seller is already approved and the status can no longer be changed.',
+                ], 422);
+            }
+
             $seller->status = $request->seller_status;
             
             if ($request->seller_status === 'approved' && !$seller->approved_at) {
