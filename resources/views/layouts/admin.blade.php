@@ -202,15 +202,16 @@
         }
         .dashboard-sidebar .nav-dropdown-menu {
             list-style: none;
+            display: none;
+            padding: 0;
+            margin: 0;
+            border-left: 0;
+        }
+        .dashboard-sidebar .nav-dropdown.open .nav-dropdown-menu {
+            display: block;
             padding: 0.5rem 0 0.5rem 1rem;
             margin: 0 0 1rem 2rem;
             border-left: 2px solid rgba(255, 215, 0, 0.3);
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        .dashboard-sidebar .nav-dropdown.open .nav-dropdown-menu {
-            max-height: 200px;
         }
         .dashboard-sidebar .nav-dropdown-menu li {
             margin-bottom: 0.3rem;

@@ -23,4 +23,9 @@ class SellerChat extends Model
     {
         return $this->belongsTo(Seller::class);
     }
+
+    public function files()
+    {
+        return $this->hasMany(SellerChatFile::class, 'seller_chat_id');
+    }
 }

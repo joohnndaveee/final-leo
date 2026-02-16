@@ -130,11 +130,6 @@
         color: var(--light-color);
     }
 
-    .messages-tab.active {
-        background: var(--main-color) !important;
-        color: white !important;
-    }
-
     .message-source-badge {
         display: inline-block;
         padding: 0.2rem 0.6rem;
@@ -170,18 +165,6 @@
                 Guest Inquiries
             @endif
         </h1>
-        <div class="messages-source-tabs" style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap;">
-            <a href="{{ route('admin.messages', array_merge(request()->except('source'), ['source' => 'guest'])) }}"
-               class="messages-tab {{ !request('source') || request('source') === 'guest' ? 'active' : '' }}"
-               style="padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.4rem; background: #e5e7eb; color: #374151;">
-                <i class="fas fa-user-clock"></i> Guests
-            </a>
-            <a href="{{ route('admin.messages', array_merge(request()->except('source'), ['source' => 'seller'])) }}"
-               class="messages-tab {{ request('source') === 'seller' ? 'active' : '' }}"
-               style="padding: 0.6rem 1.2rem; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 1.4rem; background: #e5e7eb; color: #374151;">
-                <i class="fas fa-store"></i> Sellers
-            </a>
-        </div>
     </div>
 
     @if($messages->count() > 0)
@@ -232,4 +215,3 @@
     @endif
 </div>
 @endsection
-

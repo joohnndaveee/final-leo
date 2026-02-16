@@ -32,7 +32,7 @@ class PaymentConfirmation extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Payment Confirmation - Monthly Subscrib Rent',
+            subject: 'Payment Confirmation - Monthly Subscription Rent',
         );
     }
 

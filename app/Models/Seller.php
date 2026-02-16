@@ -133,7 +133,7 @@ class Seller extends Authenticatable
      */
     public function isSubscriptionDisabled(): bool
     {
-        return in_array($this->subscription_status, ['suspended', 'expired']);
+        return in_array($this->subscription_status, ['inactive', 'suspended', 'expired']);
     }
 
     /**

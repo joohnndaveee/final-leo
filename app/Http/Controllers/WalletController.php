@@ -6,12 +6,14 @@ use App\Models\Seller;
 use App\Models\SellerWallet;
 use App\Models\SellerPayment;
 use App\Models\SellerSubscription;
+use App\Models\SellerChat;
 use App\Mail\PaymentConfirmation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class WalletController extends Controller
 {
+    private const MONTHLY_RENT_DEFAULT = 500.00;
     /**
      * Show seller wallet details
      */
@@ -75,7 +77,7 @@ class WalletController extends Controller
             );
 
             return redirect()->route('seller.wallet.index')
-                ->with('success', "Deposit of $" . number_format($validated['amount'], 2) . " successful!");
+                ->with('success', "Deposit of ₱" . number_format($validated['amount'], 2) . " successful!");
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Deposit failed: ' . $e->getMessage());
@@ -97,8 +99,28 @@ class WalletController extends Controller
         $subscription = $seller->sellerSubscriptions()->latest()->first();
 
         if (!$subscription) {
-            return redirect()->route('seller.wallet.index')
-                ->with('error', 'No active subscription found');
+            $amount = (float) ($seller->monthly_rent ?? self::MONTHLY_RENT_DEFAULT);
+            $subscription = SellerSubscription::create([
+                'seller_id' => $seller->id,
+                'subscription_type' => 'monthly',
+                'amount' => $amount,
+                'start_date' => now()->subMonth()->toDateString(),
+                'end_date' => now()->subDay()->toDateString(),
+                'status' => 'expired',
+                'auto_renew' => true,
+            ]);
+
+            $seller->update([
+                'subscription_status' => 'expired',
+                'subscription_end_date' => $subscription->end_date,
+                'monthly_rent' => $amount,
+            ]);
+        }
+
+        // Ensure displayed amount matches the seller's monthly rent
+        $amount = (float) ($seller->monthly_rent ?? self::MONTHLY_RENT_DEFAULT);
+        if ((float) $subscription->amount !== $amount) {
+            $subscription->update(['amount' => $amount]);
         }
 
         $daysUntilExpiry = now()->diffInDays($subscription->end_date, false);
@@ -125,19 +147,28 @@ class WalletController extends Controller
                 ->with('error', 'No active subscription found');
         }
 
+        if ($seller->subscription_status === 'suspended' && ($seller->suspension_reason ?? '') !== 'Overdue Payment') {
+            return redirect()->back()->with('error', 'Your account is suspended. Please contact the administrator.');
+        }
+
         $wallet = $seller->wallet ?? SellerWallet::create(['seller_id' => $seller->id]);
+        $amountToPay = (float) ($seller->monthly_rent ?? self::MONTHLY_RENT_DEFAULT);
+
+        if ((float) $subscription->amount !== $amountToPay) {
+            $subscription->update(['amount' => $amountToPay]);
+        }
 
         // Check if wallet has enough balance
-        if (!$wallet->hasEnoughBalance($subscription->amount)) {
+        if (!$wallet->hasEnoughBalance($amountToPay)) {
             return redirect()->back()
-                ->with('error', "Insufficient wallet balance. You need $" . number_format($subscription->amount, 2) . 
-                    " but only have $" . number_format($wallet->balance, 2));
+                ->with('error', "Insufficient wallet balance. You need ₱" . number_format($amountToPay, 2) .
+                    " but only have ₱" . number_format($wallet->balance, 2));
         }
 
         try {
             // Deduct from wallet
             $wallet->payRent(
-                $subscription->amount,
+                $amountToPay,
                 'Monthly rent payment for subscription #' . $subscription->id,
                 $subscription->id
             );
@@ -146,7 +177,7 @@ class WalletController extends Controller
             $payment = SellerPayment::create([
                 'seller_id' => $seller->id,
                 'subscription_id' => $subscription->id,
-                'amount' => $subscription->amount,
+                'amount' => $amountToPay,
                 'payment_method' => 'wallet',
                 'payment_status' => 'completed',
                 'reference_number' => 'WALLET-' . time(),
@@ -154,10 +185,13 @@ class WalletController extends Controller
             ]);
 
             // Renew subscription
-            $newEndDate = now()->addMonth();
+            $currentEnd = \Carbon\Carbon::parse($subscription->end_date);
+            $baseDate = $currentEnd->greaterThan(now()) ? $currentEnd : now();
+            $newEndDate = $baseDate->copy()->addMonth();
             $subscription->update([
                 'status' => 'active',
                 'end_date' => $newEndDate,
+                'start_date' => now()->toDateString(),
             ]);
 
             // Update seller
@@ -166,6 +200,20 @@ class WalletController extends Controller
                 'subscription_end_date' => $newEndDate,
                 'last_payment_date' => now(),
                 'payment_notification_sent' => false,
+                // Clear suspension details when suspension is due to overdue payment
+                'suspension_reason' => ($seller->suspension_reason ?? '') === 'Overdue Payment' ? null : $seller->suspension_reason,
+                'suspension_notes' => ($seller->suspension_reason ?? '') === 'Overdue Payment' ? null : $seller->suspension_notes,
+                'suspended_by' => ($seller->suspension_reason ?? '') === 'Overdue Payment' ? null : $seller->suspended_by,
+                'suspended_at' => ($seller->suspension_reason ?? '') === 'Overdue Payment' ? null : $seller->suspended_at,
+            ]);
+
+            // Automatic admin message in seller chat (receipt)
+            $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
+            SellerChat::create([
+                'seller_id' => $seller->id,
+                'message' => "Hello {$name}!\n\nPayment received.\nAmount: ₱" . number_format($amountToPay, 2) . "\nSubscription active until: " . $newEndDate->format('M d, Y') . "\n\nThank you!",
+                'sender_type' => 'admin',
+                'is_read' => false,
             ]);
 
             // Send confirmation email
@@ -178,7 +226,7 @@ class WalletController extends Controller
 
             return redirect()->route('seller.wallet.payment-receipt', [
                 'payment' => $payment->id
-            ])->with('success', "Payment of $" . number_format($subscription->amount, 2) . " successful!");
+            ])->with('success', "Payment of ₱" . number_format($amountToPay, 2) . " successful!");
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Payment failed: ' . $e->getMessage());
@@ -245,7 +293,7 @@ class WalletController extends Controller
         // Check balance
         if (!$wallet->hasEnoughBalance($validated['amount'])) {
             return redirect()->back()
-                ->with('error', "Insufficient balance. You have $" . number_format($wallet->balance, 2));
+                ->with('error', "Insufficient balance. You have ₱" . number_format($wallet->balance, 2));
         }
 
         try {
@@ -255,7 +303,7 @@ class WalletController extends Controller
             );
 
             return redirect()->route('seller.wallet.index')
-                ->with('success', "Withdrawal request of $" . number_format($validated['amount'], 2) . " submitted. Pending admin approval.");
+                ->with('success', "Withdrawal request of ₱" . number_format($validated['amount'], 2) . " submitted. Pending admin approval.");
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Withdrawal failed: ' . $e->getMessage());

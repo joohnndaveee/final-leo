@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Seller;
 use App\Models\SellerSubscription;
+use App\Models\SellerChat;
 use Illuminate\Console\Command;
 
 class CheckExpiredSubscriptions extends Command
@@ -52,6 +53,17 @@ class CheckExpiredSubscriptions extends Command
 
             $this->line("Expired subscription for seller: {$seller->shop_name} (ID: {$seller->id})");
             $count++;
+
+            $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
+            $rentAmount = number_format((float) ($seller->monthly_rent ?? 500.00), 2);
+            $endDateStr = $seller->subscription_end_date ? \Carbon\Carbon::parse($seller->subscription_end_date)->format('M d, Y') : now()->format('M d, Y');
+
+            SellerChat::create([
+                'seller_id' => $seller->id,
+                'message' => "Hello {$name}!\n\nYour subscription has expired.\nDue date: {$endDateStr}\nAmount: ₱{$rentAmount}\nAction: Wallet → Pay Monthly Rent",
+                'sender_type' => 'admin',
+                'is_read' => false,
+            ]);
 
             // TODO: Send expiration notification email
             // Mail::to($seller->email)->queue(new SubscriptionExpired($seller));

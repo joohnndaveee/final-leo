@@ -225,7 +225,7 @@
             <!-- Current Balance -->
             <div class="balance-box">
                 <strong>Available Balance:</strong>
-                <span class="balance-amount">${{ number_format($wallet->balance, 2) }}</span>
+                <span class="balance-amount">₱{{ number_format($wallet->balance, 2) }}</span>
             </div>
 
             @if ($errors->any())
@@ -264,7 +264,7 @@
                             value="{{ old('amount') }}"
                         >
                     </div>
-                    <small class="form-text">Maximum: ${{ number_format($wallet->balance, 2) }}</small>
+                    <small class="form-text">Maximum: ₱{{ number_format($wallet->balance, 2) }}</small>
                 </div>
 
                 <div class="form-group">

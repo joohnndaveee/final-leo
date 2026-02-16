@@ -415,7 +415,7 @@
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem;">
                             <div>
                                 <p style="margin-bottom: 0.5rem; color: #6b7280;"><strong>Monthly Amount:</strong></p>
-                                <span style="color: #22c55e; font-weight: 700; font-size: 1.8rem;">${{ number_format($subscription->amount, 2) }}</span>
+                                <span style="color: #22c55e; font-weight: 700; font-size: 1.8rem;">₱{{ number_format($subscription->amount, 2) }}</span>
                             </div>
                             <div>
                                 <p style="margin-bottom: 0.5rem; color: #6b7280;"><strong>Expires On:</strong></p>
@@ -474,7 +474,7 @@
                                     @foreach ($payments as $payment)
                                         <tr>
                                             <td>{{ $payment->paid_at?->format('M d, Y') ?? 'N/A' }}</td>
-                                            <td><strong>${{ number_format($payment->amount, 2) }}</strong></td>
+                                            <td><strong>₱{{ number_format($payment->amount, 2) }}</strong></td>
                                             <td style="text-transform: capitalize;">{{ str_replace('_', ' ', $payment->payment_method) }}</td>
                                             <td>
                                                 @if ($payment->isCompleted())
@@ -503,17 +503,17 @@
                 <div class="settings-card" style="margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h5 style="margin: 0;"><i class="fas fa-wallet"></i> Wallet Balance</h5>
-                        <h5 style="margin: 0; color: #22c55e;">${{ number_format($wallet->balance, 2) }}</h5>
+                        <h5 style="margin: 0; color: #22c55e;">₱{{ number_format($wallet->balance, 2) }}</h5>
                     </div>
                     
                     <div class="wallet-stats">
                         <div class="wallet-stat" style="border-left: 4px solid #22c55e;">
                             <p>Total Deposited</p>
-                            <h6 style="color: #22c55e;">${{ number_format($wallet->total_deposited, 2) }}</h6>
+                            <h6 style="color: #22c55e;">₱{{ number_format($wallet->total_deposited, 2) }}</h6>
                         </div>
                         <div class="wallet-stat" style="border-left: 4px solid #ef4444;">
                             <p>Total Withdrawn</p>
-                            <h6 style="color: #ef4444;">${{ number_format($wallet->total_withdrawn, 2) }}</h6>
+                            <h6 style="color: #ef4444;">₱{{ number_format($wallet->total_withdrawn, 2) }}</h6>
                         </div>
                     </div>
 
@@ -556,8 +556,8 @@
                                                     {{ $txn->getTypeLabel() }}
                                                 </span>
                                             </td>
-                                            <td style="font-weight: 700;">${{ number_format($txn->amount, 2) }}</td>
-                                            <td style="color: #6b7280;">${{ number_format($txn->balance_after, 2) }}</td>
+                                            <td style="font-weight: 700;">₱{{ number_format($txn->amount, 2) }}</td>
+                                            <td style="color: #6b7280;">₱{{ number_format($txn->balance_after, 2) }}</td>
                                             <td><small style="color: #6b7280;">{{ $txn->description ?? '-' }}</small></td>
                                         </tr>
                                     @endforeach
@@ -579,21 +579,32 @@
 @push('scripts')
 <script>
 // Vanilla JavaScript Tab Switching
+function activateTab(targetTab) {
+    if (!targetTab) return;
+    const targetContent = document.getElementById(targetTab);
+    if (!targetContent) return;
+
+    document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+    const targetLink = document.querySelector(`.tab-link[data-tab="${targetTab}"]`);
+    if (targetLink) targetLink.classList.add('active');
+    targetContent.classList.add('active');
+}
+
 document.querySelectorAll('.tab-link').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
         const targetTab = link.dataset.tab;
-        
-        // Remove active class from all links and content
-        document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
-        // Add active class to clicked link and corresponding content
-        link.classList.add('active');
-        document.getElementById(targetTab).classList.add('active');
+        activateTab(targetTab);
+        history.replaceState(null, '', `#${targetTab}`);
     });
 });
+
+// Activate tab from URL hash (e.g. /seller/settings#subscription)
+if (window.location.hash) {
+    activateTab(window.location.hash.replace('#', ''));
+}
 </script>
 @endpush
 @endsection
-

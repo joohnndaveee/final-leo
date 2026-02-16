@@ -226,7 +226,7 @@
         </div>
         <div class="stat-card">
             <h3><i class="fas fa-dollar-sign"></i> Total Revenue</h3>
-            <div class="number">${{ number_format($totalRevenue, 0) }}</div>
+            <div class="number">₱{{ number_format($totalRevenue, 0) }}</div>
         </div>
     </div>
 
@@ -322,7 +322,7 @@
                 </div>
                 <div class="info-item">
                     <strong>Monthly Rent</strong>
-                    <span>${{ number_format($subscription->amount, 2) }}</span>
+                    <span>₱{{ number_format($subscription->amount, 2) }}</span>
                 </div>
                 <div class="info-item">
                     <strong>Expires On</strong>
@@ -408,7 +408,7 @@
                                 @foreach ($seller->sellerPayments()->latest()->take(5)->get() as $payment)
                                     <tr>
                                         <td>{{ $payment->paid_at?->format('M d, Y') ?? '—' }}</td>
-                                        <td><strong>${{ number_format($payment->amount, 2) }}</strong></td>
+                                        <td><strong>₱{{ number_format($payment->amount, 2) }}</strong></td>
                                         <td>{{ str_replace('_', ' ', $payment->payment_method) }}</td>
                                         <td>
                                             @if ($payment->isCompleted())
@@ -501,7 +501,7 @@
                             <tr>
                                 <td><strong>#{{ $order->id }}</strong></td>
                                 <td>{{ $order->name }}</td>
-                                <td>${{ number_format($order->total_price, 2) }}</td>
+                                <td>₱{{ number_format($order->total_price, 2) }}</td>
                                 <td>
                                     <span class="badge {{ $order->status === 'delivered' ? 'badge-success' : ($order->status === 'cancelled' ? 'badge-danger' : 'badge-warning') }}">
                                         {{ ucfirst($order->status ?? 'pending') }}
@@ -684,7 +684,7 @@
                             <tr>
                                 <td><strong>{{ $product->name }}</strong></td>
                                 <td>{{ $product->type ?? '—' }}</td>
-                                <td>${{ number_format($product->price, 2) }}</td>
+                                <td>₱{{ number_format($product->price, 2) }}</td>
                                 <td>
                                     <span class="badge {{ $product->stock > 10 ? 'badge-success' : ($product->stock > 0 ? 'badge-warning' : 'badge-danger') }}">
                                         {{ $product->stock }} in stock

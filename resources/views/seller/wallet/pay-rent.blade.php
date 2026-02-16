@@ -500,7 +500,7 @@
             <h4 class="alert-heading"><i class="fas fa-exclamation-circle"></i>Payment Overdue!</h4>
             <p style="margin: 0.5rem 0 1rem 0;">Your monthly rent payment is overdue. Please pay immediately to prevent account suspension.</p>
             <hr style="margin: 1rem 0; border-color: rgba(153, 27, 27, 0.2);">
-            <small>Overdue Amount: <strong>${{ number_format($subscription->amount, 2) }}</strong></small>
+            <small>Overdue Amount: <strong>₱{{ number_format($subscription->amount, 2) }}</strong></small>
         </div>
     @else
         <div class="alert alert-info">
@@ -518,16 +518,16 @@
             <div class="payment-summary">
                 <div class="summary-row">
                     <span class="label">Monthly Rent:</span>
-                    <span class="value text-danger">${{ number_format($subscription->amount, 2) }}</span>
+                    <span class="value text-danger">₱{{ number_format($subscription->amount, 2) }}</span>
                 </div>
                 <div class="summary-row">
                     <span class="label">Wallet Balance:</span>
-                    <span class="value text-success">${{ number_format($wallet->balance, 2) }}</span>
+                    <span class="value text-success">₱{{ number_format($wallet->balance, 2) }}</span>
                 </div>
                 <hr class="divider">
                 <div class="summary-row">
                     <span class="label">Balance After Payment:</span>
-                    <span class="value text-info">${{ number_format(max(0, $wallet->balance - $subscription->amount), 2) }}</span>
+                    <span class="value text-info">₱{{ number_format(max(0, $wallet->balance - $subscription->amount), 2) }}</span>
                 </div>
             </div>
 
@@ -546,7 +546,7 @@
                 <div class="alert alert-warning">
                     <i class="fas fa-exclamation-triangle"></i>
                     <strong>Insufficient Balance!</strong><br>
-                    <span style="display: block; margin-top: 0.5rem;">You need ${{ number_format($subscription->amount - $wallet->balance, 2) }} more to pay the rent.</span>
+                    <span style="display: block; margin-top: 0.5rem;">You need ₱{{ number_format($subscription->amount - $wallet->balance, 2) }} more to pay the rent.</span>
                     <a href="{{ route('seller.wallet.deposit.form') }}" class="btn btn-warning">
                         Add Funds Now
                     </a>
@@ -641,17 +641,17 @@
             <div class="modal-summary">
                 <div class="summary-item">
                     <span class="label">Monthly Rent Amount:</span>
-                    <span class="value">${{ number_format($subscription->amount, 2) }}</span>
+                    <span class="value">₱{{ number_format($subscription->amount, 2) }}</span>
                 </div>
                 
                 <div class="summary-item">
                     <span class="label">Current Wallet Balance:</span>
-                    <span class="value">${{ number_format($wallet->balance, 2) }}</span>
+                    <span class="value">₱{{ number_format($wallet->balance, 2) }}</span>
                 </div>
                 
                 <div class="summary-item total">
                     <span class="label">Balance After Payment:</span>
-                    <span class="value">${{ number_format(max(0, $wallet->balance - $subscription->amount), 2) }}</span>
+                    <span class="value">₱{{ number_format(max(0, $wallet->balance - $subscription->amount), 2) }}</span>
                 </div>
             </div>
             

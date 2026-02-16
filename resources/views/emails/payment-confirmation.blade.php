@@ -200,7 +200,7 @@
                 
                 <div class="amount-row">
                     <div class="label">Amount Paid</div>
-                    <div class="value">${{ number_format($payment->amount, 2) }}</div>
+                    <div class="value">₱{{ number_format($payment->amount, 2) }}</div>
                 </div>
             </div>
             
@@ -215,7 +215,7 @@
                 
                 <div class="receipt-row">
                     <span class="label">Monthly Cost</span>
-                    <span class="value">${{ number_format($subscription->amount, 2) }}</span>
+                    <span class="value">₱{{ number_format($subscription->amount, 2) }}</span>
                 </div>
                 
                 <div class="receipt-row">

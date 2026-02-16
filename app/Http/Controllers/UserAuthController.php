@@ -158,6 +158,10 @@ class UserAuthController extends Controller
      */
     public function sellerRegister(Request $request)
     {
+        $monthlyRent = 500.00;
+        $expiredStartDate = now()->subMonth()->toDateString();
+        $expiredEndDate = now()->subDay()->toDateString();
+
         $request->validate([
             'name' => 'required|max:50',
             'email' => 'required|email|max:50|unique:sellers,email',
@@ -177,18 +181,21 @@ class UserAuthController extends Controller
             'shop_name' => $request->input('shop_name'),
             'status' => 'pending',
             'approved_notified' => false,
-            'subscription_status' => 'inactive',
-            'monthly_rent' => 500.00, // Default monthly rent
+            // Seller cannot access selling features until first payment
+            'subscription_status' => 'expired',
+            'subscription_end_date' => $expiredEndDate,
+            'monthly_rent' => $monthlyRent, // Default monthly rent (PHP)
+            'payment_notification_sent' => false,
         ]);
 
-        // Create initial subscription (inactive until approved and paid)
+        // Create initial subscription (expired until first payment)
         SellerSubscription::create([
             'seller_id' => $seller->id,
             'subscription_type' => 'monthly',
-            'amount' => 500.00,
-            'start_date' => now(),
-            'end_date' => now()->addMonth(),
-            'status' => 'expired', // Starts as expired until first payment
+            'amount' => $monthlyRent,
+            'start_date' => $expiredStartDate,
+            'end_date' => $expiredEndDate,
+            'status' => 'expired',
             'auto_renew' => true,
         ]);
 

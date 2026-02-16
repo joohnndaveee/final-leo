@@ -106,6 +106,8 @@ Route::prefix('admin')->middleware('auth:admin')->group(function () {
     Route::get('/seller-chats/{sellerId}', [\App\Http\Controllers\Admin\SellerChatController::class, 'show'])->name('admin.seller-chats.show');
     Route::post('/seller-chats/{sellerId}/reply', [\App\Http\Controllers\Admin\SellerChatController::class, 'reply'])->name('admin.seller-chats.reply');
     Route::get('/seller-chats/{sellerId}/messages', [\App\Http\Controllers\Admin\SellerChatController::class, 'getMessages'])->name('admin.seller-chats.getMessages');
+    Route::get('/seller-chats/{sellerId}/files/{file}/view', [\App\Http\Controllers\Admin\SellerChatController::class, 'viewFile'])->name('admin.seller-chats.files.view');
+    Route::get('/seller-chats/{sellerId}/files/{file}/download', [\App\Http\Controllers\Admin\SellerChatController::class, 'downloadFile'])->name('admin.seller-chats.files.download');
 
     // Seller subscription management routes
     Route::get('/subscriptions', [AdminController::class, 'subscriptions'])->name('admin.subscriptions');
@@ -166,6 +168,8 @@ Route::prefix('seller')->middleware('auth:seller')->group(function () {
     Route::get('/chat', [\App\Http\Controllers\SellerChatController::class, 'index'])->name('seller.chat');
     Route::post('/chat/send', [\App\Http\Controllers\SellerChatController::class, 'send'])->name('seller.chat.send');
     Route::get('/chat/messages', [\App\Http\Controllers\SellerChatController::class, 'getMessages'])->name('seller.chat.messages');
+    Route::get('/chat/files/{file}/view', [\App\Http\Controllers\SellerChatController::class, 'viewFile'])->name('seller.chat.files.view');
+    Route::get('/chat/files/{file}/download', [\App\Http\Controllers\SellerChatController::class, 'downloadFile'])->name('seller.chat.files.download');
     
     // Temporary debug route
     Route::get('/debug-wallet', function() {

@@ -29,8 +29,8 @@ class CreateMissingSubscriptions extends Command
                 'seller_id' => $seller->id,
                 'subscription_type' => 'monthly',
                 'amount' => $seller->monthly_rent ?? 500.00,
-                'start_date' => now(),
-                'end_date' => now()->addMonth(),
+                'start_date' => now()->subMonth()->toDateString(),
+                'end_date' => now()->subDay()->toDateString(),
                 'status' => 'expired',
                 'auto_renew' => true,
             ]);

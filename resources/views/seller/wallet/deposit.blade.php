@@ -231,7 +231,7 @@
             <!-- Current Balance -->
             <div class="balance-box">
                 <strong>Current Balance:</strong>
-                <span class="balance-amount">${{ number_format($wallet->balance, 2) }}</span>
+                <span class="balance-amount">₱{{ number_format($wallet->balance, 2) }}</span>
             </div>
 
             @if ($errors->any())
@@ -250,7 +250,7 @@
                 <div class="form-group">
                     <label for="amount" class="form-label">Deposit Amount *</label>
                     <div class="input-wrapper">
-                        <span class="input-prefix">$</span>
+                        <span class="input-prefix">₱</span>
                         <input 
                             type="number" 
                             id="amount" 

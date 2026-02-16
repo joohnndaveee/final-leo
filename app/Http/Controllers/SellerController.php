@@ -251,6 +251,28 @@ class SellerController extends Controller
         $seller = Auth::user();
         $wallet = $seller->wallet ?? \App\Models\SellerWallet::create(['seller_id' => $seller->id]);
         $subscription = $seller->sellerSubscriptions()->latest()->first();
+
+        if (!$subscription) {
+            $monthlyRent = (float) ($seller->monthly_rent ?? 500.00);
+            $subscription = \App\Models\SellerSubscription::create([
+                'seller_id' => $seller->id,
+                'subscription_type' => 'monthly',
+                'amount' => $monthlyRent,
+                'start_date' => now()->subMonth()->toDateString(),
+                'end_date' => now()->subDay()->toDateString(),
+                'status' => 'expired',
+                'auto_renew' => true,
+            ]);
+
+            if (!$seller->subscription_end_date || $seller->subscription_status === 'inactive') {
+                $seller->update([
+                    'subscription_status' => 'expired',
+                    'subscription_end_date' => $subscription->end_date,
+                    'monthly_rent' => $monthlyRent,
+                ]);
+            }
+        }
+
         $payments = $seller->sellerPayments()->latest()->paginate(10);
         $transactions = $seller->walletTransactions()->latest()->paginate(10);
 

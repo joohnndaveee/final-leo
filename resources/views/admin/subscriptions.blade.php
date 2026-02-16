@@ -283,7 +283,7 @@
                            {{ ucfirst($seller->subscription_status) }}
                        </span>
                    </td>
-                   <td>${{ number_format($seller->monthly_rent ?? 0, 2) }}</td>
+                   <td>₱{{ number_format($seller->monthly_rent ?? 0, 2) }}</td>
                    <td>
                        @if($seller->subscription_end_date)
                            {{ $seller->subscription_end_date->format('M d, Y') }}
@@ -451,5 +451,4 @@ document.querySelectorAll('.suspension-btn').forEach(btn => {
 
 </body>
 </html>
-
 

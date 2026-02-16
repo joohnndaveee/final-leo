@@ -150,7 +150,7 @@
                         <span class="subscription-alert-notes">"{{ $seller->suspension_notes }}"</span>
                     @endif
                     @if(($seller->suspension_reason ?? '') === 'Overdue Payment')
-                        Monthly rent of <strong>${{ number_format($seller->monthly_rent ?? 0, 2) }}</strong> is required to continue selling.
+                        Monthly rent of <strong>₱{{ number_format($seller->monthly_rent ?? 0, 2) }}</strong> is required to continue selling.
                     @else
                         Please contact the administrator for more information.
                     @endif
@@ -177,7 +177,7 @@
                         <p>Your monthly rent payment is overdue. Please pay immediately to continue selling.</p>
                     @else
                         <strong>Payment due soon</strong>
-                        <p>Your subscription expires in {{ $daysUntilExpiry }} day{{ $daysUntilExpiry !== 1 ? 's' : '' }}. Please pay ${{ number_format($subscription->amount, 2) }} to continue.</p>
+                        <p>Your subscription expires in {{ $daysUntilExpiry }} day{{ $daysUntilExpiry !== 1 ? 's' : '' }}. Please pay ₱{{ number_format($subscription->amount, 2) }} to continue.</p>
                     @endif
                 </div>
                 <div class="subscription-alert-actions">

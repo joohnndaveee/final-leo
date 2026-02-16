@@ -703,6 +703,12 @@ class AdminController extends Controller
                            ->with('error', 'Please login to access admin panel!');
         }
 
+        // Keep subscription_status in sync with subscription_end_date for reporting
+        Seller::where('subscription_status', 'active')
+            ->whereNotNull('subscription_end_date')
+            ->where('subscription_end_date', '<', now())
+            ->update(['subscription_status' => 'expired']);
+
         $query = Seller::with(['sellerSubscriptions' => function($q) {
             $q->latest();
         }]);

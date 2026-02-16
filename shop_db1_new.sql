@@ -94,6 +94,10 @@ CREATE TABLE `sellers` (
   `shop_logo` varchar(255) DEFAULT NULL,
   `status` enum('pending','approved','rejected','suspended') NOT NULL DEFAULT 'pending',
   `subscription_status` enum('inactive','active','expired','suspended') NOT NULL DEFAULT 'inactive',
+  `suspension_reason` varchar(255) DEFAULT NULL,
+  `suspension_notes` text DEFAULT NULL,
+  `suspended_by` int(100) DEFAULT NULL,
+  `suspended_at` timestamp NULL DEFAULT NULL,
   `subscription_end_date` DATE DEFAULT NULL,
   `monthly_rent` DECIMAL(10, 2) DEFAULT 500.00,
   `last_payment_date` DATE DEFAULT NULL,
@@ -200,6 +204,13 @@ CREATE TABLE `orders` (
   `placed_on` date NOT NULL DEFAULT current_timestamp(),
   `payment_status` varchar(20) NOT NULL DEFAULT 'pending',
   `status` varchar(20) NOT NULL DEFAULT 'pending',
+  `payment_reference` varchar(255) DEFAULT NULL,
+  `shipping_method` varchar(255) DEFAULT NULL,
+  `shipping_fee` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `tracking_number` varchar(255) DEFAULT NULL,
+  `shipped_at` timestamp NULL DEFAULT NULL,
+  `delivered_at` timestamp NULL DEFAULT NULL,
+  `cancelled_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -236,6 +247,7 @@ CREATE TABLE `order_items` (
 CREATE TABLE `chats` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
   `user_id` int(100) NOT NULL,
+  `order_id` int(100) DEFAULT NULL,
   `admin_id` int(100) DEFAULT NULL,
   `message` text NOT NULL,
   `sender_type` enum('user','admin') NOT NULL,
@@ -244,6 +256,7 @@ CREATE TABLE `chats` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
+  KEY `order_id` (`order_id`),
   KEY `admin_id` (`admin_id`),
   KEY `sender_type` (`sender_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -258,6 +271,7 @@ CREATE TABLE `reviews` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
   `product_id` int(100) NOT NULL,
   `user_id` int(100) NOT NULL,
+  `order_id` int(100) NOT NULL,
   `rating` int(1) NOT NULL,
   `comment` text DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -265,6 +279,8 @@ CREATE TABLE `reviews` (
   PRIMARY KEY (`id`),
   KEY `product_id` (`product_id`),
   KEY `user_id` (`user_id`),
+  KEY `order_id` (`order_id`),
+  UNIQUE KEY `reviews_user_product_order_unique` (`user_id`,`product_id`,`order_id`),
   KEY `rating` (`rating`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -276,17 +292,23 @@ CREATE TABLE `reviews` (
 
 CREATE TABLE `messages` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
-  `user_id` int(100) NOT NULL,
+  `user_id` int(100) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `number` varchar(12) NOT NULL,
+  `subject` varchar(255) DEFAULT NULL,
+  `number` varchar(20) DEFAULT NULL,
   `message` varchar(500) NOT NULL,
+  `source` varchar(20) NOT NULL DEFAULT 'guest',
+  `seller_id` int(100) DEFAULT NULL,
   `status` varchar(20) NOT NULL DEFAULT 'unread',
+  `read_at` timestamp NULL DEFAULT NULL,
   `replied` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
+  KEY `source` (`source`),
+  KEY `seller_id` (`seller_id`),
   KEY `status` (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -386,6 +408,45 @@ CREATE TABLE `wallet_transactions` (
   PRIMARY KEY (`id`),
   KEY `seller_id` (`seller_id`),
   KEY `type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `seller_chats`
+--
+
+CREATE TABLE `seller_chats` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `seller_id` int(100) NOT NULL,
+  `message` text NOT NULL,
+  `sender_type` enum('seller','admin') NOT NULL DEFAULT 'seller',
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `seller_id` (`seller_id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `seller_chat_files`
+--
+
+CREATE TABLE `seller_chat_files` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `seller_chat_id` int(100) NOT NULL,
+  `path` varchar(255) NOT NULL,
+  `original_name` varchar(255) NOT NULL,
+  `mime` varchar(100) NOT NULL,
+  `size` int(11) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `seller_chat_id` (`seller_chat_id`),
+  KEY `created_at` (`created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------

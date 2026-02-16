@@ -31,7 +31,7 @@
             <div class="card border-success">
                 <div class="card-body">
                     <p class="card-text text-muted mb-2">Current Balance</p>
-                    <h3 class="text-success mb-0">${{ number_format($wallet->balance, 2) }}</h3>
+                    <h3 class="text-success mb-0">₱{{ number_format($wallet->balance, 2) }}</h3>
                 </div>
             </div>
         </div>
@@ -39,7 +39,7 @@
             <div class="card border-info">
                 <div class="card-body">
                     <p class="card-text text-muted mb-2">Total Deposited</p>
-                    <h4 class="text-info mb-0">${{ number_format($wallet->total_deposited, 2) }}</h4>
+                    <h4 class="text-info mb-0">₱{{ number_format($wallet->total_deposited, 2) }}</h4>
                 </div>
             </div>
         </div>
@@ -47,7 +47,7 @@
             <div class="card border-danger">
                 <div class="card-body">
                     <p class="card-text text-muted mb-2">Total Withdrawn</p>
-                    <h4 class="text-danger mb-0">${{ number_format($wallet->total_withdrawn, 2) }}</h4>
+                    <h4 class="text-danger mb-0">₱{{ number_format($wallet->total_withdrawn, 2) }}</h4>
                 </div>
             </div>
         </div>
@@ -106,9 +106,9 @@
                                                     {{ $txn->getTypeLabel() }}
                                                 </span>
                                             </td>
-                                            <td class="fw-bold">${{ number_format($txn->amount, 2) }}</td>
+                                            <td class="fw-bold">₱{{ number_format($txn->amount, 2) }}</td>
                                             <td>
-                                                <span class="text-success">${{ number_format($txn->balance_after, 2) }}</span>
+                                                <span class="text-success">₱{{ number_format($txn->balance_after, 2) }}</span>
                                             </td>
                                             <td>
                                                 <small class="text-muted">{{ $txn->description ?? '-' }}</small>

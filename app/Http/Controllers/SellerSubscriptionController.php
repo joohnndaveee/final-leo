@@ -5,22 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\Seller;
 use App\Models\SellerSubscription;
 use App\Models\SellerPayment;
+use App\Models\SellerChat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
 class SellerSubscriptionController extends Controller
 {
+    private const MONTHLY_RENT_DEFAULT = 500.00;
     /**
      * Get subscription details for a seller
      */
     public function show()
     {
-        $seller = auth('seller')->user();
-
-        $subscription = $seller->sellerSubscriptions()->latest()->first();
-        $payments = $seller->sellerPayments()->latest()->paginate(10);
-
-        return view('seller.subscription', compact('seller', 'subscription', 'payments'));
+        // Subscription & billing is shown in seller settings.
+        return redirect()->to(route('seller.settings') . '#subscription');
     }
 
     /**
@@ -28,34 +26,10 @@ class SellerSubscriptionController extends Controller
      */
     public function store(Request $request)
     {
-        $seller = auth('seller')->user();
-
-        $validated = $request->validate([
-            'subscription_type' => 'required|in:monthly,quarterly,yearly',
-            'amount' => 'required|numeric|min:0.01',
-            'start_date' => 'required|date',
-            'auto_renew' => 'boolean',
-        ]);
-
-        $subscription = SellerSubscription::create([
-            'seller_id' => $seller->id,
-            'subscription_type' => $validated['subscription_type'],
-            'amount' => $validated['amount'],
-            'start_date' => $validated['start_date'],
-            'end_date' => $this->calculateEndDate($validated['start_date'], $validated['subscription_type']),
-            'status' => 'active',
-            'auto_renew' => $validated['auto_renew'] ?? true,
-        ]);
-
-        // Update seller subscription fields
-        $seller->update([
-            'subscription_status' => 'active',
-            'subscription_end_date' => $subscription->end_date,
-            'monthly_rent' => $validated['amount'],
-            'last_payment_date' => now(),
-        ]);
-
-        return redirect()->back()->with('success', 'Subscription activated successfully');
+        // Wallet-only payments: subscription is activated by paying via wallet.
+        return redirect()
+            ->route('seller.wallet.pay-rent.form')
+            ->with('info', 'Please pay your monthly rent via wallet to activate your subscription.');
     }
 
     /**
@@ -98,6 +72,16 @@ class SellerSubscriptionController extends Controller
                 'payment_notification_sent' => true,
             ]);
 
+            $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
+            $rentAmount = number_format((float) ($seller->monthly_rent ?? self::MONTHLY_RENT_DEFAULT), 2);
+            $endDateStr = $seller->subscription_end_date ? $seller->subscription_end_date->format('M d, Y') : 'N/A';
+            SellerChat::create([
+                'seller_id' => $seller->id,
+                'message' => "Hello {$name}!\n\nReminder: your subscription payment is due.\nDue date: {$endDateStr}\nAmount: ₱{$rentAmount}\nAction: Wallet → Pay Monthly Rent",
+                'sender_type' => 'admin',
+                'is_read' => false,
+            ]);
+
             return redirect()->back()->with('success', 'Payment reminder sent to seller');
         }
 
@@ -133,9 +117,13 @@ class SellerSubscriptionController extends Controller
         ]);
 
         // Update subscription
+        $currentEnd = \Carbon\Carbon::parse($subscription->end_date);
+        $baseDate = $currentEnd->greaterThan(now()) ? $currentEnd : now();
+        $newEndDate = $this->calculateEndDate($baseDate, $subscription->subscription_type);
+
         $subscription->update([
             'status' => 'active',
-            'end_date' => $this->calculateEndDate(now(), $subscription->subscription_type),
+            'end_date' => $newEndDate,
         ]);
 
         // Update seller - always activate subscription on payment
@@ -144,6 +132,14 @@ class SellerSubscriptionController extends Controller
             'subscription_end_date' => $subscription->end_date,
             'last_payment_date' => now(),
             'payment_notification_sent' => false,
+        ]);
+
+        $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
+        SellerChat::create([
+            'seller_id' => $seller->id,
+            'message' => "Hello {$name}!\n\nYour subscription has been marked as paid.\nActive until: " . \Carbon\Carbon::parse($subscription->end_date)->format('M d, Y') . "\n\nThank you!",
+            'sender_type' => 'admin',
+            'is_read' => false,
         ]);
 
         return redirect()->back()->with('success', 'Subscription activated. Payment recorded.');
@@ -179,6 +175,25 @@ class SellerSubscriptionController extends Controller
         // Send suspension email
         $this->sendSuspensionNotification($seller);
 
+        $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
+        $reason = $seller->suspension_reason ?? 'Administrative Action';
+        $notes = $seller->suspension_notes ? "\nNotes: {$seller->suspension_notes}" : '';
+
+        $message = "Hello {$name}!\nYour seller account is currently suspended.\n\n\"{$reason}\"{$notes}";
+        if ($reason === 'Overdue Payment') {
+            $rentAmount = number_format((float) ($seller->monthly_rent ?? self::MONTHLY_RENT_DEFAULT), 2);
+            $message .= "\n\nTo restore access:\n- Amount: ₱{$rentAmount}\n- Action: Wallet → Pay Monthly Rent";
+        } else {
+            $message .= "\n\nIf you want to appeal, please reply here with your explanation and any proof.";
+        }
+
+        SellerChat::create([
+            'seller_id' => $seller->id,
+            'message' => $message,
+            'sender_type' => 'admin',
+            'is_read' => false,
+        ]);
+
         return redirect()->back()->with('success', 'Seller subscription suspended: ' . $request->suspension_reason);
     }
 
@@ -206,6 +221,15 @@ class SellerSubscriptionController extends Controller
             'suspension_notes' => null,
             'suspended_by' => null,
             'suspended_at' => null,
+        ]);
+
+        $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
+        $status = $hasActiveSubscription ? 'active' : 'expired';
+        SellerChat::create([
+            'seller_id' => $seller->id,
+            'message' => "Hello {$name}!\n\nYour seller account has been reactivated.\nCurrent subscription status: {$status}.",
+            'sender_type' => 'admin',
+            'is_read' => false,
         ]);
 
         return redirect()->back()->with('success', 'Seller subscription reactivated');
@@ -238,10 +262,10 @@ class SellerSubscriptionController extends Controller
             // This is a placeholder - configure actual email sending in your Mail class
             $subject = 'Payment Reminder: Monthly Shop Rent Due';
             $message = "Dear {$seller->shop_name},\n\n";
-            $message .= "Your monthly shop rent of $" . number_format($seller->monthly_rent, 2) . " is due.\n";
+            $message .= "Your monthly shop rent of ₱" . number_format($seller->monthly_rent, 2) . " is due.\n";
             $message .= "Please make your payment to continue selling.\n\n";
             $message .= "Payment Details:\nDue Date: " . $seller->subscription_end_date . "\n";
-            $message .= "Amount: $" . number_format($seller->monthly_rent, 2) . "\n\n";
+            $message .= "Amount: ₱" . number_format($seller->monthly_rent, 2) . "\n\n";
             $message .= "Please log in to your seller dashboard to pay via wallet or contact support.\n\n";
             $message .= "Thank you,\nShop Management";
 
@@ -274,7 +298,7 @@ class SellerSubscriptionController extends Controller
             }
 
             if ($reason === 'Overdue Payment') {
-                $message .= "Outstanding Amount: $" . number_format($seller->monthly_rent ?? 0, 2) . "\n\n";
+                $message .= "Outstanding Amount: ₱" . number_format($seller->monthly_rent ?? 0, 2) . "\n\n";
                 $message .= "To restore your account and continue selling, please:\n";
                 $message .= "1. Log in to your seller dashboard\n";
                 $message .= "2. Go to Subscription & Billing\n";
