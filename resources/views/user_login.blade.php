@@ -7,7 +7,7 @@
     <title>Login - U-KAY HUB</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ $siteLogoUrl ?? asset('images/logo.png') }}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -38,15 +38,30 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.60);
             z-index: -1;
         }
 
         /* Enhanced header styling */
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: url('{{ asset('images/bg.png') }}') center center / cover no-repeat;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
+            z-index: 0;
+        }
+
+        .header .flex {
+            position: relative;
+            z-index: 1;
         }
 
         /* Logo styling */
@@ -447,7 +462,7 @@
     <section class="flex">
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="logo">
-            <img src="{{ asset('images/logo.png') }}" alt="U-KAY HUB Logo">
+            <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="U-KAY HUB Logo">
             <span class="text">U-KAY<span>HUB</span></span>
         </a>
 
@@ -548,7 +563,7 @@
             {{-- Brand Section --}}
             <div class="footer-section brand-section">
                 <div class="footer-logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="U-KAY HUB Logo">
+                    <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="U-KAY HUB Logo">
                     <h3>U-KAY<span>HUB</span></h3>
                 </div>
                 <p class="footer-description">

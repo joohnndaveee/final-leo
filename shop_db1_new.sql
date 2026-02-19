@@ -89,6 +89,7 @@ CREATE TABLE `sellers` (
   `name` varchar(50) NOT NULL,
   `email` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `gcash_number_used` varchar(30) DEFAULT NULL,
   `shop_name` varchar(255) NOT NULL,
   `shop_description` text DEFAULT NULL,
   `shop_logo` varchar(255) DEFAULT NULL,
@@ -357,10 +358,13 @@ CREATE TABLE `seller_payments` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
   `seller_id` int(100) NOT NULL,
   `subscription_id` int(100) DEFAULT NULL,
+  `payment_type` enum('subscription','registration') NOT NULL DEFAULT 'subscription',
   `amount` decimal(10,2) NOT NULL,
   `payment_method` enum('bank_transfer','card','wallet','manual') DEFAULT 'manual',
   `payment_status` enum('pending','completed','failed','cancelled') DEFAULT 'pending',
   `reference_number` varchar(100) DEFAULT NULL,
+  `gcash_number_used` varchar(30) DEFAULT NULL,
+  `proof_image` varchar(255) DEFAULT NULL,
   `notes` text DEFAULT NULL,
   `paid_at` datetime DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -368,6 +372,7 @@ CREATE TABLE `seller_payments` (
   PRIMARY KEY (`id`),
   KEY `seller_id` (`seller_id`),
   KEY `subscription_id` (`subscription_id`),
+  KEY `payment_type` (`payment_type`),
   KEY `payment_status` (`payment_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -500,3 +505,30 @@ rejected@test.com / 1 (Rejected)
 
 ═══════════════════════════════════════════════════════════════════════
 */
+
+-- =========================================================
+-- PATCH: Site branding settings (logo)
+-- Run this block only (no need to re-import full dump)
+-- =========================================================
+CREATE TABLE IF NOT EXISTS `site_settings` (
+  `id` int(100) NOT NULL,
+  `site_logo_path` varchar(255) DEFAULT NULL,
+  `updated_by` int(100) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `site_settings` (`id`, `site_logo_path`, `updated_by`, `created_at`, `updated_at`)
+VALUES (1, 'images/logo.png', NULL, NOW(), NOW())
+ON DUPLICATE KEY UPDATE
+  `site_logo_path` = VALUES(`site_logo_path`),
+  `updated_at` = NOW();
+
+-- =========================================================
+-- PATCH: Allow optional product images (image_02/image_03)
+-- Fixes NOT NULL insert error when only uploading image_01
+-- =========================================================
+ALTER TABLE `products`
+  MODIFY `image_02` varchar(100) NULL,
+  MODIFY `image_03` varchar(100) NULL;

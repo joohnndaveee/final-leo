@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Seller Center - U-KAY HUB')</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ $siteLogoUrl ?? asset('images/logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -165,6 +165,9 @@
             cursor: pointer;
         }
 
+        .seller-bell-menu { display: none; }
+        .seller-bell-menu.open { display: block; }
+
         @media (max-width: 768px) {
             .seller-header-inner {
                 flex-direction: column;
@@ -184,12 +187,22 @@
     $seller = Auth::guard('seller')->user();
     $shopName = $seller->shop_name ?? $seller->name ?? 'My Shop';
     $sellerStatus = $seller->status ?? 'pending';
+    $unreadAdminCount = \App\Models\SellerChat::where('seller_id', $seller->id)
+        ->where('sender_type', 'admin')
+        ->where('is_read', false)
+        ->count();
+    $latestUnread = \App\Models\SellerChat::where('seller_id', $seller->id)
+        ->where('sender_type', 'admin')
+        ->where('is_read', false)
+        ->latest('id')
+        ->take(5)
+        ->get();
 @endphp
 
 <header class="seller-header">
     <div class="seller-header-inner">
         <div class="seller-brand">
-            <img src="{{ asset('images/logo.png') }}" alt="U-KAY HUB Logo">
+            <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="U-KAY HUB Logo">
             <div class="seller-brand-text">
                 <span>SELLER CENTER</span>
                 <span>U-KAY HUB</span>
@@ -219,6 +232,40 @@
                 </span>
             </div>
             <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="seller-notifications" style="position: relative;">
+                    <button type="button" class="seller-logout-btn seller-bell-btn" onclick="this.nextElementSibling.classList.toggle('open')" style="background: rgba(255,255,255,0.1); padding: 0.6rem 0.9rem; border-radius: 8px; margin: 0; position: relative;">
+                        <i class="fas fa-bell"></i>
+                        @if($unreadAdminCount > 0)
+                            <span style="position:absolute; top:-6px; right:-6px; background:#ef4444; color:#fff; border-radius:999px; font-size:1.1rem; padding:0.2rem 0.55rem; border:2px solid rgba(26,48,9,0.98);">
+                                {{ $unreadAdminCount > 99 ? '99+' : $unreadAdminCount }}
+                            </span>
+                        @endif
+                    </button>
+                    <div class="seller-bell-menu" style="position:absolute; right:0; top:48px; width: 360px; max-width: 85vw; background:#fff; border:1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 12px 30px rgba(0,0,0,0.18); overflow:hidden; z-index:999;">
+                        <div style="padding:1.1rem 1.2rem; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; justify-content:space-between;">
+                            <div style="font-size:1.35rem; font-weight:700; color:#111827;">Notifications</div>
+                            <a href="{{ route('seller.chat') }}" style="font-size:1.2rem; color:#16a34a; text-decoration:none; font-weight:600;">Open chat</a>
+                        </div>
+                        <div style="max-height: 320px; overflow:auto; background:#fff;">
+                            @if($unreadAdminCount > 0)
+                                @foreach($latestUnread as $msg)
+                                    <a href="{{ route('seller.chat') }}" style="display:block; padding:1rem 1.2rem; text-decoration:none; border-bottom:1px solid #f3f4f6; color:#111827;">
+                                        <div style="font-size:1.25rem; color:#374151; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                            {{ \Illuminate\Support\Str::limit((string) $msg->message, 90) }}
+                                        </div>
+                                        <div style="font-size:1.1rem; color:#9ca3af; margin-top:0.35rem;">
+                                            {{ $msg->created_at?->format('M d, h:i A') ?? '' }}
+                                        </div>
+                                    </a>
+                                @endforeach
+                            @else
+                                <div style="padding:1.5rem 1.2rem; color:#6b7280; font-size:1.25rem;">
+                                    No new notifications.
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
                 <a href="{{ route('seller.settings') }}" class="seller-logout-btn" style="background: rgba(255,255,255,0.1); padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; margin: 0;">
                     <i class="fas fa-cog"></i> Settings
                 </a>
@@ -267,6 +314,18 @@
 </main>
 
 @stack('scripts')
+<script>
+    // Close notification dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        const menus = document.querySelectorAll('.seller-notifications');
+        menus.forEach(function (wrap) {
+            const btn = wrap.querySelector('.seller-bell-btn');
+            const menu = wrap.querySelector('.seller-bell-menu');
+            if (!btn || !menu) return;
+            if (btn.contains(e.target) || menu.contains(e.target)) return;
+            menu.classList.remove('open');
+        });
+    });
+</script>
 </body>
 </html>
-

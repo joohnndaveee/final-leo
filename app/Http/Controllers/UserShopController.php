@@ -26,7 +26,7 @@ class UserShopController extends Controller
         $priceMax = $request->query('price_max');
         
         // Build the query with ordering by ID (descending)
-        $query = Product::query();
+        $query = Product::with('seller');
         
         // If category is provided, filter by it
         if ($category) {

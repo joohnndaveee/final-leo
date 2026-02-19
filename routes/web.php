@@ -13,6 +13,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\Admin\ChatController as AdminChatController;
 use App\Http\Controllers\SellerController;
+use App\Http\Controllers\AdminSettingsController;
 
 // Home route
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -42,6 +43,7 @@ Route::middleware(['auth:web'])->group(function () {
     // Order routes
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
     Route::get('/order/{id}/details', [OrderController::class, 'show'])->name('order.details');
+    Route::post('/order/{id}/received', [OrderController::class, 'markReceived'])->name('order.received');
 
     // Cart routes
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
@@ -78,6 +80,8 @@ Route::prefix('admin')->middleware('auth:admin')->group(function () {
     Route::get('/users', [AdminController::class, 'users'])->name('admin.users');
     Route::get('/sellers', [AdminController::class, 'sellers'])->name('admin.sellers');
     Route::get('/sellers/{id}', [AdminController::class, 'showSeller'])->name('admin.sellers.show');
+    Route::get('/settings/branding', [AdminSettingsController::class, 'branding'])->name('admin.settings.branding');
+    Route::post('/settings/logo', [AdminSettingsController::class, 'updateLogo'])->name('admin.settings.logo.update');
     Route::post('/users/{id}/role', [AdminController::class, 'updateUserRole'])->name('admin.users.role');
     Route::delete('/users/{id}', [AdminController::class, 'deleteUser'])->name('admin.users.delete');
     Route::get('/messages', [AdminController::class, 'messages'])->name('admin.messages');

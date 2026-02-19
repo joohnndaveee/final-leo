@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="GCash QR placeholder">
+  <defs>
+    <pattern id="p" width="32" height="32" patternUnits="userSpaceOnUse">
+      <rect width="32" height="32" fill="#ffffff"/>
+      <rect x="0" y="0" width="16" height="16" fill="#f3f4f6"/>
+      <rect x="16" y="16" width="16" height="16" fill="#f3f4f6"/>
+    </pattern>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" fill="url(#p)"/>
+  <rect x="56" y="56" width="400" height="400" rx="24" fill="#ffffff" stroke="#e5e7eb" stroke-width="8"/>
+
+  <!-- Corner blocks (QR-like look) -->
+  <rect x="92" y="92" width="112" height="112" fill="#111827"/>
+  <rect x="108" y="108" width="80" height="80" fill="#ffffff"/>
+  <rect x="124" y="124" width="48" height="48" fill="#111827"/>
+
+  <rect x="308" y="92" width="112" height="112" fill="#111827"/>
+  <rect x="324" y="108" width="80" height="80" fill="#ffffff"/>
+  <rect x="340" y="124" width="48" height="48" fill="#111827"/>
+
+  <rect x="92" y="308" width="112" height="112" fill="#111827"/>
+  <rect x="108" y="324" width="80" height="80" fill="#ffffff"/>
+  <rect x="124" y="340" width="48" height="48" fill="#111827"/>
+
+  <!-- Center label -->
+  <rect x="176" y="208" width="160" height="96" rx="16" fill="#2563eb" opacity="0.08"/>
+  <text x="256" y="252" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#111827">
+    ADMIN QR
+  </text>
+  <text x="256" y="282" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" font-weight="600" fill="#6b7280">
+    Replace in .env
+  </text>
+
+  <text x="256" y="468" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="14" fill="#6b7280">
+    Set ADMIN_GCASH_QR_IMAGE to your QR file path
+  </text>
+</svg>

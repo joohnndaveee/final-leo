@@ -772,7 +772,7 @@
                                     <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
                                          alt="{{ $product->name }}" 
                                          class="featured-product-image"
-                                         onerror="this.src='{{ asset('images/logo.png') }}'">
+                                         onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'">
                                 </div>
 
                                 {{-- Right Side: Details --}}
@@ -785,6 +785,25 @@
 
                                     {{-- Product Name --}}
                                     <h2 class="featured-product-name">{{ $product->name }}</h2>
+
+                                    {{-- Seller Shop Name + Logo --}}
+                                    @if($product->seller)
+                                        @php
+                                            $sellerLogo = !empty($product->seller->shop_logo)
+                                                ? asset('uploaded_img/' . $product->seller->shop_logo)
+                                                : ($siteLogoUrl ?? asset('images/logo.png'));
+                                        @endphp
+                                        <div style="display:flex;align-items:center;gap:0.6rem;margin:0.4rem 0 0.8rem;">
+                                            <img
+                                                src="{{ $sellerLogo }}"
+                                                alt="{{ $product->seller->shop_name ?? 'Shop' }} logo"
+                                                style="width:22px;height:22px;border-radius:999px;object-fit:cover;border:1px solid #e5e7eb;background:#fff;"
+                                                onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'"
+                                            >
+                                            <span style="color:#6b7280;font-size:1.3rem;">Shop:</span>
+                                            <strong style="font-size:1.3rem;">{{ $product->seller->shop_name ?? '—' }}</strong>
+                                        </div>
+                                    @endif
 
                                     {{-- Product Description --}}
                                     @if($product->details)
@@ -916,10 +935,29 @@
                             <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
                                  alt="{{ $product->name }}" 
                                  class="product-image"
-                                 onerror="this.src='{{ asset('images/logo.png') }}'">
+                                 onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'">
 
                             {{-- Product Name --}}
                             <span class="product-name">{{ $product->name }}</span>
+
+                            {{-- Seller Shop Name + Logo --}}
+                            @if($product->seller)
+                                @php
+                                    $sellerLogo = !empty($product->seller->shop_logo)
+                                        ? asset('uploaded_img/' . $product->seller->shop_logo)
+                                        : ($siteLogoUrl ?? asset('images/logo.png'));
+                                @endphp
+                                <div class="product-seller" style="display:flex;align-items:center;gap:0.6rem;margin-top:0.3rem;">
+                                    <img
+                                        src="{{ $sellerLogo }}"
+                                        alt="{{ $product->seller->shop_name ?? 'Shop' }} logo"
+                                        style="width:22px;height:22px;border-radius:999px;object-fit:cover;border:1px solid #e5e7eb;background:#fff;"
+                                        onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'"
+                                    >
+                                    <span style="color:#6b7280;font-size:1.3rem;">Sold by:</span>
+                                    <strong style="font-size:1.3rem;">{{ $product->seller->shop_name ?? '—' }}</strong>
+                                </div>
+                            @endif
 
                             {{-- Product Rating --}}
                             <div class="product-rating">

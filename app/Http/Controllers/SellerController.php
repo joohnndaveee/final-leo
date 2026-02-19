@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\File;
+use App\Models\SellerChat;
 
 class SellerController extends Controller
 {
@@ -83,9 +84,20 @@ class SellerController extends Controller
             'type' => $request->type,
             'stock' => $request->stock,
             'image_01' => $image01Name,
-            'image_02' => $image02Name,
-            'image_03' => $image03Name,
+            // DB schema may still require NOT NULL for image_02/image_03 in some environments
+            'image_02' => $image02Name ?? '',
+            'image_03' => $image03Name ?? '',
         ]);
+
+        $stock = (int) ($request->stock ?? 0);
+        if ($stock > 0 && $stock <= 10) {
+            SellerChat::create([
+                'seller_id' => Auth::id(),
+                'message' => "Low stock alert\n\nProduct: {$request->name}\nRemaining stock: {$stock}",
+                'sender_type' => 'admin',
+                'is_read' => false,
+            ]);
+        }
 
         return redirect()->route('seller.products.index')->with('success', 'Product created.');
     }
@@ -100,6 +112,7 @@ class SellerController extends Controller
     public function updateProduct(Request $request, $id)
     {
         $product = Product::where('seller_id', Auth::id())->findOrFail($id);
+        $beforeStock = (int) ($product->stock ?? 0);
 
         $request->validate([
             'name' => 'required|string|max:100',
@@ -150,6 +163,16 @@ class SellerController extends Controller
         }
 
         $product->save();
+
+        $afterStock = (int) ($product->stock ?? 0);
+        if ($beforeStock > 10 && $afterStock > 0 && $afterStock <= 10) {
+            SellerChat::create([
+                'seller_id' => Auth::id(),
+                'message' => "Low stock alert\n\nProduct: {$product->name}\nRemaining stock: {$afterStock}",
+                'sender_type' => 'admin',
+                'is_read' => false,
+            ]);
+        }
 
         return redirect()->route('seller.products.index')->with('success', 'Product updated.');
     }
@@ -297,10 +320,33 @@ class SellerController extends Controller
             $seller->update($validated);
         } elseif ($section === 'business') {
             $validated = $request->validate([
-                'shop_name' => 'required|string|max:100',
-                'shop_description' => 'nullable|string|max:500',
+                'shop_name' => 'required|string|max:255',
+                'shop_description' => 'nullable|string|max:1000',
+                'shop_logo' => 'nullable|image|mimes:jpg,jpeg,png,webp,svg|max:2048',
             ]);
-            $seller->update($validated);
+
+            $update = [
+                'shop_name' => $validated['shop_name'],
+                'shop_description' => $validated['shop_description'] ?? null,
+            ];
+
+            if ($request->hasFile('shop_logo')) {
+                $oldLogo = $seller->shop_logo;
+
+                $logoFile = $request->file('shop_logo');
+                $logoName = 'shop_logo_' . $seller->id . '_' . time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', $logoFile->getClientOriginalName());
+                $logoFile->move(public_path('uploaded_img'), $logoName);
+                $update['shop_logo'] = $logoName;
+
+                if (!empty($oldLogo)) {
+                    $oldPath = public_path('uploaded_img/' . $oldLogo);
+                    if (File::exists($oldPath)) {
+                        File::delete($oldPath);
+                    }
+                }
+            }
+
+            $seller->update($update);
         } elseif ($section === 'password') {
             $validated = $request->validate([
                 'current_password' => 'required|string',

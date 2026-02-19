@@ -397,17 +397,42 @@
                 <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
                      class="thumbnail active" 
                      onclick="changeImage(this)">
-                <img src="{{ asset('uploaded_img/' . $product->image_02) }}" 
-                     class="thumbnail" 
-                     onclick="changeImage(this)">
-                <img src="{{ asset('uploaded_img/' . $product->image_03) }}" 
-                     class="thumbnail" 
-                     onclick="changeImage(this)">
+                @if(!empty($product->image_02))
+                    <img src="{{ asset('uploaded_img/' . $product->image_02) }}" 
+                         class="thumbnail" 
+                         onclick="changeImage(this)">
+                @endif
+                @if(!empty($product->image_03))
+                    <img src="{{ asset('uploaded_img/' . $product->image_03) }}" 
+                         class="thumbnail" 
+                         onclick="changeImage(this)">
+                @endif
             </div>
         </div>
 
         <div class="product-info">
             <h1 class="product-title">{{ $product->name }}</h1>
+
+            {{-- Seller Shop Name + Logo --}}
+            @if($product->seller)
+                @php
+                    $sellerLogo = !empty($product->seller->shop_logo)
+                        ? asset('uploaded_img/' . $product->seller->shop_logo)
+                        : ($siteLogoUrl ?? asset('images/logo.png'));
+                @endphp
+                <div style="display:flex;align-items:center;gap:0.7rem;margin-top:-0.8rem;">
+                    <img
+                        src="{{ $sellerLogo }}"
+                        alt="{{ $product->seller->shop_name ?? 'Shop' }} logo"
+                        style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid #e5e7eb;background:#fff;"
+                        onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'"
+                    >
+                    <div style="display:flex;flex-direction:column;line-height:1.2;">
+                        <span style="font-size:1.2rem;color:#6b7280;">Shop</span>
+                        <strong style="font-size:1.4rem;color:#111827;">{{ $product->seller->shop_name ?? '—' }}</strong>
+                    </div>
+                </div>
+            @endif
             
             <div class="product-rating">
                 <div class="stars">

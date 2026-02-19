@@ -239,6 +239,26 @@
         opacity: 0.6;
     }
 
+    .received-btn {
+        padding: 1.0rem 1.6rem;
+        background: linear-gradient(135deg, #27ae60, #2ecc71);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .received-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 14px rgba(39, 174, 96, 0.35);
+    }
+
     @media (max-width: 968px) {
         .order-content {
             grid-template-columns: 1fr;
@@ -289,6 +309,28 @@
         <h1>Order #{{ $order->id }}</h1>
         <p class="order-date">Placed on {{ date('F d, Y', strtotime($order->placed_on)) }}</p>
     </div>
+
+    @php
+        $orderStatus = strtolower((string) ($order->status ?? $order->payment_status ?? 'pending'));
+        $canMarkReceived = $orderStatus === 'delivered';
+        $isReceived = in_array($orderStatus, ['completed', 'complete'], true);
+    @endphp
+
+    @if($canMarkReceived)
+        <div style="text-align:center; margin: 0 0 1.5rem 0;">
+            <form action="{{ route('order.received', $order->id) }}" method="POST" onsubmit="return confirm('Mark this order as received?');" style="display:inline-block;">
+                @csrf
+                <button type="submit" class="received-btn">
+                    <i class="fas fa-check-circle"></i>
+                    Mark as Received
+                </button>
+            </form>
+        </div>
+    @elseif($isReceived)
+        <div style="text-align:center; margin: 0 0 1.5rem 0; color:#155724; font-weight:600;">
+            <i class="fas fa-check-circle"></i> Order marked as received.
+        </div>
+    @endif
 
     <div class="order-content">
         <!-- Order Information -->

@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\SellerChat;
+use App\Models\Product;
 use App\Services\MockPaymentService;
 
 class OrderController extends Controller
@@ -120,7 +122,21 @@ class OrderController extends Controller
                 ]);
 
                 // Decrease stock atomically
+                $beforeStock = (int) ($product->stock ?? 0);
                 $product->decrement('stock', $cartItem->quantity);
+                $product->refresh();
+                $afterStock = (int) ($product->stock ?? 0);
+
+                // Low stock notification to seller (only when crossing threshold)
+                if ($product->seller_id && $beforeStock > 10 && $afterStock > 0 && $afterStock <= 10) {
+                    $sellerName = $product->seller?->shop_name ?? 'Seller';
+                    SellerChat::create([
+                        'seller_id' => $product->seller_id,
+                        'message' => "Low stock alert\n\nProduct: {$product->name}\nRemaining stock: {$afterStock}\n\nTip: Update stock in Seller Center → Products.",
+                        'sender_type' => 'admin',
+                        'is_read' => false,
+                    ]);
+                }
             }
 
             // Empty the user's cart
@@ -214,5 +230,51 @@ class OrderController extends Controller
         }
 
         return view('thank-you', compact('order'));
+    }
+
+    /**
+     * Customer marks an order as received/completed
+     */
+    public function markReceived($orderId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::with('orderItems.product')
+            ->where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $status = strtolower((string) ($order->status ?? ''));
+        if (!in_array($status, ['delivered', 'completed', 'complete'], true)) {
+            return redirect()->back()->with('error', 'Only delivered orders can be marked as received.');
+        }
+
+        if (in_array($status, ['completed', 'complete'], true)) {
+            return redirect()->back()->with('info', 'This order is already marked as received.');
+        }
+
+        $order->status = 'completed';
+        $order->payment_status = 'completed';
+        $order->save();
+
+        $sellerIds = $order->orderItems
+            ->map(fn ($item) => $item->product?->seller_id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $customerName = Auth::user()->name ?? 'Customer';
+        foreach ($sellerIds as $sellerId) {
+            SellerChat::create([
+                'seller_id' => (int) $sellerId,
+                'message' => "Order completed\n\nOrder #{$order->id} was marked as received by {$customerName}.",
+                'sender_type' => 'admin',
+                'is_read' => false,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Thanks! Your order is marked as received.');
     }
 }

@@ -4,48 +4,53 @@
 
 @push('styles')
 <style>
+    /* Minimal dashboard cards (professional / low color) */
     .dashboard-content .stats-container {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 2rem;
-        margin-bottom: 3rem;
+        gap: 1.2rem;
+        margin-bottom: 2rem;
     }
 
     .stat-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 1.5rem;
-        padding: 2rem;
-        color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        background: var(--admin-panel-bg, #ffffff);
+        border: 1px solid var(--admin-border, #e5e7eb);
+        border-radius: 10px;
+        padding: 1.6rem;
+        color: var(--admin-text, #111827) !important;
+        box-shadow: var(--admin-shadow, 0 1px 2px rgba(17, 24, 39, 0.06));
         position: relative;
         overflow: hidden;
         display: block;
-        text-decoration: none;
+        text-decoration: none !important;
         cursor: pointer;
-    }
-
-    .stat-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 120px;
-        height: 120px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 50%;
-        transform: translate(30%, -30%);
-        transition: all 0.3s ease;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
     }
 
     .stat-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25);
+        background: #fafafa;
+        border-color: #d1d5db;
+        transform: translateY(-1px);
     }
 
-    .stat-card:hover::before {
-        transform: translate(20%, -20%) scale(1.2);
+    /* Subtle left accent per type (keeps theme green, others neutral) */
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        background: #e5e7eb;
     }
+    .stat-card.pending::before { background: #d1d5db; }
+    .stat-card.completed::before { background: var(--main-color, #3ac72d); }
+    .stat-card.orders::before { background: #d1d5db; }
+    .stat-card.products::before { background: #d1d5db; }
+    .stat-card.users::before { background: #d1d5db; }
+    .stat-card.messages::before { background: #d1d5db; }
+    .stat-card.chats::before { background: #d1d5db; }
+    .stat-card.revenue::before { background: #d1d5db; }
 
     /* Clickable card indicator */
     a.stat-card::after {
@@ -53,107 +58,42 @@
         font-family: 'Font Awesome 5 Free';
         font-weight: 900;
         position: absolute;
-        bottom: 1.5rem;
-        right: 1.5rem;
-        font-size: 1.4rem;
-        opacity: 0;
-        transition: all 0.3s ease;
+        top: 1.6rem;
+        right: 1.4rem;
+        font-size: 1.2rem;
+        opacity: 0.25;
+        color: #6b7280;
+        transition: opacity 0.15s ease, transform 0.15s ease;
     }
-
     a.stat-card:hover::after {
-        opacity: 0.7;
-        right: 1.2rem;
-    }
-
-    /* Different gradient colors for each card */
-    .stat-card.pending {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        box-shadow: 0 4px 15px rgba(240, 147, 251, 0.15);
-    }
-
-    .stat-card.pending:hover {
-        box-shadow: 0 10px 30px rgba(240, 147, 251, 0.25);
-    }
-
-    .stat-card.completed {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        box-shadow: 0 4px 15px rgba(79, 172, 254, 0.15);
-    }
-
-    .stat-card.completed:hover {
-        box-shadow: 0 10px 30px rgba(79, 172, 254, 0.25);
-    }
-
-    .stat-card.orders {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        box-shadow: 0 4px 15px rgba(67, 233, 123, 0.15);
-    }
-
-    .stat-card.orders:hover {
-        box-shadow: 0 10px 30px rgba(67, 233, 123, 0.25);
-    }
-
-    .stat-card.products {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-        box-shadow: 0 4px 15px rgba(250, 112, 154, 0.15);
-    }
-
-    .stat-card.products:hover {
-        box-shadow: 0 10px 30px rgba(250, 112, 154, 0.25);
-    }
-
-    .stat-card.users {
-        background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
-        box-shadow: 0 4px 15px rgba(48, 207, 208, 0.15);
-    }
-
-    .stat-card.users:hover {
-        box-shadow: 0 10px 30px rgba(48, 207, 208, 0.25);
-    }
-
-    .stat-card.messages {
-        background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);
-        box-shadow: 0 4px 15px rgba(255, 154, 86, 0.15);
-    }
-
-    .stat-card.messages:hover {
-        box-shadow: 0 10px 30px rgba(255, 154, 86, 0.25);
-    }
-
-    .stat-card.revenue {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
-    }
-
-    .stat-card.revenue:hover {
-        box-shadow: 0 10px 30px rgba(102, 126, 234, 0.25);
+        opacity: 0.45;
+        transform: translateX(2px);
     }
 
     .stat-card .icon {
-        font-size: 3rem;
+        font-size: 2.2rem;
         margin-bottom: 1rem;
-        opacity: 0.9;
-        position: relative;
-        z-index: 1;
+        color: #6b7280;
+    }
+    .stat-card.completed .icon {
+        color: #166534;
     }
 
     .stat-card h3 {
-        font-size: 2.8rem;
+        font-size: 2.4rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
-        position: relative;
-        z-index: 1;
+        margin: 0 0 0.35rem 0;
+        color: var(--admin-text, #111827);
+        line-height: 1.1;
     }
 
     .stat-card p {
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         font-weight: 500;
-        margin-bottom: 0;
-        opacity: 0.95;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        position: relative;
-        z-index: 1;
+        margin: 0;
+        color: #6b7280;
+        text-transform: none;
+        letter-spacing: 0.02em;
     }
 
     /* Responsive adjustments */
@@ -176,11 +116,11 @@
         }
 
         .stat-card h3 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
         }
 
         .stat-card .icon {
-            font-size: 2.5rem;
+            font-size: 2.1rem;
         }
     }
 </style>

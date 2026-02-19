@@ -14,6 +14,7 @@ use App\Models\User;
 use App\Models\Seller;
 use App\Models\Message;
 use App\Models\Chat;
+use App\Models\SellerPayment;
 use Illuminate\Support\Facades\Mail;
 
 class AdminController extends Controller
@@ -277,6 +278,15 @@ class AdminController extends Controller
         }
 
         $seller = Seller::where('id', $id)->firstOrFail();
+        $registrationPayment = SellerPayment::where('seller_id', $seller->id)
+            ->where('payment_type', 'registration')
+            ->latest('id')
+            ->first();
+
+        // For non-approved sellers, show only the application details + management actions.
+        if (($seller->status ?? 'pending') !== 'approved') {
+            return view('admin.seller_show', compact('seller', 'registrationPayment'));
+        }
 
         // Get seller's products
         $sellerProducts = Product::where('seller_id', $id)->get();
@@ -399,13 +409,12 @@ class AdminController extends Controller
 
         // Calculate statistics
         $totalOrders = $orders->count();
-        $totalRevenue = OrderItem::whereIn('product_id', $sellerProducts->pluck('id'))->sum(DB::raw('price * quantity'));
         $averageRating = Review::whereIn('product_id', $sellerProducts->pluck('id'))->avg('rating') ?? 0;
         $totalReviews = $reviews->count();
 
         return view('admin.seller_show', compact(
-            'seller', 'orders', 'reviews', 'sellerProducts', 'filteredProducts',
-            'totalOrders', 'totalRevenue', 'averageRating', 'totalReviews'
+            'seller', 'registrationPayment', 'orders', 'reviews', 'sellerProducts', 'filteredProducts',
+            'totalOrders', 'averageRating', 'totalReviews'
         ));
     }
 
@@ -448,6 +457,22 @@ class AdminController extends Controller
             }
             
             $seller->save();
+
+            // When approving a seller, mark their latest pending registration fee proof as completed
+            if ($request->seller_status === 'approved') {
+                $registrationPayment = $seller->sellerPayments()
+                    ->where('payment_type', 'registration')
+                    ->where('payment_status', 'pending')
+                    ->latest('id')
+                    ->first();
+
+                if ($registrationPayment) {
+                    $registrationPayment->update([
+                        'payment_status' => 'completed',
+                        'paid_at' => $registrationPayment->paid_at ?? now(),
+                    ]);
+                }
+            }
 
             return response()->json([
                 'status' => 'success',

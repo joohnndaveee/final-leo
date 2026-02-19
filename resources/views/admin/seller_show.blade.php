@@ -4,183 +4,246 @@
 
 @push('styles')
 <style>
-    .sellers-container {
-        padding: 2rem;
+    :root {
+        --panel-bg: #ffffff;
+        --page-bg: #f6f7f9;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
+        --radius: 8px;
+        --radius-sm: 6px;
     }
 
+    .sellers-container {
+        padding: 2rem;
+        background: var(--panel-bg);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+    }
+
+    /* Headings */
+    .section-title {
+        font-size: 1.9rem;
+        margin: 2.2rem 0 1.2rem 0;
+        color: var(--text);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.9rem;
+    }
+    .section-title i {
+        color: var(--text);
+        opacity: 0.9;
+    }
+
+    /* Cards */
+    .info-card {
+        background: transparent;
+        padding: 1.4rem 0;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        margin-bottom: 0;
+    }
+    .info-card h3 {
+        font-size: 1.55rem;
+        margin: 0 0 1.1rem 0;
+        color: var(--text);
+        font-weight: 600;
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    /* Section separators to reduce "boxy" look */
+    .info-card + .info-card {
+        border-top: 1px solid var(--border);
+    }
+
+    /* Stats */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 2rem;
+        gap: 1.2rem;
+        margin-bottom: 1.6rem;
     }
-
     .stat-card {
-        background: #1f2937;
-        color: black;
-        padding: 2rem;
-        border-radius: 1.2rem;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: var(--panel-bg);
+        color: var(--text);
+        padding: 1.4rem;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        text-align: left;
     }
-
     .stat-card h3 {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
         margin: 0;
-        opacity: 0.9;
-        font-weight: 500;
+        color: var(--muted);
+        font-weight: 600;
+        letter-spacing: 0.02em;
     }
-
     .stat-card .number {
-        font-size: 2.5rem;
+        font-size: 2.3rem;
         font-weight: 700;
-        margin: 0.5rem 0 0 0;
+        margin: 0.6rem 0 0 0;
+        color: var(--text);
     }
 
-    .section-title {
-        font-size: 2rem;
-        margin: 2.5rem 0 1.5rem 0;
-        color: var(--black);
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        border-bottom: 2px solid var(--main-color);
-        padding-bottom: 1rem;
-    }
-
-    .section-title i {
-        color: var(--main-color);
-    }
-
+    /* Tables */
     .table-wrapper {
-        background: white;
-        border-radius: 1.2rem;
+        background: var(--panel-bg);
+        border-radius: var(--radius);
         overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        margin-bottom: 2rem;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        margin-bottom: 1.6rem;
     }
-
     .table {
         width: 100%;
         border-collapse: collapse;
     }
-
     .table thead {
-        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        background: #111827;
     }
-
     .table thead th {
-        padding: 1.5rem;
+        padding: 1.2rem 1.4rem;
         text-align: left;
-        font-size: 1.4rem;
+        font-size: 1.25rem;
         font-weight: 600;
-        color: white;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: #ffffff;
+        text-transform: none;
+        letter-spacing: 0.02em;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
     }
-
     .table tbody tr {
-        border-bottom: 1px solid #e5e7eb;
-        transition: all 0.3s ease;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s ease;
     }
-
     .table tbody tr:hover {
-        background: rgba(58, 199, 45, 0.05);
+        background: #f9fafb;
     }
-
     .table tbody td {
-        padding: 1.5rem;
-        font-size: 1.4rem;
-        color: #4b5563;
+        padding: 1.2rem 1.4rem;
+        font-size: 1.35rem;
+        color: #374151;
+        vertical-align: top;
     }
 
-    .rating-display {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .stars {
-        color: #ffc107;
-    }
-
-    .empty-message {
-        padding: 3rem;
-        text-align: center;
-        color: #9ca3af;
-        font-size: 1.5rem;
-    }
-
-    .empty-message i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        opacity: 0.5;
-        display: block;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 0.4rem 0.8rem;
-        border-radius: 0.4rem;
-        font-size: 1.2rem;
-        font-weight: 500;
-    }
-
-    .badge-success {
-        background: #d4edda;
-        color: #155724;
-    }
-
-    .badge-warning {
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    .badge-danger {
-        background: #f8d7da;
-        color: #721c24;
-    }
-
-    .info-card {
-        background: white;
-        padding: 1.8rem;
-        border-radius: 1.2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        margin-bottom: 1.5rem;
-    }
-
-    .info-card h3 {
-        font-size: 1.6rem;
-        margin: 0 0 1.2rem 0;
-        color: var(--black);
-        font-weight: 600;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 0.8rem;
-    }
-
+    /* Info grid */
     .info-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1.5rem;
+        gap: 1rem;
     }
-
     .info-item {
         padding: 1rem;
-        background: #f9fafb;
-        border-radius: 0.8rem;
+        background: #fafafa;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
     }
-
     .info-item strong {
         display: block;
-        font-size: 1.2rem;
-        color: #6b7280;
-        margin-bottom: 0.3rem;
+        font-size: 1.15rem;
+        color: var(--muted);
+        margin-bottom: 0.35rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    .info-item span {
+        font-size: 1.45rem;
+        color: var(--text);
+        font-weight: 500;
     }
 
-    .info-item span {
-        font-size: 1.5rem;
-        color: var(--black);
+    /* Badges */
+    .badge {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        border-radius: var(--radius-sm);
+        font-size: 1.2rem;
+        font-weight: 600;
+        border: 1px solid transparent;
+    }
+    .badge-success {
+        background: #ecfdf5;
+        color: #065f46;
+        border-color: #a7f3d0;
+    }
+    .badge-warning {
+        background: #fffbeb;
+        color: #92400e;
+        border-color: #fde68a;
+    }
+    .badge-danger {
+        background: #fef2f2;
+        color: #991b1b;
+        border-color: #fecaca;
+    }
+
+    .empty-message {
+        padding: 2.6rem;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 1.4rem;
+        background: var(--panel-bg);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+    }
+    .empty-message i {
+        font-size: 2.8rem;
+        margin-bottom: 1rem;
+        opacity: 0.45;
+        display: block;
+    }
+
+    /* Buttons – override inline styles safely */
+    .btn-toggle,
+    .btn-sm {
+        border-radius: var(--radius-sm) !important;
+        box-shadow: none !important;
+        background: #166534 !important;
+        color: #ffffff !important;
+        border: 1px solid #166534 !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.01em;
+    }
+    .btn-toggle:hover,
+    .btn-sm:hover {
+        background: #14532d !important;
+        border-color: #14532d !important;
+    }
+    .btn-toggle:disabled,
+    .btn-sm:disabled {
+        opacity: 0.6 !important;
+        cursor: not-allowed !important;
+    }
+
+    /* Destructive action – keep subtle red */
+    .suspend-account-btn {
+        background: #991b1b !important;
+        border-color: #991b1b !important;
+    }
+    .suspend-account-btn:hover {
+        background: #7f1d1d !important;
+        border-color: #7f1d1d !important;
+    }
+
+    /* Secondary actions (neutral buttons inside filters/controls) */
+    button[style*="background:#9ca3af"],
+    button[style*="background: #9ca3af"],
+    button[style*="background:rgb(156, 163, 175)"] {
+        border-radius: var(--radius-sm) !important;
+        box-shadow: none !important;
+    }
+
+    /* Inputs */
+    select, input, textarea {
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+        box-shadow: none;
     }
 </style>
 @endpush
@@ -210,71 +273,78 @@
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <h3><i class="fas fa-shopping-bag"></i> Total Orders</h3>
-            <div class="number">{{ $totalOrders }}</div>
-        </div>
-        <div class="stat-card">
-            <h3><i class="fas fa-star"></i> Average Rating</h3>
-            <div class="number">{{ number_format($averageRating, 1) }}/5</div>
-        </div>
-        <div class="stat-card">
-            <h3><i class="fas fa-comments"></i> Total Reviews</h3>
-            <div class="number">{{ $totalReviews }}</div>
-        </div>
-        <div class="stat-card">
-            <h3><i class="fas fa-dollar-sign"></i> Total Revenue</h3>
-            <div class="number">₱{{ number_format($totalRevenue, 0) }}</div>
-        </div>
-    </div>
+    @php
+        $isApproved = ($seller->status ?? 'pending') === 'approved';
+        $registrationPayment = $registrationPayment ?? null;
+    @endphp
 
-    <!-- Business Information -->
+    <!-- Statistics Cards -->
+    @if($isApproved)
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3><i class="fas fa-shopping-bag"></i> Total Orders</h3>
+                <div class="number">{{ $totalOrders }}</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-star"></i> Average Rating</h3>
+                <div class="number">{{ number_format($averageRating, 1) }}/5</div>
+            </div>
+            <div class="stat-card">
+                <h3><i class="fas fa-comments"></i> Total Reviews</h3>
+                <div class="number">{{ $totalReviews }}</div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Seller Application Details -->
     <div class="info-card">
-        <h3><i class="fas fa-briefcase" style="color:var(--main-color);margin-right:0.5rem;"></i> Business Information</h3>
+        <h3><i class="fas fa-file-alt" style="color:var(--main-color);margin-right:0.5rem;"></i> Application Details</h3>
         <div class="info-grid">
             <div class="info-item">
-                <strong>Seller Name</strong>
-                <span>{{ $seller->name }}</span>
+                <strong>Shop Name</strong>
+                <span>{{ $seller->shop_name ?? '—' }}</span>
             </div>
             <div class="info-item">
                 <strong>Email</strong>
                 <span>{{ $seller->email }}</span>
             </div>
             <div class="info-item">
-                <strong>Shop Name</strong>
-                <span>{{ $seller->shop_name ?? '—' }}</span>
+                <strong>GCash Number Used</strong>
+                <span>{{ $seller->gcash_number_used ?? '—' }}</span>
             </div>
             <div class="info-item">
-                <strong>Phone</strong>
-                <span>{{ $seller->phone ?? '—' }}</span>
-            </div>
-            <div class="info-item">
-                <strong>Address</strong>
-                <span>{{ $seller->business_address ?? '—' }}</span>
-            </div>
-            <div class="info-item">
-                <strong>Business ID</strong>
-                <span>{{ $seller->business_id_number ?? '—' }}</span>
-            </div>
-            <div class="info-item">
-                <strong>Registered Since</strong>
+                <strong>Applied At</strong>
                 <span>{{ $seller->created_at ? $seller->created_at->format('M d, Y') : '—' }}</span>
             </div>
             <div class="info-item">
-                <strong>Status</strong>
+                <strong>Registration Payment Status</strong>
+                <span class="badge badge-{{ ($registrationPayment?->payment_status ?? 'pending') === 'completed' ? 'success' : ((($registrationPayment?->payment_status ?? 'pending') === 'pending') ? 'warning' : 'danger') }}">
+                    {{ ucfirst($registrationPayment?->payment_status ?? 'pending') }}
+                </span>
+            </div>
+            <div class="info-item">
+                <strong>Reference Number</strong>
+                <span>{{ $registrationPayment?->reference_number ?? '—' }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Proof Screenshot</strong>
+                <span>
+                    @if (!empty($registrationPayment?->proof_image))
+                        <a href="{{ asset('uploaded_img/' . $registrationPayment->proof_image) }}" target="_blank" style="color: var(--main-color); font-weight: 600;">
+                            View Upload
+                        </a>
+                    @else
+                        —
+                    @endif
+                </span>
+            </div>
+            <div class="info-item">
+                <strong>Application Status</strong>
                 <span class="badge badge-{{ $seller->status === 'approved' ? 'success' : (($seller->status === 'rejected' || $seller->status === 'suspended') ? 'danger' : 'warning') }}">
                     {{ ucfirst($seller->status ?? 'pending') }}
                 </span>
             </div>
         </div>
-        @if($seller->business_notes)
-        <div style="margin-top:1.5rem;padding:1rem;background:#f0f9ff;border-left:4px solid var(--main-color);border-radius:0.4rem;">
-            <strong style="display:block;margin-bottom:0.5rem;color:var(--main-color);">Business Notes</strong>
-            <p style="margin:0;color:#374151;font-size:1.4rem;white-space:pre-wrap;">{{ $seller->business_notes }}</p>
-        </div>
-        @endif
     </div>
 
     <!-- Management Section -->
@@ -302,6 +372,74 @@
         </div>
     </div>
 
+    <!-- Payment History (Registration + Subscription) -->
+    <div class="info-card">
+        <h3><i class="fas fa-receipt" style="color:var(--main-color);margin-right:0.5rem;"></i> Payment History</h3>
+
+        @php
+            $payments = $seller->sellerPayments()->latest()->take(20)->get();
+            $paymentsTotal = $seller->sellerPayments()->count();
+        @endphp
+
+        @if ($paymentsTotal > 0)
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Status</th>
+                            <th>Reference</th>
+                            <th>GCash</th>
+                            <th>Proof</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($payments as $payment)
+                            <tr>
+                                <td>{{ ($payment->paid_at ?? $payment->created_at)?->format('M d, Y') ?? '—' }}</td>
+                                <td style="text-transform: capitalize;">{{ $payment->payment_type ?? 'subscription' }}</td>
+                                <td><strong>₱{{ number_format((float) $payment->amount, 2) }}</strong></td>
+                                <td>{{ str_replace('_', ' ', $payment->payment_method) }}</td>
+                                <td>
+                                    @if ($payment->isCompleted())
+                                        <span class="badge badge-success">Completed</span>
+                                    @elseif ($payment->isPending())
+                                        <span class="badge badge-warning">Pending</span>
+                                    @else
+                                        <span class="badge badge-danger">{{ $payment->payment_status }}</span>
+                                    @endif
+                                </td>
+                                <td><small>{{ $payment->reference_number ?? '—' }}</small></td>
+                                <td><small>{{ $payment->gcash_number_used ?? '—' }}</small></td>
+                                <td>
+                                    @if (!empty($payment->proof_image))
+                                        <a href="{{ asset('uploaded_img/' . $payment->proof_image) }}" target="_blank" style="color: var(--main-color); font-weight: 600;">
+                                            View
+                                        </a>
+                                    @else
+                                        <span style="color:#9ca3af;">—</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            @if ($paymentsTotal > 20)
+                <p style="margin-top: 1rem; color: #6b7280; font-size: 1.25rem;">
+                    Showing latest 20 payments ({{ $paymentsTotal }} total).
+                </p>
+            @endif
+        @else
+            <p style="color: #9ca3af; font-size: 1.4rem;">No payments recorded yet</p>
+        @endif
+    </div>
+
+    @if($isApproved)
     <!-- Subscription Management Section -->
     <div class="info-card">
         <h3><i class="fas fa-credit-card" style="color:var(--main-color);margin-right:0.5rem;"></i> Subscription Management</h3>
@@ -396,46 +534,6 @@
                 @endif
             </div>
 
-            <!-- Payment History Table -->
-            <div style="margin-top: 2rem;">
-                <h4 style="font-size: 1.5rem; margin: 0 0 1rem 0; color: #374151; border-bottom: 2px solid #e5e7eb; padding-bottom: 0.5rem;">Recent Payments</h4>
-                @if ($seller->sellerPayments->count() > 0)
-                    <div class="table-wrapper">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Amount</th>
-                                    <th>Method</th>
-                                    <th>Status</th>
-                                    <th>Reference</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($seller->sellerPayments()->latest()->take(5)->get() as $payment)
-                                    <tr>
-                                        <td>{{ $payment->paid_at?->format('M d, Y') ?? '—' }}</td>
-                                        <td><strong>₱{{ number_format($payment->amount, 2) }}</strong></td>
-                                        <td>{{ str_replace('_', ' ', $payment->payment_method) }}</td>
-                                        <td>
-                                            @if ($payment->isCompleted())
-                                                <span class="badge badge-success">Completed</span>
-                                            @elseif ($payment->isPending())
-                                                <span class="badge badge-warning">Pending</span>
-                                            @else
-                                                <span class="badge badge-danger">{{ $payment->payment_status }}</span>
-                                            @endif
-                                        </td>
-                                        <td><small>{{ $payment->reference_number ?? '—' }}</small></td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <p style="color: #9ca3af; font-size: 1.4rem;">No payments recorded yet</p>
-                @endif
-            </div>
         @else
             <div style="padding: 1.5rem; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 0.4rem; color: #92400e;">
                 <i class="fas fa-exclamation-triangle"></i> No active subscription found. Contact seller or admin.
@@ -711,6 +809,7 @@
             </div>
         @endif
     </div>
+    @endif
 </div>
 @endsection
 

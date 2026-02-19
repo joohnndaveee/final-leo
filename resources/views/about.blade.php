@@ -8,7 +8,7 @@
     <div class="about-container">
         {{-- Brand Identity --}}
         <div class="about-header">
-            <img src="{{ asset('images/logo.png') }}" alt="4inTech Logo" class="about-logo">
+            <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="4inTech Logo" class="about-logo">
             <h1 class="about-title">Reviving Style, One Thrift at a Time</h1>
             <div class="title-divider"></div>
         </div>

@@ -615,7 +615,7 @@
                          alt="{{ $product->name }}" 
                          class="product-image"
                          loading="lazy"
-                         onerror="this.src='{{ asset('images/logo.png') }}'">
+                         onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'">
 
                     {{-- Thumbnail strip for additional images --}}
                     @if($product->image_02 || $product->image_03)
@@ -635,10 +635,22 @@
                     {{-- Product Name --}}
                     <span class="product-name">{{ $product->name }}</span>
 
-                    {{-- Seller Shop Name --}}
-                    @if($product->seller && $product->seller->shop_name)
-                        <div class="product-seller">
-                            Sold by: <strong>{{ $product->seller->shop_name }}</strong>
+                    {{-- Seller Shop Name + Logo --}}
+                    @if($product->seller)
+                        @php
+                            $sellerLogo = !empty($product->seller->shop_logo)
+                                ? asset('uploaded_img/' . $product->seller->shop_logo)
+                                : ($siteLogoUrl ?? asset('images/logo.png'));
+                        @endphp
+                        <div class="product-seller" style="display:flex;align-items:center;gap:0.6rem;">
+                            <img
+                                src="{{ $sellerLogo }}"
+                                alt="{{ $product->seller->shop_name ?? 'Shop' }} logo"
+                                style="width:22px;height:22px;border-radius:999px;object-fit:cover;border:1px solid #e5e7eb;background:#fff;"
+                                onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'"
+                            >
+                            <span style="color:#6b7280;">Sold by:</span>
+                            <strong>{{ $product->seller->shop_name ?? '—' }}</strong>
                         </div>
                     @endif
 

@@ -379,7 +379,7 @@
                                     <img src="{{ asset('uploaded_img/' . $item->image) }}" 
                                          alt="{{ $item->name }}" 
                                          class="product-image"
-                                         onerror="this.src='{{ asset('images/logo.png') }}'">
+                                         onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'">
                                     <div class="product-info">
                                         <span class="product-name">{{ $item->name }}</span>
                                     </div>

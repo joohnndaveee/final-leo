@@ -12,10 +12,13 @@ class SellerPayment extends Model
     protected $fillable = [
         'seller_id',
         'subscription_id',
+        'payment_type',
         'amount',
         'payment_method',
         'payment_status',
         'reference_number',
+        'gcash_number_used',
+        'proof_image',
         'notes',
         'paid_at',
     ];

@@ -364,10 +364,30 @@
             <div class="tab-content" id="business">
                 <div class="settings-card">
                     <h5><i class="fas fa-store"></i> Business Information</h5>
-                    <form action="{{ route('seller.settings.update') }}" method="POST">
+                    <form action="{{ route('seller.settings.update') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
                         <input type="hidden" name="section" value="business">
+
+                        <div class="form-group">
+                            <label class="form-label">Current Shop Logo</label>
+                            <div style="display:flex;align-items:center;gap:1rem;">
+                                <div style="width:64px;height:64px;border-radius:10px;background:#f9fafb;border:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                                    @php
+                                        $logoPath = !empty($seller->shop_logo) ? asset('uploaded_img/' . $seller->shop_logo) : ($siteLogoUrl ?? asset('images/logo.png'));
+                                    @endphp
+                                    <img src="{{ $logoPath }}" alt="Shop Logo" style="width:100%;height:100%;object-fit:contain;">
+                                </div>
+                                <div style="font-size:1.3rem;color:#6b7280;">
+                                    Upload a square logo for best results.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="shop_logo" class="form-label">Update Shop Logo</label>
+                            <input type="file" class="form-control" id="shop_logo" name="shop_logo" accept="image/*">
+                        </div>
 
                         <div class="form-group">
                             <label for="shop_name" class="form-label">Shop Name</label>

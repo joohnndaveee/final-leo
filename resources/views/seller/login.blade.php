@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seller Login - U-KAY HUB</title>
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ $siteLogoUrl ?? asset('images/logo.png') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -200,7 +200,7 @@
 <body>
 <header class="seller-login-header">
     <div class="brand">
-        <img src="{{ asset('images/logo.png') }}" alt="U-KAY HUB Logo">
+        <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="U-KAY HUB Logo">
         <div class="brand-text">
             <span>SELLER CENTER</span>
             <span>U-KAY HUB</span>
@@ -269,4 +269,3 @@
 
 </body>
 </html>
-

@@ -7,7 +7,7 @@
     <title>@yield('title', 'Admin Panel')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ $siteLogoUrl ?? asset('images/logo.png') }}">
 
     <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -408,6 +408,159 @@
         .header {
             display: none;
         }
+
+        /* ============================================================
+           Minimal, professional admin theme (CSS overrides only)
+           - Less colorful, smaller radius, cleaner sidebar/table feel
+           - Keeps green as the active theme accent
+        ============================================================ */
+        :root {
+            --admin-page-bg: #f3f4f6;
+            --admin-panel-bg: #ffffff;
+            --admin-text: #111827;
+            --admin-muted: #6b7280;
+            --admin-border: #e5e7eb;
+            --admin-shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
+            --admin-radius: 10px;
+            --admin-radius-sm: 8px;
+        }
+
+        body {
+            background: var(--admin-page-bg);
+            color: var(--admin-text);
+        }
+
+        .dashboard-sidebar {
+            width: 260px;
+            padding: 1.6rem 1.4rem;
+            background: var(--admin-page-bg) !important;
+            color: var(--admin-text) !important;
+            border-right: none;
+            box-shadow: none !important;
+        }
+
+        .dashboard-sidebar .admin-profile {
+            margin-bottom: 1.8rem;
+            padding: 1.2rem 0 1.6rem;
+            border-bottom: 1px solid var(--admin-border);
+        }
+
+        .dashboard-sidebar .admin-avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--admin-radius-sm);
+            background: #ffffff;
+            padding: 0.8rem;
+            box-shadow: var(--admin-shadow);
+            border: 1px solid var(--admin-border);
+        }
+
+        .dashboard-sidebar .admin-name {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--admin-text);
+        }
+
+        .dashboard-sidebar .admin-role {
+            font-size: 1.2rem;
+            color: var(--admin-muted);
+            opacity: 1;
+            margin-bottom: 0.8rem;
+        }
+
+        .dashboard-sidebar .update-btn {
+            display: none;
+        }
+
+        .dashboard-sidebar .nav-menu a,
+        .dashboard-sidebar .nav-menu button.logout-link {
+            color: var(--admin-text);
+            border-radius: var(--admin-radius-sm);
+            padding: 1.1rem 1.2rem;
+            font-size: 1.45rem;
+            background: transparent !important;
+            border: 1px solid transparent;
+            transform: none !important;
+        }
+
+        .dashboard-sidebar .nav-menu a i,
+        .dashboard-sidebar .nav-menu button.logout-link i {
+            color: var(--admin-muted);
+            font-size: 1.6rem;
+        }
+
+        .dashboard-sidebar .nav-menu a:hover,
+        .dashboard-sidebar .nav-menu button.logout-link:hover {
+            background: #f9fafb !important;
+            border-color: var(--admin-border);
+            border-left: 3px solid transparent;
+            padding-left: 1.2rem;
+        }
+
+        .dashboard-sidebar .nav-menu a.active,
+        .dashboard-sidebar .nav-dropdown.active > a {
+            background: rgba(58, 199, 45, 0.12) !important;
+            border-color: rgba(58, 199, 45, 0.22);
+            border-left: 3px solid var(--main-color);
+            padding-left: calc(1.2rem - 3px);
+        }
+
+        .dashboard-sidebar .nav-menu a.active i,
+        .dashboard-sidebar .nav-dropdown.active > a i {
+            color: #166534;
+        }
+
+        .dashboard-sidebar .nav-dropdown.open .nav-dropdown-menu {
+            padding: 0.6rem 0 0.6rem 0.8rem;
+            margin: 0.4rem 0 0.9rem 1.0rem;
+            border-left: 1px solid var(--admin-border);
+        }
+
+        .dashboard-sidebar .nav-dropdown-menu a {
+            padding: 0.9rem 1.0rem;
+            font-size: 1.35rem;
+            border-radius: var(--admin-radius-sm);
+            border: 1px solid transparent;
+        }
+
+        .dashboard-sidebar .nav-dropdown-menu a.active {
+            background: rgba(58, 199, 45, 0.12) !important;
+            border-color: rgba(58, 199, 45, 0.22);
+        }
+
+        /* Dropdown arrow: show only on hover (Messages) */
+        .dashboard-sidebar .nav-dropdown .nav-dropdown-arrow {
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.3s;
+        }
+        .dashboard-sidebar .nav-dropdown .nav-dropdown-toggle:hover .nav-dropdown-arrow {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .dashboard-content {
+            margin-left: 260px;
+            padding: 3.2rem;
+            background: var(--admin-page-bg) !important;
+            background-image: none !important;
+        }
+
+        .dashboard-content::before {
+            content: none !important;
+        }
+
+        .dashboard-content .heading {
+            color: var(--admin-text);
+            text-shadow: none;
+            font-size: 3rem;
+        }
+
+        /* Responsive adjustments for the new sidebar width */
+        @media (max-width: 1024px) {
+            .dashboard-sidebar { width: 240px; }
+            .dashboard-content { margin-left: 240px; }
+        }
     </style>
 
     @stack('styles')
@@ -421,7 +574,7 @@
         {{-- Admin Profile Section --}}
         <div class="admin-profile">
             <div class="admin-avatar">
-                <img src="{{ asset('images/logo.png') }}" alt="Logo">
+                <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="Logo">
             </div>
             <div class="admin-name">{{ Auth::guard('admin')->user()->name ?? 'Admin' }}</div>
             <div class="admin-role">Administrator</div>
@@ -460,6 +613,12 @@
                         <li><a href="{{ route('admin.messages', ['source' => 'guest']) }}" class="{{ request()->routeIs('admin.messages*') && request('source') !== 'seller' ? 'active' : '' }}"><i class="fas fa-user-clock"></i> Guests</a></li>
                         <li><a href="{{ route('admin.messages', ['source' => 'seller']) }}" class="{{ request()->routeIs('admin.messages*') && request('source') === 'seller' ? 'active' : '' }}"><i class="fas fa-envelope"></i> Seller Messages</a></li>
                     </ul>
+                </li>
+                <li>
+                    <a href="{{ route('admin.settings.branding') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
+                        <i class="fas fa-gear"></i>
+                        <span>Settings</span>
+                    </a>
                 </li>
                 <li>
                     <form action="{{ route('admin.logout') }}" method="POST" style="margin: 0;">

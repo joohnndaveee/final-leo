@@ -17,7 +17,7 @@
 <header class="header">
     <section class="flex">
         <a href="{{ route('admin.dashboard') }}" class="logo">
-            <img src="{{ asset('images/logo.png') }}" alt="logo">
+            <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="logo">
             <span class="text">Admin<span>Panel</span></span>
         </a>
 

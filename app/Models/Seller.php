@@ -17,6 +17,7 @@ class Seller extends Authenticatable
         'email',
         'password',
         'shop_name',
+        'gcash_number_used',
         'shop_description',
         'shop_logo',
         'status',

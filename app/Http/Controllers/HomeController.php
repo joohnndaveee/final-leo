@@ -16,10 +16,10 @@ class HomeController extends Controller
     public function index()
     {
         // Fetch only necessary products for featured slider (limit to 10 most recent)
-        $featuredProducts = Product::orderBy('id', 'desc')->limit(10)->get();
+        $featuredProducts = Product::with('seller')->orderBy('id', 'desc')->limit(10)->get();
         
         // Fetch products for all products slider (limit to 20 most recent)
-        $products = Product::orderBy('id', 'desc')->limit(20)->get();
+        $products = Product::with('seller')->orderBy('id', 'desc')->limit(20)->get();
 
         return view('home', [
             'featuredProducts' => $featuredProducts,

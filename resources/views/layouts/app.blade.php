@@ -8,7 +8,7 @@
     <title>@yield('title', 'U-KAY HUB - Online Shop')</title>
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('images/logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ $siteLogoUrl ?? asset('images/logo.png') }}">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,9 +43,7 @@
 
         /* Enhanced header styling with background image */
         .header {
-            background: url('{{ asset('images/bg.png') }}') center center;
-            background-size: cover;
-            background-repeat: no-repeat;
+            background: url('{{ asset('images/bg.png') }}') center center / cover no-repeat;
             background-attachment: scroll;
             position: relative;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
@@ -334,7 +332,7 @@
     <section class="flex">
         {{-- Logo --}}
         <a href="{{ route('home') }}" class="logo">
-            <img src="{{ asset('images/logo.png') }}" alt="U-KAY HUB Logo">
+            <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="U-KAY HUB Logo">
             <span class="text">U-KAY<span>HUB</span></span>
         </a>
 
@@ -417,7 +415,7 @@
             {{-- Brand Section --}}
             <div class="footer-section brand-section">
                 <div class="footer-logo">
-                    <img src="{{ asset('images/logo.png') }}" alt="U-KAY HUB Logo">
+                    <img src="{{ $siteLogoUrl ?? asset('images/logo.png') }}" alt="U-KAY HUB Logo">
                     <h3>U-KAY<span>HUB</span></h3>
                 </div>
                 <p class="footer-description">
