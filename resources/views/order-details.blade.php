@@ -434,6 +434,12 @@
                 <span>Subtotal:</span>
                 <span>₱{{ number_format($order->total_price, 2) }}</span>
             </div>
+            @if($order->voucher_discount > 0)
+            <div class="summary-row" style="color:#16a34a">
+                <span>Voucher Discount:</span>
+                <span>-₱{{ number_format($order->voucher_discount, 2) }}</span>
+            </div>
+            @endif
             <div class="summary-row">
                 <span>Delivery Fee:</span>
                 <span>FREE</span>
@@ -444,6 +450,48 @@
             </div>
         </div>
     </div>
+
+    {{-- Delivery Tracking Timeline --}}
+    @if($order->tracking && $order->tracking->count() > 0)
+    <div style="background:#fff;border:2px solid #27ae60;border-radius:12px;padding:2rem;margin-top:2rem">
+        <h2 style="font-size:1.8rem;color:#27ae60;margin-bottom:1.5rem;border-bottom:2px solid #27ae60;padding-bottom:.8rem">
+            <i class="fas fa-map-marked-alt"></i> Delivery Tracking
+        </h2>
+        <div style="position:relative;padding-left:2rem">
+            {{-- Vertical line --}}
+            <div style="position:absolute;left:.7rem;top:0;bottom:0;width:2px;background:#e5e7eb"></div>
+            @foreach($order->tracking as $i => $event)
+            @php $isLast = $i === $order->tracking->count() - 1; @endphp
+            <div style="position:relative;margin-bottom:{{ $isLast ? '0' : '1.5rem' }};padding-left:1.5rem">
+                {{-- Dot --}}
+                <div style="position:absolute;left:-2.45rem;top:.2rem;width:18px;height:18px;border-radius:50%;background:{{ $isLast ? '#27ae60' : '#9ca3af' }};display:flex;align-items:center;justify-content:center;z-index:1">
+                    <i class="{{ \App\Models\OrderTracking::iconFor($event->status) }}" style="font-size:.55rem;color:#fff"></i>
+                </div>
+                <div style="background:{{ $isLast ? '#f0fdf4' : '#f9fafb' }};border:1px solid {{ $isLast ? '#86efac' : '#e5e7eb' }};border-radius:8px;padding:.9rem 1.2rem">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+                        <strong style="font-size:1rem;color:{{ $isLast ? '#166534' : '#374151' }}">{{ $event->title }}</strong>
+                        <span style="font-size:.8rem;color:#9ca3af">{{ \Carbon\Carbon::parse($event->created_at)->format('M d, Y g:i A') }}</span>
+                    </div>
+                    @if($event->description)<p style="font-size:.9rem;color:#6b7280;margin:.3rem 0 0">{{ $event->description }}</p>@endif
+                    @if($event->location)<p style="font-size:.8rem;color:#9ca3af;margin:.25rem 0 0"><i class="fas fa-map-marker-alt"></i> {{ $event->location }}</p>@endif
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
+    {{-- Report Section --}}
+    @auth
+    <div style="text-align:right;margin-top:1.5rem">
+        @if($order->orderItems->count() > 0)
+        <a href="{{ route('report.create', ['type'=>'product', 'id'=>$order->orderItems->first()->product_id]) }}"
+           style="color:#dc2626;font-size:.9rem;text-decoration:none">
+            <i class="fas fa-flag"></i> Report a product in this order
+        </a>
+        @endif
+    </div>
+    @endauth
 </section>
 
 <!-- Review Modal -->

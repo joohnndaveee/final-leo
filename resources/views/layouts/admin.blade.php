@@ -615,6 +615,30 @@
                     </ul>
                 </li>
                 <li>
+                    <a href="{{ route('admin.categories.index') }}" class="{{ request()->routeIs('admin.categories*') ? 'active' : '' }}">
+                        <i class="fas fa-tags"></i>
+                        <span>Categories</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.reports.index') }}" class="{{ request()->routeIs('admin.reports*') ? 'active' : '' }}">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.reported.index') }}" class="{{ request()->routeIs('admin.reported*') ? 'active' : '' }}">
+                        <i class="fas fa-flag"></i>
+                        <span>Reported Items</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.discounts.index') }}" class="{{ request()->routeIs('admin.discounts*') ? 'active' : '' }}">
+                        <i class="fas fa-percent"></i>
+                        <span>Discounts</span>
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('admin.settings.branding') }}" class="{{ request()->routeIs('admin.settings*') ? 'active' : '' }}">
                         <i class="fas fa-gear"></i>
                         <span>Settings</span>

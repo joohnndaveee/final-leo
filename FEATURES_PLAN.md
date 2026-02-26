@@ -290,3 +290,32 @@ Recommended defaults:
 - Customer cancel within 30 minutes works reliably
 - Dashboard totals show correct separate sums + history drilldown
 
+
+
+Naa sab diay ko tuod e dugang sa amoa system awa
+
+Admin
+
+-Generate sales and system reports (monthly/yearly)
+Export payment history (PDF/Excel)
+-Manage categories
+-Monitor reported products or users
+
+
+Seller
+
+	•	View sales analytics (daily/monthly)
+	•	Download sales report
+	•	Auto-disable product if out of stock
+	•	Promotional discounts
+	•	Voucher creation
+	•	Featured product option
+
+
+Customer
+	•	Receive notifications about order updates
+	•	Receive confirmation SMS or email
+	•	Track delivery timeline
+	•	Report seller or product
+	•	Edit profile information
+	•	Change password

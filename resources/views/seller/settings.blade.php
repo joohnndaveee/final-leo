@@ -9,43 +9,79 @@
         margin: 0 auto;
     }
     
-    .settings-layout {
-        display: grid;
-        grid-template-columns: 250px 1fr;
-        gap: 2rem;
-        margin-top: 2rem;
+    .settings-header {
+        margin-bottom: 2rem;
+    }
+
+    .settings-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #064e3b;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .settings-subtitle {
+        color: #6b7280;
+        font-size: 1rem;
+        margin: 0;
     }
     
+    /* Horizontal Tabs */
     .tab-nav {
-        background: white;
-        border-radius: 12px;
-        padding: 1rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        height: fit-content;
-        position: sticky;
-        top: 80px;
+        display: flex;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        padding: 0.75rem;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        margin-bottom: 2rem;
+        overflow-x: auto;
+        flex-wrap: wrap;
+    }
+
+    .tab-nav::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .tab-nav::-webkit-scrollbar-thumb {
+        background: #d1d5db;
+        border-radius: 2px;
     }
     
-    .tab-nav a {
+    .tab-link {
         display: flex;
         align-items: center;
-        gap: 0.8rem;
-        padding: 1rem 1.2rem;
-        color: #4b5563;
+        gap: 0.6rem;
+        padding: 0.9rem 1.5rem;
+        color: #6b7280;
         text-decoration: none;
         border-radius: 8px;
-        margin-bottom: 0.5rem;
-        font-size: 1.4rem;
-        transition: all 0.2s;
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+        border: 2px solid transparent;
     }
     
-    .tab-nav a:hover {
+    .tab-link:hover {
         background: #f3f4f6;
+        color: #374151;
     }
     
-    .tab-nav a.active {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+    .tab-link.active {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
+        border-color: transparent;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    }
+
+    .tab-link i {
+        font-size: 1.1rem;
     }
     
     .tab-content {
@@ -54,28 +90,45 @@
     
     .tab-content.active {
         display: block;
-        animation: fadeIn 0.3s;
+        animation: fadeIn 0.4s ease;
     }
     
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { 
+            opacity: 0; 
+            transform: translateY(15px); 
+        }
+        to { 
+            opacity: 1; 
+            transform: translateY(0); 
+        }
     }
     
     .settings-card {
-        background: white;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
         padding: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
         margin-bottom: 2rem;
     }
     
     .settings-card h5 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
+        font-weight: 700;
         margin-bottom: 1.5rem;
-        color: #1f2937;
+        color: #064e3b;
         border-bottom: 2px solid #e5e7eb;
         padding-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .settings-card h5 i {
+        color: #10b981;
     }
     
     .form-group {
@@ -84,77 +137,101 @@
     
     .form-label {
         display: block;
-        font-size: 1.4rem;
+        font-size: 0.9rem;
         color: #374151;
         margin-bottom: 0.5rem;
-        font-weight: 500;
+        font-weight: 600;
     }
     
     .form-control {
         width: 100%;
-        padding: 0.8rem 1rem;
-        font-size: 1.4rem;
-        border: 1px solid #d1d5db;
-        border-radius: 6px;
-        transition: border-color 0.2s;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        transition: all 0.2s;
+        background: #fafafa;
     }
     
     .form-control:focus {
         outline: none;
-        border-color: #22c55e;
-        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.1);
+        border-color: rgba(16, 185, 129, 0.5);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        background: rgba(255, 255, 255, 0.95);
     }
     
     .btn {
-        padding: 0.8rem 1.5rem;
-        font-size: 1.4rem;
-        border-radius: 6px;
+        padding: 0.85rem 1.8rem;
+        font-size: 0.95rem;
+        border-radius: 8px;
         border: none;
         cursor: pointer;
         font-weight: 600;
         transition: all 0.2s;
         display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
     
     .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-primary:active {
+        transform: translateY(0);
     }
     
     .alert {
         padding: 1rem 1.5rem;
-        border-radius: 8px;
+        border-radius: 10px;
         margin-bottom: 1.5rem;
-        font-size: 1.3rem;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: start;
+        gap: 0.75rem;
+    }
+
+    .alert i {
+        margin-top: 0.2rem;
     }
     
     .alert-success {
-        background: #d1fae5;
+        background: rgba(209, 250, 229, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #065f46;
-        border-left: 4px solid #22c55e;
+        border-left: 4px solid #10b981;
     }
     
     .alert-danger {
-        background: #fee2e2;
+        background: rgba(254, 226, 226, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #991b1b;
         border-left: 4px solid #ef4444;
     }
     
     .alert-info {
-        background: #dbeafe;
+        background: rgba(219, 234, 254, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #1e40af;
         border-left: 4px solid #3b82f6;
     }
     
     .alert-warning {
-        background: #fef3c7;
+        background: rgba(254, 243, 199, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #92400e;
         border-left: 4px solid #f59e0b;
     }
@@ -162,13 +239,15 @@
     .badge {
         display: inline-block;
         padding: 0.4rem 0.8rem;
-        border-radius: 4px;
-        font-size: 1.2rem;
-        font-weight: 600;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .badge.bg-success {
-        background: #22c55e;
+        background: #10b981;
         color: white;
     }
     
@@ -192,45 +271,63 @@
         background: #f9fafb;
         padding: 1rem;
         text-align: left;
-        font-size: 1.3rem;
+        font-size: 0.85rem;
         color: #6b7280;
-        font-weight: 600;
+        font-weight: 700;
         border-bottom: 2px solid #e5e7eb;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .table tbody td {
         padding: 1rem;
-        font-size: 1.3rem;
-        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.9rem;
+        border-bottom: 1px solid #f3f4f6;
     }
     
     .table tbody tr:hover {
-        background: #f9fafb;
+        background: #fafafa;
     }
     
     .wallet-stats {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
         gap: 1.5rem;
         margin-bottom: 1.5rem;
     }
     
     .wallet-stat {
-        background: #f9fafb;
+        background: linear-gradient(135deg, rgba(249, 250, 251, 0.85), rgba(255, 255, 255, 0.85));
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 1.5rem;
-        border-radius: 8px;
+        border-radius: 16px;
         text-align: center;
+        border: 2px solid rgba(16, 185, 129, 0.1);
+        transition: all 0.2s;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.05);
+    }
+
+    .wallet-stat:hover {
+        border-color: rgba(16, 185, 129, 0.4);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.15);
     }
     
     .wallet-stat p {
         margin: 0 0 0.5rem 0;
         color: #6b7280;
-        font-size: 1.3rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
     
     .wallet-stat h6 {
         margin: 0;
-        font-size: 2rem;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #1f2937;
     }
     
     .action-buttons {
@@ -240,12 +337,16 @@
     }
     
     @media (max-width: 768px) {
-        .settings-layout {
+        .tab-nav {
+            flex-wrap: nowrap;
+        }
+
+        .wallet-stats {
             grid-template-columns: 1fr;
         }
-        
-        .tab-nav {
-            position: static;
+
+        .settings-card {
+            padding: 1.5rem;
         }
     }
 </style>
@@ -253,51 +354,54 @@
 
 @section('content')
 <div class="settings-container">
-    <div style="margin-bottom: 2rem;">
-        <h2 style="font-size: 2.4rem; margin: 0; color: #1f2937;"><i class="fas fa-cog"></i> Account Settings</h2>
-        <p style="color: #6b7280; margin-top: 0.5rem; font-size: 1.4rem;">Manage your profile, business, subscription, and wallet</p>
+    <div class="settings-header">
+        <h2 class="settings-title"><i class="fas fa-cog"></i> Account Settings</h2>
+        <p class="settings-subtitle">Manage your profile, business, subscription, and wallet</p>
     </div>
 
     <!-- Error/Success Messages -->
     @if ($errors->any())
         <div class="alert alert-danger">
-            <strong>Error!</strong>
-            <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
+                <strong>Error!</strong>
+                <ul style="margin: 0.5rem 0 0 0; padding-left: 1.5rem;">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
         </div>
     @endif
 
     @if (session('success'))
         <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i> {{ session('success') }}
+            <i class="fas fa-check-circle"></i>
+            <span>{{ session('success') }}</span>
         </div>
     @endif
 
-    <div class="settings-layout">
-        <!-- Navigation Tabs -->
-        <div class="tab-nav">
-            <a href="#" class="tab-link active" data-tab="profile">
-                <i class="fas fa-user"></i>Profile
-            </a>
-            <a href="#" class="tab-link" data-tab="business">
-                <i class="fas fa-store"></i>Business
-            </a>
-            <a href="#" class="tab-link" data-tab="subscription">
-                <i class="fas fa-credit-card"></i>Subscription
-            </a>
-            <a href="#" class="tab-link" data-tab="wallet">
-                <i class="fas fa-wallet"></i>Wallet
-            </a>
-        </div>
+    <!-- Horizontal Navigation Tabs -->
+    <div class="tab-nav">
+        <a href="#" class="tab-link active" data-tab="profile">
+            <i class="fas fa-user"></i>Profile
+        </a>
+        <a href="#" class="tab-link" data-tab="business">
+            <i class="fas fa-store"></i>Business
+        </a>
+        <a href="#" class="tab-link" data-tab="subscription">
+            <i class="fas fa-credit-card"></i>Subscription
+        </a>
+        <a href="#" class="tab-link" data-tab="wallet">
+            <i class="fas fa-wallet"></i>Wallet
+        </a>
+    </div>
 
-        <!-- Content Area -->
-        <div>
-            <!-- Profile Tab -->
-            <div class="tab-content active" id="profile">
-                <div class="settings-card">
+    <!-- Content Area -->
+    <div>
+        <!-- Profile Tab -->
+        <div class="tab-content active" id="profile">
+            <div class="settings-card">
                     <h5><i class="fas fa-user"></i> Profile Information</h5>
                     <form action="{{ route('seller.settings.update') }}" method="POST">
                         @csrf
@@ -435,7 +539,7 @@
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-bottom: 1.5rem;">
                             <div>
                                 <p style="margin-bottom: 0.5rem; color: #6b7280;"><strong>Monthly Amount:</strong></p>
-                                <span style="color: #22c55e; font-weight: 700; font-size: 1.8rem;">₱{{ number_format($subscription->amount, 2) }}</span>
+                                <span style="color: #10b981; font-weight: 700; font-size: 1.8rem;">₱{{ number_format($subscription->amount, 2) }}</span>
                             </div>
                             <div>
                                 <p style="margin-bottom: 0.5rem; color: #6b7280;"><strong>Expires On:</strong></p>
@@ -523,13 +627,13 @@
                 <div class="settings-card" style="margin-bottom: 2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                         <h5 style="margin: 0;"><i class="fas fa-wallet"></i> Wallet Balance</h5>
-                        <h5 style="margin: 0; color: #22c55e;">₱{{ number_format($wallet->balance, 2) }}</h5>
+                        <h5 style="margin: 0; color: #10b981;">₱{{ number_format($wallet->balance, 2) }}</h5>
                     </div>
                     
                     <div class="wallet-stats">
-                        <div class="wallet-stat" style="border-left: 4px solid #22c55e;">
+                        <div class="wallet-stat" style="border-left: 4px solid #10b981;">
                             <p>Total Deposited</p>
-                            <h6 style="color: #22c55e;">₱{{ number_format($wallet->total_deposited, 2) }}</h6>
+                            <h6 style="color: #10b981;">₱{{ number_format($wallet->total_deposited, 2) }}</h6>
                         </div>
                         <div class="wallet-stat" style="border-left: 4px solid #ef4444;">
                             <p>Total Withdrawn</p>
@@ -540,7 +644,7 @@
                     <hr style="margin: 2rem 0; border: none; border-top: 1px solid #e5e7eb;">
 
                     <div class="action-buttons">
-                        <a href="{{ route('seller.wallet.deposit.form') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                        <a href="{{ route('seller.wallet.deposit.form') }}" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981, #059669);">
                             <i class="fas fa-plus"></i>Add Funds
                         </a>
                         <a href="{{ route('seller.wallet.pay-rent.form') }}" class="btn btn-primary">

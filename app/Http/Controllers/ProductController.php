@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Models\Discount;
 use App\Models\Product;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Auth;
@@ -89,7 +90,9 @@ class ProductController extends Controller
         if ($authCheck) return $authCheck;
 
         $product = Product::findOrFail($id);
-        return view('admin.update_product', compact('product'));
+        $discounts = Discount::whereNull('seller_id')->orderByDesc('created_at')->get();
+
+        return view('admin.update_product', compact('product', 'discounts'));
     }
 
     /**
@@ -106,9 +109,11 @@ class ProductController extends Controller
             'details' => 'required|string|max:500',
             'type' => 'nullable|string|max:255',
             'stock' => 'required|integer|min:0|max:999999',
-            'image_01' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_02' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_03' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'discount_id' => 'nullable|integer',
+            // max is in kilobytes
+            'image_01' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:8192',
+            'image_02' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:8192',
+            'image_03' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:8192',
         ]);
 
         try {
@@ -120,6 +125,11 @@ class ProductController extends Controller
             $product->details = $request->details;
             $product->type = $request->type ?? '';
             $product->stock = $request->stock;
+            $product->discount_id = null;
+            if ($request->filled('discount_id')) {
+                Discount::whereNull('seller_id')->findOrFail((int) $request->discount_id);
+                $product->discount_id = (int) $request->discount_id;
+            }
 
 
             // Update images if new ones are uploaded

@@ -32,9 +32,8 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
-        'email',
-        'password',
+        'name', 'email', 'password',
+        'phone', 'address', 'profile_picture',
     ];
 
     /**
@@ -92,5 +91,21 @@ class User extends Authenticatable
     public function messages()
     {
         return $this->hasMany(Message::class);
+    }
+
+    /**
+     * Notifications for this user.
+     */
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class)->orderByDesc('created_at');
+    }
+
+    /**
+     * Reports submitted by this user.
+     */
+    public function reports()
+    {
+        return $this->hasMany(Report::class, 'reporter_id');
     }
 }

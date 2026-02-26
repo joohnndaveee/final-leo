@@ -5,6 +5,7 @@ namespace App\Http\ViewComposers;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Cart;
+use App\Models\Category;
 use App\Models\Wishlist;
 
 class CartWishlistComposer
@@ -32,9 +33,28 @@ class CartWishlistComposer
         }
 
         // Share the counts with the view
+        $navCategories = Category::where('is_active', true)
+            ->select('categories.*')
+            ->selectSub(function ($q) {
+                $q->from('products')
+                    ->selectRaw('count(*)')
+                    ->where('products.is_active', 1)
+                    ->where('products.stock', '>', 1)
+                    ->where(function ($w) {
+                        $w->whereColumn('products.category_id', 'categories.id')
+                          ->orWhereColumn('products.type', 'categories.slug')
+                          ->orWhereColumn('products.type', 'categories.name');
+                    });
+            }, 'products_count')
+            ->having('products_count', '>', 0)
+            ->orderBy('sort_order')
+            ->orderBy('name')
+            ->get();
+
         $view->with([
-            'cartCount' => $cartCount,
-            'wishlistCount' => $wishlistCount,
+            'cartCount'      => $cartCount,
+            'wishlistCount'  => $wishlistCount,
+            'navCategories'  => $navCategories,
         ]);
     }
 }

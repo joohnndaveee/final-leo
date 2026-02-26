@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Category;
 use App\Models\Product;
 
 class HomeController extends Controller
@@ -21,9 +22,13 @@ class HomeController extends Controller
         // Fetch products for all products slider (limit to 20 most recent)
         $products = Product::with('seller')->orderBy('id', 'desc')->limit(20)->get();
 
+        // Fetch active categories for the categories section
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->orderBy('name')->get();
+
         return view('home', [
             'featuredProducts' => $featuredProducts,
-            'products' => $products
+            'products'         => $products,
+            'categories'       => $categories,
         ]);
     }
 }

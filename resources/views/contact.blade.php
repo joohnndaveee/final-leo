@@ -28,7 +28,7 @@
     }
 
     .section-header h1 {
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Fahkwang', sans-serif;
         font-size: 3rem;
         font-weight: 800;
         color: #2c3e50;
@@ -36,7 +36,7 @@
     }
 
     .section-header p {
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.6rem;
         color: #7f8c8d;
     }
@@ -55,7 +55,7 @@
     }
 
     .contact-form-wrapper h2 {
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Fahkwang', sans-serif;
         font-size: 2.2rem;
         font-weight: 700;
         color: #2c3e50;
@@ -76,7 +76,7 @@
 
     .form-group label {
         display: block;
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
         font-weight: 600;
         color: #2c3e50;
@@ -87,7 +87,7 @@
     .form-group textarea {
         width: 100%;
         padding: 1.2rem 1.5rem;
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
         color: #2c3e50;
         border: 2px solid #e0e0e0;
@@ -117,7 +117,7 @@
     .submit-btn {
         width: 100%;
         padding: 1.5rem 3rem;
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.7rem;
         font-weight: 700;
         color: white;
@@ -151,7 +151,7 @@
     }
 
     .shop-details-wrapper h2 {
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Fahkwang', sans-serif;
         font-size: 2.2rem;
         font-weight: 700;
         color: #2c3e50;
@@ -189,7 +189,7 @@
     }
 
     .detail-content h3 {
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Fahkwang', sans-serif;
         font-size: 1.6rem;
         font-weight: 700;
         color: #2c3e50;
@@ -197,7 +197,7 @@
     }
 
     .detail-content p {
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
         color: #555;
         line-height: 1.6;

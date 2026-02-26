@@ -16,13 +16,13 @@
         align-items: center;
         margin-bottom: 2.5rem;
         padding-bottom: 1.5rem;
-        border-bottom: 3px solid var(--main-color);
+        border-bottom: 3px solid #10b981;
     }
 
     .header-section h1 {
         font-size: 2.8rem;
         font-weight: 700;
-        color: #1f2937;
+        color: #064e3b;
         margin: 0;
         display: flex;
         align-items: center;
@@ -30,13 +30,13 @@
     }
 
     .header-section h1 i {
-        color: var(--main-color);
+        color: #10b981;
     }
 
     .orders-count {
         font-size: 1.6rem;
         color: white;
-        background: var(--main-color);
+        background: linear-gradient(135deg, #10b981, #059669);
         padding: 0.8rem 1.5rem;
         border-radius: 50px;
         font-weight: 600;
@@ -50,11 +50,13 @@
     }
 
     .stat-card {
-        background: white;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 1.8rem;
-        border-radius: 1.2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        border-left: 4px solid var(--main-color);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
     }
 
     .stat-card h3 {
@@ -67,16 +69,19 @@
     .stat-card .number {
         font-size: 2.5rem;
         font-weight: 700;
-        color: var(--main-color);
+        color: #10b981;
         margin: 0;
     }
 
     .filters-section {
-        background: white;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
         padding: 1.5rem;
-        border-radius: 1.2rem;
+        border-radius: 20px;
         margin-bottom: 2rem;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
     }
 
     .filters-section form {
@@ -110,16 +115,19 @@
     .filters-section input:focus,
     .filters-section select:focus {
         outline: none;
-        border-color: var(--main-color);
-        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        border-color: rgba(16, 185, 129, 0.5);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        background: rgba(255, 255, 255, 0.95);
     }
 
     .filters-section button {
         padding: 0.8rem 2rem;
-        background: var(--main-color);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         border: none;
-        border-radius: 0.6rem;
+        border-radius: 12px;
         font-size: 1.3rem;
         font-weight: 600;
         cursor: pointer;
@@ -127,19 +135,22 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
 
     .filters-section button:hover {
-        background: #45a049;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
     }
 
     .orders-table-wrapper {
-        background: white;
-        border-radius: 1.2rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
         overflow: hidden;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
     }
 
     .orders-table {
@@ -148,7 +159,9 @@
     }
 
     .orders-table thead {
-        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(5, 150, 105, 0.95) 100%);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
     }
 
     .orders-table thead th {
@@ -167,7 +180,9 @@
     }
 
     .orders-table tbody tr:hover {
-        background: rgba(76, 175, 80, 0.05);
+        background: rgba(16, 185, 129, 0.08);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
     }
 
     .orders-table tbody td {
@@ -178,7 +193,7 @@
 
     .order-id {
         font-weight: 700;
-        color: var(--main-color);
+        color: #10b981;
         font-size: 1.5rem;
     }
 
@@ -201,26 +216,31 @@
         font-size: 1.2rem;
         font-weight: 600;
         text-transform: capitalize;
+        border: 1px solid;
     }
 
     .status-pending {
         background: #fef3c7;
         color: #92400e;
+        border-color: #fbbf24;
     }
 
     .status-shipped {
         background: #bfdbfe;
         color: #1e40af;
+        border-color: #60a5fa;
     }
 
     .status-delivered {
         background: #d1fae5;
         color: #065f46;
+        border-color: #34d399;
     }
 
     .status-cancelled {
         background: #fee2e2;
         color: #991b1b;
+        border-color: #f87171;
     }
 
     .action-form {
@@ -241,41 +261,47 @@
 
     .action-form input:focus {
         outline: none;
-        border-color: var(--main-color);
-        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        border-color: rgba(16, 185, 129, 0.5);
+        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        background: rgba(255, 255, 255, 0.95);
     }
 
     .action-form button {
         padding: 0.8rem 1.5rem;
-        background: var(--main-color);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         border: none;
-        border-radius: 0.6rem;
+        border-radius: 12px;
         font-size: 1.2rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
         white-space: nowrap;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
 
     .action-form button:hover {
-        background: #45a049;
         transform: translateY(-2px);
-        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
     }
 
     .success-message {
-        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        background: rgba(209, 250, 229, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         border-left: 4px solid #10b981;
         color: #065f46;
         padding: 1.2rem;
-        border-radius: 0.8rem;
+        border-radius: 12px;
         margin-bottom: 1.5rem;
         font-size: 1.4rem;
         font-weight: 500;
         display: flex;
         align-items: center;
         gap: 0.8rem;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
     }
 
     .success-message i {
@@ -329,15 +355,15 @@
     }
 
     .pagination a:hover {
-        background: var(--main-color);
+        background: #10b981;
         color: white;
-        border-color: var(--main-color);
+        border-color: #10b981;
     }
 
     .pagination .active span {
-        background: var(--main-color);
+        background: #10b981;
         color: white;
-        border-color: var(--main-color);
+        border-color: #10b981;
     }
 
     @media (max-width: 768px) {

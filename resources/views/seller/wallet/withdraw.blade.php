@@ -11,16 +11,22 @@
     }
     
     .withdraw-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
         overflow: hidden;
     }
     
     .withdraw-header {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         padding: 1.5rem;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.2);
     }
     
     .withdraw-header h5 {
@@ -36,11 +42,13 @@
     }
     
     .balance-box {
-        background: #dbeafe;
+        background: rgba(219, 234, 254, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #1e40af;
         padding: 1rem 1.5rem;
-        border-radius: 8px;
-        border-left: 4px solid #3b82f6;
+        border-radius: 12px;
+        border-left: 4px solid rgba(59, 130, 246, 0.6);
         margin-bottom: 2rem;
         display: flex;
         justify-content: space-between;
@@ -49,7 +57,7 @@
     }
     
     .balance-box .balance-amount {
-        color: #22c55e;
+        color: #10b981;
         font-weight: 700;
         font-size: 1.6rem;
     }
@@ -102,8 +110,9 @@
     
     .form-control:focus {
         outline: none;
-        border-color: #f59e0b;
-        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.5);
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+        background: rgba(255, 255, 255, 0.95);
     }
     
     .form-text {
@@ -121,9 +130,11 @@
     }
     
     .alert-danger {
-        background: #fee2e2;
+        background: rgba(254, 226, 226, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #991b1b;
-        border-left: 4px solid #ef4444;
+        border-left: 4px solid rgba(239, 68, 68, 0.6);
     }
     
     .alert-danger ul {
@@ -132,9 +143,11 @@
     }
     
     .alert-warning {
-        background: #fef3c7;
+        background: rgba(254, 243, 199, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #92400e;
-        border-left: 4px solid #f59e0b;
+        border-left: 4px solid rgba(245, 158, 11, 0.6);
     }
     
     .alert-light {
@@ -175,16 +188,19 @@
     }
     
     .btn-warning {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         font-size: 1.6rem;
         padding: 1rem 1.5rem;
         margin-bottom: 1rem;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
     }
     
     .btn-warning:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
     }
     
     .btn-secondary {
@@ -203,6 +219,33 @@
         margin: 2rem 0;
     }
     
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #6b7280;
+        text-decoration: none;
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05);
+    }
+    
+    .back-button:hover {
+        background: rgba(240, 253, 244, 0.9);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.3);
+        transform: translateX(-3px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+    
     @media (max-width: 768px) {
         .withdraw-container {
             padding: 0 1rem;
@@ -217,6 +260,10 @@
 
 @section('content')
 <div class="withdraw-container">
+    <a href="{{ route('seller.wallet.index') }}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Wallet
+    </a>
     <div class="withdraw-card">
         <div class="withdraw-header">
             <h5><i class="fas fa-arrow-up"></i>Withdraw Funds</h5>

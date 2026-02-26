@@ -292,6 +292,20 @@
                        value="{{ old('stock', $product->stock ?? 0) }}">
             </div>
 
+            {{-- Row 4: Seasonal Discount --}}
+            <div class="input-group">
+                <label>Seasonal Discount</label>
+                <select name="discount_id">
+                    <option value="">None</option>
+                    @foreach(($discounts ?? collect()) as $discount)
+                        <option value="{{ $discount->id }}" {{ (string) old('discount_id', $product->discount_id) === (string) $discount->id ? 'selected' : '' }}>
+                            {{ $discount->name }} ({{ $discount->type === 'percentage' ? rtrim(rtrim(number_format((float) $discount->value, 2), '0'), '.') . '%' : '₱' . number_format((float) $discount->value, 2) }})
+                        </option>
+                    @endforeach
+                </select>
+                <span class="help-text">Create discounts in Admin → Discounts.</span>
+            </div>
+
             {{-- Full Width: Details --}}
             <div class="input-group full-width">
                 <label>Product Details <span class="required">*</span></label>
@@ -301,7 +315,7 @@
                           placeholder="Enter product details...">{{ old('details', $product->details) }}</textarea>
             </div>
 
-            {{-- Row 4: Update Images (Optional) --}}
+            {{-- Row 5: Update Images (Optional) --}}
             <div class="input-group">
                 <label>Update Image 01</label>
                 <input type="file" 

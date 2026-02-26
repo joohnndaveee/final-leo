@@ -6,7 +6,7 @@
         bottom: 20px;
         right: 20px;
         z-index: 9999;
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
     }
 
     /* Chat Button (Minimized State) */

@@ -59,9 +59,12 @@ INSERT INTO `admins` (`id`, `name`, `email`, `password`, `created_at`, `updated_
 
 CREATE TABLE `users` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
-  `name` varchar(20) NOT NULL,
-  `email` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `phone` varchar(20) DEFAULT NULL,
+  `address` text DEFAULT NULL,
+  `profile_picture` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -133,6 +136,7 @@ INSERT INTO `sellers` (`id`, `name`, `email`, `password`, `shop_name`, `shop_des
 CREATE TABLE `products` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
   `seller_id` int(100) NOT NULL,
+  `category_id` int(100) DEFAULT NULL,
   `name` varchar(100) NOT NULL,
   `details` varchar(500) NOT NULL,
   `price` int(10) NOT NULL,
@@ -141,12 +145,19 @@ CREATE TABLE `products` (
   `color` varchar(30) DEFAULT NULL,
   `stock` int(10) DEFAULT 0,
   `image_01` varchar(100) NOT NULL,
-  `image_02` varchar(100) NOT NULL,
-  `image_03` varchar(100) NOT NULL,
+  `image_02` varchar(100) NULL,
+  `image_03` varchar(100) NULL,
+  `is_featured` tinyint(1) NOT NULL DEFAULT 0,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `discount_id` int(100) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  KEY `seller_id` (`seller_id`)
+  KEY `seller_id` (`seller_id`),
+  KEY `category_id` (`category_id`),
+  KEY `is_featured` (`is_featured`),
+  KEY `is_active` (`is_active`),
+  KEY `discount_id` (`discount_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -212,12 +223,15 @@ CREATE TABLE `orders` (
   `shipped_at` timestamp NULL DEFAULT NULL,
   `delivered_at` timestamp NULL DEFAULT NULL,
   `cancelled_at` timestamp NULL DEFAULT NULL,
+  `voucher_id` int(100) DEFAULT NULL,
+  `voucher_discount` decimal(10,2) NOT NULL DEFAULT 0.00,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `payment_status` (`payment_status`),
-  KEY `status` (`status`)
+  KEY `status` (`status`),
+  KEY `voucher_id` (`voucher_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -457,6 +471,197 @@ CREATE TABLE `seller_chat_files` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `categories`
+-- Used by: Admin (manage categories), Seller (categorize products)
+--
+
+CREATE TABLE `categories` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `slug` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `parent_id` int(100) DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `sort_order` int(10) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `slug` (`slug`),
+  KEY `parent_id` (`parent_id`),
+  KEY `is_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Default categories seed data
+--
+
+INSERT INTO `categories` (`name`, `slug`, `description`, `is_active`, `sort_order`) VALUES
+('Electronics', 'electronics', 'Gadgets, devices and accessories', 1, 1),
+('Clothing', 'clothing', 'Apparel for men, women and kids', 1, 2),
+('Home & Living', 'home-living', 'Furniture, decor and household items', 1, 3),
+('Sports & Outdoors', 'sports-outdoors', 'Equipment and gear for sports', 1, 4),
+('Food & Beverages', 'food-beverages', 'Groceries, snacks and drinks', 1, 5),
+('Health & Beauty', 'health-beauty', 'Personal care and wellness products', 1, 6),
+('Books & Media', 'books-media', 'Books, music, movies and games', 1, 7),
+('Others', 'others', 'Miscellaneous products', 1, 8);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `discounts`
+-- Used by: Seller (create promotional discounts on products)
+--
+
+CREATE TABLE `discounts` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `seller_id` int(100) DEFAULT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `type` enum('percentage','fixed') NOT NULL DEFAULT 'percentage',
+  `value` decimal(10,2) NOT NULL,
+  `min_price` decimal(10,2) DEFAULT NULL,
+  `start_date` datetime DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `seller_id` (`seller_id`),
+  KEY `is_active` (`is_active`),
+  KEY `start_date` (`start_date`),
+  KEY `end_date` (`end_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `vouchers`
+-- Used by: Seller (create voucher/coupon codes), Customer (apply at checkout)
+--
+
+CREATE TABLE `vouchers` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `seller_id` int(100) DEFAULT NULL,
+  `code` varchar(50) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `type` enum('percentage','fixed') NOT NULL DEFAULT 'percentage',
+  `value` decimal(10,2) NOT NULL,
+  `min_order_amount` decimal(10,2) DEFAULT NULL,
+  `max_discount_amount` decimal(10,2) DEFAULT NULL,
+  `usage_limit` int(10) DEFAULT NULL,
+  `used_count` int(10) NOT NULL DEFAULT 0,
+  `start_date` datetime DEFAULT NULL,
+  `end_date` datetime DEFAULT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `code` (`code`),
+  KEY `seller_id` (`seller_id`),
+  KEY `is_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `voucher_usages`
+-- Tracks which user used which voucher on which order
+--
+
+CREATE TABLE `voucher_usages` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `voucher_id` int(100) NOT NULL,
+  `user_id` int(100) NOT NULL,
+  `order_id` int(100) NOT NULL,
+  `discount_amount` decimal(10,2) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `voucher_user_order_unique` (`voucher_id`,`user_id`,`order_id`),
+  KEY `voucher_id` (`voucher_id`),
+  KEY `user_id` (`user_id`),
+  KEY `order_id` (`order_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+-- Used by: Customer (order updates), Seller (order alerts)
+--
+
+CREATE TABLE `notifications` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `user_id` int(100) DEFAULT NULL,
+  `seller_id` int(100) DEFAULT NULL,
+  `type` varchar(50) NOT NULL COMMENT 'order_placed, order_shipped, order_delivered, payment_confirmed, etc.',
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `related_id` int(100) DEFAULT NULL COMMENT 'e.g. order_id, product_id',
+  `related_type` varchar(50) DEFAULT NULL COMMENT 'order, product, payment, etc.',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `seller_id` (`seller_id`),
+  KEY `is_read` (`is_read`),
+  KEY `type` (`type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `order_tracking`
+-- Used by: Customer (view delivery timeline per order)
+--
+
+CREATE TABLE `order_tracking` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `order_id` int(100) NOT NULL,
+  `status` varchar(50) NOT NULL COMMENT 'order_placed, confirmed, packed, shipped, out_for_delivery, delivered, cancelled',
+  `title` varchar(100) NOT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `created_by` int(100) DEFAULT NULL COMMENT 'admin_id or seller_id who logged this event',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `order_id` (`order_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `reports`
+-- Used by: Admin (monitor reports), Customer (report seller/product)
+--
+
+CREATE TABLE `reports` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `reporter_id` int(100) NOT NULL,
+  `reporter_type` enum('user','seller') NOT NULL DEFAULT 'user',
+  `reported_type` enum('product','seller','user') NOT NULL,
+  `reported_id` int(100) NOT NULL,
+  `reason` varchar(100) NOT NULL COMMENT 'spam, counterfeit, offensive, scam, inappropriate, other',
+  `description` text DEFAULT NULL,
+  `evidence_image` varchar(255) DEFAULT NULL,
+  `status` enum('pending','reviewed','resolved','dismissed') NOT NULL DEFAULT 'pending',
+  `reviewed_by` int(100) DEFAULT NULL COMMENT 'admin_id',
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `admin_notes` text DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `reporter_id` (`reporter_id`),
+  KEY `reported_type` (`reported_type`),
+  KEY `reported_id` (`reported_id`),
+  KEY `status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `sessions`
 --
 
@@ -526,9 +731,60 @@ ON DUPLICATE KEY UPDATE
   `updated_at` = NOW();
 
 -- =========================================================
--- PATCH: Allow optional product images (image_02/image_03)
--- Fixes NOT NULL insert error when only uploading image_01
+-- NOTE: image_02/image_03 are already NULL in CREATE TABLE
+-- (handled directly above, no ALTER needed)
+-- =========================================================
+
+-- =========================================================
+-- FEATURE: Auto-disable product when stock reaches 0
+-- (Seller feature: auto-disable out-of-stock products)
+-- =========================================================
+DELIMITER $$
+
+CREATE TRIGGER `auto_disable_out_of_stock`
+BEFORE UPDATE ON `products`
+FOR EACH ROW
+BEGIN
+  IF NEW.stock <= 0 THEN
+    SET NEW.is_active = 0;
+  END IF;
+END $$
+
+CREATE TRIGGER `auto_enable_restocked`
+BEFORE UPDATE ON `products`
+FOR EACH ROW
+BEGIN
+  IF NEW.stock > 0 AND OLD.stock <= 0 THEN
+    SET NEW.is_active = 1;
+  END IF;
+END $$
+
+DELIMITER ;
+
+
+DELIMITER ;
+
+-- =========================================================
+-- PATCH: Add hero background image column to site_settings
+-- =========================================================
+ALTER TABLE `site_settings`
+    ADD COLUMN IF NOT EXISTS `hero_bg_path` VARCHAR(255) DEFAULT NULL;
+
+-- =========================================================
+-- PATCH: Seasonal sale banner settings (colors + message)
+-- =========================================================
+ALTER TABLE `site_settings`
+    ADD COLUMN IF NOT EXISTS `seasonal_banner_enabled` TINYINT(1) NOT NULL DEFAULT 1,
+    ADD COLUMN IF NOT EXISTS `seasonal_banner_bg_color` VARCHAR(20) DEFAULT '#1a3009',
+    ADD COLUMN IF NOT EXISTS `seasonal_banner_text_color` VARCHAR(20) DEFAULT '#ffffff',
+    ADD COLUMN IF NOT EXISTS `seasonal_banner_message` VARCHAR(255) DEFAULT NULL;
+
+-- =========================================================
+-- PATCH: Product sale price + bundle pieces
+-- (No migrations: append-only schema patch)
 -- =========================================================
 ALTER TABLE `products`
-  MODIFY `image_02` varchar(100) NULL,
-  MODIFY `image_03` varchar(100) NULL;
+    ADD COLUMN IF NOT EXISTS `sale_price` int(10) DEFAULT NULL AFTER `price`;
+
+ALTER TABLE `products`
+    ADD COLUMN IF NOT EXISTS `pieces` int(10) NOT NULL DEFAULT 1 AFTER `stock`;

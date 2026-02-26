@@ -122,6 +122,32 @@
         font-size: 3.5rem;
         color: #27ae60;
         font-weight: 700;
+        display: flex;
+        align-items: baseline;
+        gap: 1.2rem;
+        flex-wrap: wrap;
+    }
+
+    .product-price .price-old {
+        font-size: 2.1rem;
+        color: #9ca3af;
+        font-weight: 600;
+        text-decoration: line-through;
+    }
+
+    .product-price .sale-pill {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #fff;
+        background: #111827;
+        padding: .45rem .9rem;
+        border-radius: 999px;
+        line-height: 1;
+    }
+
+    .product-bundle {
+        font-size: 1.5rem;
+        color: #374151;
     }
 
     .product-stock {
@@ -449,7 +475,26 @@
                 </span>
             </div>
 
-            <div class="product-price">₱{{ number_format($product->price, 2) }}</div>
+            @php
+                $salePrice = $product->sale_price ?? null;
+                $isSale = $salePrice !== null && (float) $salePrice > 0 && (float) $salePrice < (float) $product->price;
+                $pieces = (int) ($product->pieces ?? 1);
+                $displayPrice = $isSale ? $salePrice : $product->price;
+            @endphp
+
+            <div class="product-price">
+                @if($isSale)
+                    <span class="price-new">₱{{ number_format((float) $salePrice, 2) }}</span>
+                    <span class="price-old">₱{{ number_format((float) $product->price, 2) }}</span>
+                    <span class="sale-pill">Sale!</span>
+                @else
+                    ₱{{ number_format((float) $product->price, 2) }}
+                @endif
+            </div>
+
+            @if($pieces > 1)
+                <div class="product-bundle"><strong>Bundle:</strong> {{ $pieces }} pcs</div>
+            @endif
 
             <div>
                 @php
@@ -487,7 +532,7 @@
                 @csrf
                 <input type="hidden" name="product_id" value="{{ $product->id }}">
                 <input type="hidden" name="product_name" value="{{ $product->name }}">
-                <input type="hidden" name="product_price" value="{{ $product->price }}">
+                <input type="hidden" name="product_price" value="{{ $displayPrice }}">
                 <input type="hidden" name="product_image" value="{{ $product->image_01 }}">
                 <input type="hidden" name="quantity" value="1">
                 
@@ -617,6 +662,7 @@
             if (data.success) {
                 // Update cart count in the header
                 updateCartCount(data.cart_count);
+                if (window.refreshCartDrawer) window.refreshCartDrawer();
 
                 // Show a success notification
                 Swal.fire({

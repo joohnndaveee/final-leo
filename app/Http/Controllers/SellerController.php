@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderTracking;
+use App\Models\Notification;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -39,54 +42,48 @@ class SellerController extends Controller
     {
         $seller = Auth::user();
         $products = Product::where('seller_id', $seller->id)->orderByDesc('id')->paginate(20);
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
 
-        return view('seller.products', compact('seller', 'products'));
+        return view('seller.products', compact('seller', 'products', 'categories'));
     }
 
     public function storeProduct(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:100',
-            'details' => 'nullable|string|max:500',
+            'details' => 'required|string|max:500',
             'price' => 'required|numeric|min:0',
-            'type' => 'required|string|max:50',
+            'category_id' => 'required|exists:categories,id',
             'stock' => 'required|integer|min:0',
-            'image_01' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_02' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_03' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'pieces' => 'required|integer|min:1',
+            'sale_price' => 'nullable|numeric|min:0|lt:price',
+            // max is in kilobytes
+            'image_01' => 'required|image|mimes:jpg,jpeg,png,webp|max:8192',
         ]);
 
         // Handle image uploads
         $image01Name = null;
-        $image02Name = null;
-        $image03Name = null;
-
         if ($request->hasFile('image_01')) {
             $image01Name = time() . '_1_' . $request->file('image_01')->getClientOriginalName();
             $request->file('image_01')->move(public_path('uploaded_img'), $image01Name);
         }
 
-        if ($request->hasFile('image_02')) {
-            $image02Name = time() . '_2_' . $request->file('image_02')->getClientOriginalName();
-            $request->file('image_02')->move(public_path('uploaded_img'), $image02Name);
-        }
-
-        if ($request->hasFile('image_03')) {
-            $image03Name = time() . '_3_' . $request->file('image_03')->getClientOriginalName();
-            $request->file('image_03')->move(public_path('uploaded_img'), $image03Name);
-        }
+        $category = Category::find($request->category_id);
 
         Product::create([
             'seller_id' => Auth::id(),
             'name' => $request->name,
             'details' => $request->details,
             'price' => $request->price,
-            'type' => $request->type,
+            'sale_price' => ($request->filled('sale_price') && (float) $request->sale_price > 0) ? $request->sale_price : null,
+            'category_id' => $request->category_id,
+            'type' => $category ? $category->name : null,
             'stock' => $request->stock,
+            'pieces' => $request->pieces,
             'image_01' => $image01Name,
             // DB schema may still require NOT NULL for image_02/image_03 in some environments
-            'image_02' => $image02Name ?? '',
-            'image_03' => $image03Name ?? '',
+            'image_02' => '',
+            'image_03' => '',
         ]);
 
         $stock = (int) ($request->stock ?? 0);
@@ -102,11 +99,43 @@ class SellerController extends Controller
         return redirect()->route('seller.products.index')->with('success', 'Product created.');
     }
 
-    public function editProduct($id)
+    /**
+     * Toggle featured status of a product
+     */
+    public function toggleFeatured($id)
+    {
+        $product = Product::where('seller_id', Auth::id())->findOrFail($id);
+        $product->update(['is_featured' => !$product->is_featured]);
+
+        return response()->json([
+            'success'     => true,
+            'is_featured' => $product->is_featured,
+        ]);
+    }
+
+    /**
+     * Toggle active/inactive of a product
+     */
+    public function toggleActive($id)
     {
         $product = Product::where('seller_id', Auth::id())->findOrFail($id);
 
-        return view('seller.edit-product', compact('product'));
+        // Don't allow activating if out of stock
+        if (!$product->is_active && (int) $product->stock <= 0) {
+            return response()->json(['success' => false, 'message' => 'Cannot activate a product with no stock.']);
+        }
+
+        $product->update(['is_active' => !$product->is_active]);
+
+        return response()->json(['success' => true, 'is_active' => $product->is_active]);
+    }
+
+    public function editProduct($id)
+    {
+        $product = Product::where('seller_id', Auth::id())->findOrFail($id);
+        $categories = Category::where('is_active', true)->orderBy('sort_order')->get();
+
+        return view('seller.edit-product', compact('product', 'categories'));
     }
 
     public function updateProduct(Request $request, $id)
@@ -114,22 +143,29 @@ class SellerController extends Controller
         $product = Product::where('seller_id', Auth::id())->findOrFail($id);
         $beforeStock = (int) ($product->stock ?? 0);
 
+        $imageRequiredRule = !empty($product->image_01) ? 'nullable' : 'required';
+
         $request->validate([
             'name' => 'required|string|max:100',
-            'details' => 'nullable|string|max:500',
+            'details' => 'required|string|max:500',
             'price' => 'required|numeric|min:0',
-            'type' => 'nullable|string|max:50',
+            'category_id' => 'required|exists:categories,id',
             'stock' => 'required|integer|min:0',
-            'image_01' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_02' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'image_03' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'pieces' => 'required|integer|min:1',
+            'sale_price' => 'nullable|numeric|min:0|lt:price',
+            // max is in kilobytes
+            'image_01' => $imageRequiredRule . '|image|mimes:jpg,jpeg,png,webp|max:8192',
         ]);
 
         $product->name = $request->name;
         $product->details = $request->details;
         $product->price = $request->price;
-        $product->type = $request->type;
+        $product->sale_price = ($request->filled('sale_price') && (float) $request->sale_price > 0) ? $request->sale_price : null;
+        $product->category_id = $request->category_id;
+        $cat = Category::find($request->category_id);
+        $product->type = $cat ? $cat->name : $product->type;
         $product->stock = $request->stock;
+        $product->pieces = $request->pieces;
 
         // Update images if new ones are uploaded
         if ($request->hasFile('image_01')) {
@@ -140,26 +176,6 @@ class SellerController extends Controller
             $image01Name = time() . '_1_' . $request->file('image_01')->getClientOriginalName();
             $request->file('image_01')->move(public_path('uploaded_img'), $image01Name);
             $product->image_01 = $image01Name;
-        }
-
-        if ($request->hasFile('image_02')) {
-            $oldPath = public_path('uploaded_img/' . $product->image_02);
-            if ($product->image_02 && File::exists($oldPath)) {
-                File::delete($oldPath);
-            }
-            $image02Name = time() . '_2_' . $request->file('image_02')->getClientOriginalName();
-            $request->file('image_02')->move(public_path('uploaded_img'), $image02Name);
-            $product->image_02 = $image02Name;
-        }
-
-        if ($request->hasFile('image_03')) {
-            $oldPath = public_path('uploaded_img/' . $product->image_03);
-            if ($product->image_03 && File::exists($oldPath)) {
-                File::delete($oldPath);
-            }
-            $image03Name = time() . '_3_' . $request->file('image_03')->getClientOriginalName();
-            $request->file('image_03')->move(public_path('uploaded_img'), $image03Name);
-            $product->image_03 = $image03Name;
         }
 
         $product->save();
@@ -173,6 +189,9 @@ class SellerController extends Controller
                 'is_read' => false,
             ]);
         }
+
+        // Auto-disable if out of stock
+        $product->autoDisableIfOutOfStock();
 
         return redirect()->route('seller.products.index')->with('success', 'Product updated.');
     }
@@ -218,6 +237,20 @@ class SellerController extends Controller
         $order->shipped_at = now();
         $order->save();
 
+        // Log tracking event
+        OrderTracking::log($order->id, 'shipped', 'Order Shipped',
+            "Your order has been shipped via {$order->shipping_method}. Tracking: {$order->tracking_number}");
+
+        // Notify customer
+        Notification::notifyUser(
+            $order->user_id,
+            'order_shipped',
+            'Your Order Has Been Shipped!',
+            "Order #{$order->id} is on its way. Tracking: {$order->tracking_number}",
+            $order->id,
+            'order'
+        );
+
         if ($order->email) {
             Mail::raw(
                 "Your order #{$order->id} has been shipped. Tracking: {$order->tracking_number}.",
@@ -253,6 +286,20 @@ class SellerController extends Controller
         $order->payment_status = 'completed';
         $order->delivered_at = now();
         $order->save();
+
+        // Log tracking event
+        OrderTracking::log($order->id, 'delivered', 'Order Delivered',
+            'Your order has been delivered. Thank you for shopping!');
+
+        // Notify customer
+        Notification::notifyUser(
+            $order->user_id,
+            'order_delivered',
+            'Order Delivered!',
+            "Order #{$order->id} has been delivered. Please leave a review!",
+            $order->id,
+            'order'
+        );
 
         if ($order->email) {
             Mail::raw(

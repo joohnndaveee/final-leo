@@ -35,6 +35,11 @@ class CartController extends Controller
 
         // Get product details
         $product = Product::findOrFail($productId);
+        // Cart shows seller-level pricing only (regular/sale_price). Seasonal (admin) discounts are shown at checkout.
+        $effectivePrice = $product->price;
+        if ($product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < (float) $product->price) {
+            $effectivePrice = $product->sale_price;
+        }
 
         // Check if product is in stock
         if ($product->stock <= 0) {
@@ -61,6 +66,8 @@ class CartController extends Controller
             
             // Increment quantity
             $cartItem->quantity = $newQuantity;
+            $cartItem->price = $effectivePrice;
+            $cartItem->image = $product->image_01;
             $cartItem->save();
 
             return response()->json([
@@ -83,7 +90,7 @@ class CartController extends Controller
                 'user_id' => $userId,
                 'pid' => $productId,
                 'name' => $product->name,
-                'price' => $product->price,
+                'price' => $effectivePrice,
                 'quantity' => $quantity,
                 'image' => $product->image_01
             ]);
@@ -122,14 +129,44 @@ class CartController extends Controller
         }
 
         $cartItems = Cart::where('user_id', Auth::id())
-                        ->with('product')
-                        ->get();
+            ->with('product')
+            ->get();
 
         $grandTotal = $cartItems->sum(function($item) {
             return $item->price * $item->quantity;
         });
 
         return view('cart', compact('cartItems', 'grandTotal'));
+    }
+
+    /**
+     * Cart drawer content (right-side modal)
+     */
+    public function drawer()
+    {
+        if (!Auth::check()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please login to view your cart',
+                'redirect' => route('login'),
+            ], 401);
+        }
+
+        $cartItems = Cart::where('user_id', Auth::id())
+            ->with('product')
+            ->latest('id')
+            ->get();
+
+        $subtotal = $cartItems->sum(function ($item) {
+            return $item->price * $item->quantity;
+        });
+
+        return response()->json([
+            'success' => true,
+            'cart_count' => $cartItems->sum('quantity'),
+            'subtotal' => $subtotal,
+            'html' => view('partials.cart-drawer-items', compact('cartItems', 'subtotal'))->render(),
+        ]);
     }
 
     /**
@@ -164,6 +201,11 @@ class CartController extends Controller
         }
 
         $cartItem->quantity = $request->quantity;
+        $effectivePrice = $product->price;
+        if ($product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < (float) $product->price) {
+            $effectivePrice = $product->sale_price;
+        }
+        $cartItem->price = $effectivePrice;
         $cartItem->save();
 
         return response()->json([

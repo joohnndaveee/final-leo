@@ -9,8 +9,13 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderTracking;
+use App\Models\Notification;
+use App\Models\Voucher;
+use App\Models\VoucherUsage;
 use App\Models\SellerChat;
 use App\Models\Product;
+use App\Models\Discount;
 use App\Services\MockPaymentService;
 
 class OrderController extends Controller
@@ -30,11 +35,62 @@ class OrderController extends Controller
             return redirect()->route('cart')->with('warning', 'Your cart is empty!');
         }
 
-        $grandTotal = $cartItems->sum(function($item) {
-            return $item->price * $item->quantity;
-        });
+        $subtotalRegular = 0.0;
+        $subtotal = 0.0; // after seller item discounts (sale_price)
+        foreach ($cartItems as $item) {
+            $qty = (int) ($item->quantity ?? 0);
+            if ($qty <= 0) continue;
 
-        return view('checkout', compact('cartItems', 'grandTotal'));
+            $product = $item->product;
+            $regularUnit = $product ? (float) ($product->price ?? 0) : (float) $item->price;
+            $saleUnit = $regularUnit;
+            if ($product && $product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < $regularUnit) {
+                $saleUnit = (float) $product->sale_price;
+            }
+
+            $subtotalRegular += $regularUnit * $qty;
+            $subtotal += $saleUnit * $qty;
+
+            // Show per-item price as seller item price (sale_price) in the "Your Order" list.
+            $item->price = $saleUnit;
+        }
+
+        $itemDiscount = max(0, $subtotalRegular - $subtotal);
+
+        // Admin seasonal discount applies to ALL products at checkout.
+        $seasonalPromotion = Discount::query()
+            ->whereNull('seller_id')
+            ->where('is_active', true)
+            ->orderByDesc('start_date')
+            ->orderByDesc('created_at')
+            ->get()
+            ->first(fn ($d) => $d->isActive());
+
+        $seasonalDiscount = 0.0;
+        if ($seasonalPromotion) {
+            $afterSeasonal = (float) $seasonalPromotion->computePrice((float) $subtotal);
+            $seasonalDiscount = max(0, (float) $subtotal - $afterSeasonal);
+        }
+
+        $grandTotal = max(0, $subtotal - $seasonalDiscount);
+
+        // Available vouchers (from sellers in the cart)
+        $sellerIds = $cartItems->pluck('product.seller_id')->filter()->unique();
+        $availableVouchers = Voucher::whereIn('seller_id', $sellerIds)
+            ->where('is_active', true)
+            ->where(fn($q) => $q->whereNull('end_date')->orWhereDate('end_date', '>=', now()))
+            ->get();
+
+        return view('checkout', compact(
+            'cartItems',
+            'subtotalRegular',
+            'subtotal',
+            'itemDiscount',
+            'seasonalPromotion',
+            'seasonalDiscount',
+            'grandTotal',
+            'availableVouchers'
+        ));
     }
 
     /**
@@ -51,11 +107,12 @@ class OrderController extends Controller
 
         // Validate the form
         $request->validate([
-            'name' => 'required|string|max:255',
-            'address' => 'required|string|max:500',
-            'phone' => 'required|string|max:20',
+            'name'            => 'required|string|max:255',
+            'address'         => 'required|string|max:500',
+            'phone'           => 'required|string|max:20',
             'shipping_method' => 'nullable|string|max:100',
-            'payment_method' => 'nullable|string|max:100',
+            'payment_method'  => 'nullable|string|max:100',
+            'voucher_code'    => 'nullable|string|max:50',
         ]);
 
         $userId = Auth::id();
@@ -73,11 +130,50 @@ class OrderController extends Controller
             DB::beginTransaction();
 
             // Calculate totals
-            $subtotal = $cartItems->sum(function($item) {
-                return $item->price * $item->quantity;
-            });
+            $subtotal = 0.0; // after seller item discounts (sale_price)
+            foreach ($cartItems as $item) {
+                $qty = (int) ($item->quantity ?? 0);
+                if ($qty <= 0) continue;
+
+                $product = $item->product;
+                $regularUnit = $product ? (float) ($product->price ?? 0) : (float) $item->price;
+                $saleUnit = $regularUnit;
+                if ($product && $product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < $regularUnit) {
+                    $saleUnit = (float) $product->sale_price;
+                }
+
+                $subtotal += $saleUnit * $qty;
+            }
             $shippingFee = 0;
-            $grandTotal = $subtotal + $shippingFee;
+
+            $seasonalPromotion = Discount::query()
+                ->whereNull('seller_id')
+                ->where('is_active', true)
+                ->orderByDesc('start_date')
+                ->orderByDesc('created_at')
+                ->get()
+                ->first(fn ($d) => $d->isActive());
+
+            $seasonalDiscount = 0.0;
+            if ($seasonalPromotion) {
+                $afterSeasonal = (float) $seasonalPromotion->computePrice((float) $subtotal);
+                $seasonalDiscount = max(0, (float) $subtotal - $afterSeasonal);
+            }
+
+            $totalAfterSeasonal = max(0, $subtotal + $shippingFee - $seasonalDiscount);
+
+            // Apply voucher if provided
+            $voucherDiscount = 0;
+            $voucherId       = null;
+            if ($request->filled('voucher_code')) {
+                $voucher = Voucher::where('code', strtoupper($request->voucher_code))->first();
+                if ($voucher && $voucher->isValid()) {
+                    $voucherDiscount = $voucher->computeDiscount((float) $totalAfterSeasonal);
+                    $voucherId       = $voucher->id;
+                }
+            }
+
+            $grandTotal = max(0, $totalAfterSeasonal - $voucherDiscount);
 
             // Prepare total_products string (e.g., "Product1 (2), Product2 (1)")
             $totalProducts = $cartItems->map(function($item) {
@@ -88,23 +184,43 @@ class OrderController extends Controller
 
             // Create the order
             $order = Order::create([
-                'user_id' => $userId,
-                'name' => $request->name,
-                'number' => $request->phone,
-                'email' => Auth::user()->email,
-                'method' => $request->input('payment_method', 'Cash on Delivery'),
-                'address' => $request->address,
-                'total_products' => $totalProducts,
-                'total_price' => $grandTotal,
-                'placed_on' => date('Y-m-d'), // MySQL DATE format
-                'payment_status' => $paymentResult['status'],
-                'status' => $paymentResult['status'] === 'paid' ? 'paid' : 'pending',
-                'shipping_method' => $request->shipping_method ?? 'Standard',
-                'shipping_fee' => $shippingFee,
+                'user_id'           => $userId,
+                'name'              => $request->name,
+                'number'            => $request->phone,
+                'email'             => Auth::user()->email,
+                'method'            => $request->input('payment_method', 'Cash on Delivery'),
+                'address'           => $request->address,
+                'total_products'    => $totalProducts,
+                'total_price'       => $grandTotal,
+                'placed_on'         => date('Y-m-d'),
+                'payment_status'    => $paymentResult['status'],
+                'status'            => $paymentResult['status'] === 'paid' ? 'paid' : 'pending',
+                'shipping_method'   => $request->shipping_method ?? 'Standard',
+                'shipping_fee'      => $shippingFee,
                 'payment_reference' => $paymentResult['reference'],
+                'voucher_id'        => $voucherId,
+                'voucher_discount'  => $voucherDiscount,
             ]);
 
+            // Log initial order tracking event
+            OrderTracking::log($order->id, 'order_placed', 'Order Placed',
+                'Your order has been received and is being processed.');
+
             // Move items from cart to order_items
+            $seasonalPercent = null;
+            $seasonalFixedCents = null;
+            if ($seasonalPromotion && $seasonalDiscount > 0) {
+                if ($seasonalPromotion->type === 'percentage') {
+                    $seasonalPercent = max(0.0, min(100.0, (float) $seasonalPromotion->value));
+                } else {
+                    $seasonalFixedCents = (int) round($seasonalDiscount * 100);
+                }
+            }
+
+            $remainingFixedCents = $seasonalFixedCents ?? 0;
+            $subtotalCents = (int) round($subtotal * 100);
+            $lastCartId = $cartItems->last()?->id;
+
             foreach ($cartItems as $cartItem) {
                 $product = $cartItem->product;
 
@@ -112,11 +228,37 @@ class OrderController extends Controller
                     throw new \RuntimeException("Insufficient stock for {$cartItem->name}");
                 }
 
+                $regularUnit = (float) ($product->price ?? 0);
+                $saleUnit = $regularUnit;
+                if ($product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < $regularUnit) {
+                    $saleUnit = (float) $product->sale_price;
+                }
+
+                $unitPrice = $saleUnit;
+                $qty = (int) ($cartItem->quantity ?? 0);
+                if ($qty > 0 && $seasonalPromotion && $seasonalDiscount > 0) {
+                    if ($seasonalPercent !== null) {
+                        $unitPrice = max(0, (float) $saleUnit - ((float) $saleUnit * ($seasonalPercent / 100)));
+                    } elseif ($seasonalFixedCents !== null && $subtotalCents > 0) {
+                        $lineCents = (int) round($saleUnit * $qty * 100);
+                        if ($cartItem->id === $lastCartId) {
+                            $allocCents = $remainingFixedCents;
+                        } else {
+                            $allocCents = (int) floor(($seasonalFixedCents * $lineCents) / $subtotalCents);
+                            $allocCents = max(0, min($allocCents, $remainingFixedCents));
+                        }
+                        $remainingFixedCents -= $allocCents;
+
+                        $perUnitDiscount = ($allocCents / max(1, $qty)) / 100;
+                        $unitPrice = max(0, (float) $saleUnit - (float) $perUnitDiscount);
+                    }
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'product_id' => $cartItem->pid,
                     'name' => $cartItem->name,
-                    'price' => $cartItem->price,
+                    'price' => $unitPrice,
                     'quantity' => $cartItem->quantity,
                     'image' => $cartItem->image
                 ]);
@@ -142,8 +284,29 @@ class OrderController extends Controller
             // Empty the user's cart
             Cart::where('user_id', $userId)->delete();
 
+            // Increment voucher usage count and record usage
+            if ($voucherId) {
+                Voucher::where('id', $voucherId)->increment('used_count');
+                VoucherUsage::create([
+                    'voucher_id'      => $voucherId,
+                    'user_id'         => $userId,
+                    'order_id'        => $order->id,
+                    'discount_amount' => $voucherDiscount,
+                ]);
+            }
+
             // Commit the transaction
             DB::commit();
+
+            // Send in-app notification to customer
+            Notification::notifyUser(
+                $userId,
+                'order_placed',
+                'Order Placed Successfully',
+                "Your order #{$order->id} has been placed. Total: ₱" . number_format($grandTotal, 2),
+                $order->id,
+                'order'
+            );
 
             // Notify user via email
             Mail::raw(
@@ -202,7 +365,7 @@ class OrderController extends Controller
             return redirect()->route('login');
         }
 
-        $order = Order::with('orderItems.product')
+        $order = Order::with(['orderItems.product', 'tracking'])
                      ->where('id', $orderId)
                      ->where('user_id', Auth::id())
                      ->first();
@@ -258,6 +421,20 @@ class OrderController extends Controller
         $order->status = 'completed';
         $order->payment_status = 'completed';
         $order->save();
+
+        // Log tracking event
+        OrderTracking::log($order->id, 'delivered', 'Received by Customer',
+            'You confirmed receipt of your order. Thank you for shopping!');
+
+        // Notify the customer
+        Notification::notifyUser(
+            $order->user_id,
+            'order_completed',
+            'Order Completed',
+            "Order #{$order->id} is marked as received. Thank you!",
+            $order->id,
+            'order'
+        );
 
         $sellerIds = $order->orderItems
             ->map(fn ($item) => $item->product?->seller_id)

@@ -125,22 +125,35 @@
                     <input type="text" name="name" value="{{ old('name', $product->name) }}" required>
                 </div>
                 <div class="seller-edit-group">
-                    <label>Type</label>
-                    <input type="text" name="type" value="{{ old('type', $product->type) }}">
+                    <label>Category</label>
+                    <select name="category_id" required>
+                        <option value="">Select category…</option>
+                        @foreach($categories as $cat)
+                        <option value="{{ $cat->id }}" {{ (old('category_id', $product->category_id) == $cat->id) ? 'selected' : '' }}>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="seller-edit-group">
                     <label>Price</label>
                     <input type="number" step="0.01" name="price" value="{{ old('price', $product->price) }}" required>
                 </div>
                 <div class="seller-edit-group">
+                    <label>Sale Price (optional)</label>
+                    <input type="number" step="0.01" name="sale_price" value="{{ old('sale_price', $product->sale_price) }}" placeholder="Leave blank for none">
+                </div>
+                <div class="seller-edit-group">
                     <label>Stock</label>
                     <input type="number" name="stock" value="{{ old('stock', $product->stock) }}" required>
+                </div>
+                <div class="seller-edit-group">
+                    <label>Pieces (bundle count)</label>
+                    <input type="number" name="pieces" min="1" value="{{ old('pieces', $product->pieces ?? 1) }}" required>
                 </div>
             </div>
 
             <div class="seller-edit-group" style="margin-top:1rem;">
                 <label>Details</label>
-                <textarea name="details" rows="3">{{ old('details', $product->details) }}</textarea>
+                <textarea name="details" rows="3" required>{{ old('details', $product->details) }}</textarea>
             </div>
 
             <div class="seller-edit-images">
@@ -152,27 +165,7 @@
                         </div>
                     @endif
                     <label style="margin-top:0.5rem;display:block;">Change Main Image</label>
-                    <input type="file" name="image_01" accept="image/*">
-                </div>
-                <div class="seller-edit-group seller-edit-thumb">
-                    <label>Current Image 2</label>
-                    @if($product->image_02)
-                        <div style="margin-top:0.4rem;">
-                            <img src="{{ asset('uploaded_img/' . $product->image_02) }}" alt="">
-                        </div>
-                    @endif
-                    <label style="margin-top:0.5rem;display:block;">Change Image 2</label>
-                    <input type="file" name="image_02" accept="image/*">
-                </div>
-                <div class="seller-edit-group seller-edit-thumb">
-                    <label>Current Image 3</label>
-                    @if($product->image_03)
-                        <div style="margin-top:0.4rem;">
-                            <img src="{{ asset('uploaded_img/' . $product->image_03) }}" alt="">
-                        </div>
-                    @endif
-                    <label style="margin-top:0.5rem;display:block;">Change Image 3</label>
-                    <input type="file" name="image_03" accept="image/*">
+                    <input type="file" name="image_01" accept="image/*" @if(empty($product->image_01)) required @endif>
                 </div>
             </div>
 

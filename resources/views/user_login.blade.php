@@ -12,7 +12,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;300;400;500;600;700;800&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fahkwang:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
@@ -21,30 +21,43 @@
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
     
     <style>
-        /* Background overlay for login page */
+        /* Clean neutral background (no image) + subtle shapes */
         body {
-            background: url('{{ asset('images/bg.png') }}') center center fixed;
-            background-size: cover;
-            background-repeat: no-repeat;
+            background: #f2f4f7;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
         }
 
         body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.60);
-            z-index: -1;
+            background:
+                radial-gradient(1200px 600px at 10% 15%, rgba(58, 199, 45, 0.10), transparent 65%),
+                radial-gradient(900px 500px at 92% 18%, rgba(17, 24, 39, 0.06), transparent 60%),
+                radial-gradient(1100px 700px at 75% 95%, rgba(58, 199, 45, 0.07), transparent 60%),
+                linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0.00) 55%);
+        }
+
+        body::after {
+            background:
+                radial-gradient(240px 240px at 18% 78%, rgba(17, 24, 39, 0.04), transparent 70%),
+                radial-gradient(320px 320px at 88% 70%, rgba(58, 199, 45, 0.08), transparent 72%);
+            filter: blur(0.5px);
         }
 
         /* Enhanced header styling */
         .header {
-            background: url('{{ asset('images/bg.png') }}') center center / cover no-repeat;
+            background: #ffffff;
             position: relative;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
         }
@@ -53,9 +66,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: rgba(255, 255, 255, 0.55);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
+            background: transparent;
             z-index: 0;
         }
 
@@ -78,7 +89,7 @@
         }
 
         .header .flex .logo .text {
-            font-family: 'Nunito', sans-serif;
+            font-family: 'Fahkwang', sans-serif;
             font-size: 25px;
             font-weight: 800;
             color: #000;

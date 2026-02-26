@@ -33,7 +33,7 @@ class AdminController extends Controller
     }
 
     /**
-     * Handle admin login authentication
+     * Handle admin login authenticationsf
      */
     public function login(Request $request)
     {

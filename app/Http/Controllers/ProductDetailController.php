@@ -13,7 +13,7 @@ class ProductDetailController extends Controller
      */
     public function show($id)
     {
-        $product = Product::with('seller')->findOrFail($id);
+        $product = Product::with(['seller', 'discount'])->findOrFail($id);
         
         // Get reviews with user information
         $reviews = Review::where('product_id', $id)

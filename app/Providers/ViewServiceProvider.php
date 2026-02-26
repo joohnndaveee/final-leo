@@ -27,6 +27,7 @@ class ViewServiceProvider extends ServiceProvider
         // Share cart and wishlist count with all views
         View::composer('*', function ($view) {
             static $siteLogoUrl = null;
+            static $heroBgPath  = false; // false = not yet fetched; null = fetched, no value
 
             $cartCount = 0;
             $wishlistCount = 0;
@@ -38,16 +39,31 @@ class ViewServiceProvider extends ServiceProvider
 
             if ($siteLogoUrl === null) {
                 try {
-                    $path = DB::table('site_settings')->where('id', 1)->value('site_logo_path');
-                    $siteLogoUrl = asset($path ?: 'images/logo.png');
+                    $row = DB::table('site_settings')->where('id', 1)->first();
+                    $siteLogoUrl = asset($row?->site_logo_path ?: 'images/logo.png');
+                    $heroBgPath  = $row?->hero_bg_path ?: null;
+                    $seasonalBannerEnabled = (bool) ($row?->seasonal_banner_enabled ?? true);
+                    $seasonalBannerBgColor = $row?->seasonal_banner_bg_color ?: '#1a3009';
+                    $seasonalBannerTextColor = $row?->seasonal_banner_text_color ?: '#ffffff';
+                    $seasonalBannerMessage = $row?->seasonal_banner_message ?: null;
                 } catch (\Throwable $e) {
                     $siteLogoUrl = asset('images/logo.png');
+                    $heroBgPath  = null;
+                    $seasonalBannerEnabled = true;
+                    $seasonalBannerBgColor = '#1a3009';
+                    $seasonalBannerTextColor = '#ffffff';
+                    $seasonalBannerMessage = null;
                 }
             }
 
             $view->with('cartCount', $cartCount);
             $view->with('wishlistCount', $wishlistCount);
             $view->with('siteLogoUrl', $siteLogoUrl);
+            $view->with('heroBgPath', $heroBgPath);
+            $view->with('seasonalBannerEnabled', $seasonalBannerEnabled ?? true);
+            $view->with('seasonalBannerBgColor', $seasonalBannerBgColor ?? '#1a3009');
+            $view->with('seasonalBannerTextColor', $seasonalBannerTextColor ?? '#ffffff');
+            $view->with('seasonalBannerMessage', $seasonalBannerMessage ?? null);
         });
     }
 }

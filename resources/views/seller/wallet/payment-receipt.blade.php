@@ -11,17 +11,23 @@
     }
     
     .receipt-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.1);
         overflow: hidden;
     }
     
     .receipt-header {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         padding: 3rem 2rem;
         text-align: center;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
     }
     
     .success-icon {
@@ -87,12 +93,15 @@
     }
     
     .amount-box {
-        background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-        border: 2px solid #22c55e;
-        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(240, 253, 244, 0.9), rgba(220, 252, 231, 0.9));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid rgba(16, 185, 129, 0.4);
+        border-radius: 16px;
         padding: 1.5rem;
         margin: 1.5rem 0;
         text-align: center;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
     }
     
     .amount-label {
@@ -104,25 +113,29 @@
     .amount-value {
         font-size: 2.5rem;
         font-weight: 700;
-        color: #22c55e;
+        color: #10b981;
     }
     
     .status-badge {
         display: inline-flex;
         align-items: center;
         gap: 0.5rem;
-        background: #d1fae5;
+        background: rgba(209, 250, 229, 0.9);
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px);
         color: #065f46;
         padding: 0.5rem 1rem;
-        border-radius: 6px;
+        border-radius: 10px;
         font-weight: 600;
         font-size: 1.1rem;
     }
     
     .info-box {
-        background: #dbeafe;
-        border-left: 4px solid #3b82f6;
-        border-radius: 8px;
+        background: rgba(219, 234, 254, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-left: 4px solid rgba(59, 130, 246, 0.6);
+        border-radius: 12px;
         padding: 1.5rem;
         margin: 2rem 0;
         color: #0c4a6e;
@@ -165,13 +178,16 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #22c55e, #16a34a);
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
     
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
     }
     
     .btn-secondary {
@@ -199,6 +215,33 @@
     
     .thank-you strong {
         color: #1f2937;
+    }
+    
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #6b7280;
+        text-decoration: none;
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05);
+    }
+    
+    .back-button:hover {
+        background: rgba(240, 253, 244, 0.9);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.3);
+        transform: translateX(-3px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
     }
     
     @media (max-width: 768px) {
@@ -231,6 +274,10 @@
 
 @section('content')
 <div class="receipt-container">
+    <a href="{{ route('seller.wallet.index') }}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Wallet
+    </a>
     <div class="receipt-card">
         <!-- Success Header -->
         <div class="receipt-header">

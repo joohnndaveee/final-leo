@@ -33,14 +33,14 @@
     }
 
     .chat-header h1 {
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Fahkwang', sans-serif;
         font-size: 2.5rem;
         font-weight: 700;
         margin-bottom: 0.5rem;
     }
 
     .chat-header p {
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.4rem;
         opacity: 0.9;
     }
@@ -74,7 +74,7 @@
         max-width: 70%;
         padding: 1.2rem 1.8rem;
         border-radius: 1.5rem;
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
         line-height: 1.6;
         position: relative;
@@ -136,7 +136,7 @@
     .chat-input {
         flex: 1;
         padding: 1.2rem 1.5rem;
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
         border: 2px solid #e0e0e0;
         border-radius: 25px;
@@ -189,13 +189,13 @@
     }
 
     .empty-chat h3 {
-        font-family: 'Nunito', sans-serif;
+        font-family: 'Fahkwang', sans-serif;
         font-size: 2rem;
         margin-bottom: 1rem;
     }
 
     .empty-chat p {
-        font-family: 'Lato', sans-serif;
+        font-family: 'Montserrat', sans-serif;
         font-size: 1.5rem;
     }
 

@@ -11,17 +11,23 @@
     }
     
     .rent-card {
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.08);
+        border: 1px solid rgba(16, 185, 129, 0.1);
         overflow: hidden;
         margin-bottom: 1.5rem;
     }
     
     .rent-header {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         padding: 1.5rem;
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
     }
     
     .rent-header h5 {
@@ -44,21 +50,27 @@
     }
     
     .alert-danger {
-        background: #fee2e2;
+        background: rgba(254, 226, 226, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #991b1b;
-        border-left: 4px solid #ef4444;
+        border-left: 4px solid rgba(239, 68, 68, 0.6);
     }
     
     .alert-info {
-        background: #dbeafe;
+        background: rgba(219, 234, 254, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #1e40af;
-        border-left: 4px solid #3b82f6;
+        border-left: 4px solid rgba(59, 130, 246, 0.6);
     }
     
     .alert-warning {
-        background: #fef3c7;
+        background: rgba(254, 243, 199, 0.9);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: #92400e;
-        border-left: 4px solid #f59e0b;
+        border-left: 4px solid rgba(245, 158, 11, 0.6);
     }
     
     .alert-light {
@@ -114,7 +126,7 @@
     }
     
     .value.text-success {
-        color: #22c55e;
+        color: #10b981;
     }
     
     .value.text-info {
@@ -144,30 +156,36 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(37, 99, 235, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         font-size: 1.6rem;
         padding: 1rem 1.5rem;
         margin-bottom: 1rem;
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
     }
     
     .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
     }
     
     .btn-warning {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: linear-gradient(135deg, rgba(245, 158, 11, 0.95), rgba(217, 119, 6, 0.95));
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
         font-size: 1.4rem;
         padding: 0.7rem 1.2rem;
         margin-top: 0.5rem;
         width: auto;
+        box-shadow: 0 4px 16px rgba(245, 158, 11, 0.3);
     }
     
     .btn-warning:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(245, 158, 11, 0.4);
     }
     
     .btn-secondary {
@@ -189,7 +207,7 @@
     }
     
     .badge.bg-success {
-        background: #22c55e;
+        background: #10b981;
         color: white;
     }
     
@@ -231,10 +249,13 @@
     }
     
     .info-card {
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        border-radius: 16px;
         overflow: hidden;
+        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.05);
     }
     
     .info-header {
@@ -382,7 +403,7 @@
     }
     
     .summary-item.total .value {
-        color: #22c55e;
+        color: #10b981;
         font-size: 1.8rem;
     }
     
@@ -475,6 +496,33 @@
         }
     }
     
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.25rem;
+        margin-bottom: 1.5rem;
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #6b7280;
+        text-decoration: none;
+        border-radius: 12px;
+        border: 1px solid rgba(16, 185, 129, 0.1);
+        font-size: 0.95rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05);
+    }
+    
+    .back-button:hover {
+        background: rgba(240, 253, 244, 0.9);
+        color: #059669;
+        border-color: rgba(16, 185, 129, 0.3);
+        transform: translateX(-3px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+    }
+    
     @media (max-width: 768px) {
         .modal-dialog {
             width: 95%;
@@ -495,6 +543,10 @@
 
 @section('content')
 <div class="rent-container">
+    <a href="{{ route('seller.wallet.index') }}" class="back-button">
+        <i class="fas fa-arrow-left"></i>
+        Back to Wallet
+    </a>
     @if ($isOverdue)
         <div class="alert alert-danger">
             <h4 class="alert-heading"><i class="fas fa-exclamation-circle"></i>Payment Overdue!</h4>
