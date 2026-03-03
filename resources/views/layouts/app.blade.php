@@ -576,6 +576,182 @@
             }
         }
 
+        /* ===== SALE SHOWCASE ===== */
+        .sale-showcase-shell {
+            height: 100vh;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .sale-showcase {
+            position: relative;
+            margin: 0;
+            max-width: none;
+            padding: 0;
+            height: auto;
+            width: 100%;
+            background: #df2a2a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .sale-showcase-wrap {
+            width: 100%;
+            margin: 0;
+            padding: 5.2rem 4rem;
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 3.2rem;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .sale-showcase-label {
+            display: inline-flex;
+            align-items: center;
+            gap: .7rem;
+            background: #f8fafc;
+            color: #df2a2a;
+            padding: .7rem 1.3rem;
+            font-size: 1.2rem;
+            letter-spacing: .18em;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .sale-showcase-title {
+            margin: 0;
+            font-size: clamp(4rem, 8vw, 9rem);
+            line-height: .92;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .02em;
+        }
+
+        .sale-showcase-copy {
+            margin-top: 2.6rem;
+            max-width: 34rem;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 2rem;
+            line-height: 1.45;
+        }
+
+        .sale-grid {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.6rem;
+            z-index: 2;
+        }
+
+        .sale-grid::before {
+            content: "SALE";
+            position: absolute;
+            right: -.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: clamp(8rem, 18vw, 20rem);
+            font-weight: 800;
+            letter-spacing: .04em;
+            color: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            z-index: 1;
+            line-height: .8;
+        }
+
+        .sale-card {
+            position: relative;
+            z-index: 2;
+            text-decoration: none;
+            color: #fff;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 2rem 1.8rem;
+            min-height: 20rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transition: transform .2s ease, background .2s ease, border-color .2s ease;
+        }
+
+        .sale-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .sale-card img {
+            width: 8.8rem;
+            height: 7.4rem;
+            object-fit: contain;
+            margin-bottom: 1.1rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .sale-card-name {
+            font-size: 1.65rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: .65rem;
+            text-transform: capitalize;
+        }
+
+        .sale-card-prices {
+            display: inline-flex;
+            align-items: baseline;
+            gap: .8rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .sale-price {
+            font-size: 2.05rem;
+            color: #ffd42a;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .sale-original-price {
+            font-size: 1.35rem;
+            color: rgba(255, 255, 255, 0.65);
+            text-decoration: line-through;
+        }
+
+        @media (max-width: 1024px) {
+            .sale-showcase-wrap {
+                grid-template-columns: 1fr;
+                gap: 2.4rem;
+                padding: 1.8rem 2.4rem;
+            }
+
+            .sale-showcase-copy {
+                max-width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sale-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sale-grid::before {
+                right: 0;
+                top: 0;
+                transform: none;
+                font-size: clamp(6rem, 26vw, 10rem);
+            }
+
+            .sale-card {
+                min-height: 16rem;
+            }
+        }
+
         /* ===== FOOTER — VERDANT-STYLE ===== */
         .modern-footer {
             background: #f4f4f0;
@@ -931,6 +1107,36 @@
 
 {{-- Main Content --}}
 @yield('content')
+
+@if(isset($saleItems) && $saleItems->isNotEmpty())
+<div class="sale-showcase-shell">
+    <section class="sale-showcase" aria-label="Sale items">
+        <div class="sale-showcase-wrap">
+            <div>
+                <span class="sale-showcase-label"><i class="fas fa-bolt"></i> Flash Sale</span>
+                <h2 class="sale-showcase-title">Up To<br>60% Off</h2>
+                <p class="sale-showcase-copy">
+                    Don't miss out on discounted picks. Grab these sale items before they're gone.
+                </p>
+            </div>
+            <div class="sale-grid">
+                @foreach($saleItems as $saleProduct)
+                    <a href="{{ route('product.detail', $saleProduct->id) }}" class="sale-card">
+                        <div>
+                            <img src="{{ asset('uploaded_img/' . $saleProduct->image_01) }}" alt="{{ $saleProduct->name }}">
+                            <div class="sale-card-name">{{ \Illuminate\Support\Str::limit($saleProduct->name, 26) }}</div>
+                            <div class="sale-card-prices">
+                                <span class="sale-price">&#8369;{{ number_format((float) $saleProduct->sale_price, 2) }}</span>
+                                <span class="sale-original-price">&#8369;{{ number_format((float) $saleProduct->price, 2) }}</span>
+                            </div>
+                        </div>
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </section>
+</div>
+@endif
 
 {{-- Footer — VERDANT style --}}
 <footer class="modern-footer">

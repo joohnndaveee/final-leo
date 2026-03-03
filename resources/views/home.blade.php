@@ -71,6 +71,63 @@
     z-index: 1;
 }
 
+/* ============================================================
+   SCROLL ANIMATIONS
+   ============================================================ */
+.sr-reveal {
+    opacity: 0;
+    transform: translateY(34px);
+    transition: opacity .7s cubic-bezier(.2,.65,.2,1), transform .7s cubic-bezier(.2,.65,.2,1);
+    will-change: opacity, transform;
+}
+
+.sr-reveal.in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.sr-reveal-left {
+    transform: translateX(-34px);
+}
+
+.sr-reveal-right {
+    transform: translateX(34px);
+}
+
+.sr-reveal-left.in-view,
+.sr-reveal-right.in-view {
+    transform: translateX(0);
+}
+
+.hero-text-col > * {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: heroEnter .65s ease forwards;
+}
+
+.hero-text-col > *:nth-child(1) { animation-delay: .08s; }
+.hero-text-col > *:nth-child(2) { animation-delay: .16s; }
+.hero-text-col > *:nth-child(3) { animation-delay: .24s; }
+.hero-text-col > *:nth-child(4) { animation-delay: .32s; }
+.hero-text-col > *:nth-child(5) { animation-delay: .4s; }
+
+@keyframes heroEnter {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sr-reveal,
+    .hero-text-col > * {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
 /* ── text panel (overlaid, left-aligned) ── */
 .hero-text-col {
     position: relative;
@@ -545,3 +602,68 @@
 </div>
 
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    const revealTargets = [
+        '.marquee-strip',
+        '.categories-section',
+        '.sale-showcase-shell',
+        '.sale-showcase',
+        '.modern-footer .footer-content',
+        '.modern-footer .footer-bottom',
+        '.sale-card'
+    ];
+
+    const nodes = [];
+    revealTargets.forEach((selector) => {
+        document.querySelectorAll(selector).forEach((el) => nodes.push(el));
+    });
+
+    nodes.forEach((el) => {
+        if (el.classList.contains('sale-card')) {
+            el.classList.add('sr-reveal');
+        } else if (el.classList.contains('footer-content')) {
+            el.classList.add('sr-reveal-left');
+            el.classList.add('sr-reveal');
+        } else if (el.classList.contains('footer-bottom')) {
+            el.classList.add('sr-reveal-right');
+            el.classList.add('sr-reveal');
+        } else {
+            el.classList.add('sr-reveal');
+        }
+    });
+
+    const observer = new IntersectionObserver((entries, obs) => {
+        entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            entry.target.classList.add('in-view');
+            obs.unobserve(entry.target);
+        });
+    }, { threshold: 0.14, rootMargin: '0px 0px -8% 0px' });
+
+    nodes.forEach((el) => observer.observe(el));
+
+    // Subtle hero parallax while scrolling
+    const heroBg = document.querySelector('.hero-bg-img');
+    const heroSection = document.querySelector('.hero-section');
+    if (!heroBg || !heroSection) return;
+
+    let ticking = false;
+    const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(() => {
+            const rect = heroSection.getBoundingClientRect();
+            const progress = Math.max(-120, Math.min(120, (-rect.top) * 0.12));
+            heroBg.style.transform = `translateY(${progress}px) scale(1.03)`;
+            ticking = false;
+        });
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+})();
+</script>
+@endpush

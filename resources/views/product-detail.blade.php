@@ -8,10 +8,9 @@
 
 <style>
     .product-detail-section {
-        padding: 2rem;
-        max-width: 1400px;
+        padding: 1.6rem;
+        max-width: 1180px;
         margin: 0 auto;
-        min-height: calc(100vh - 200px);
     }
 
     .back-button {
@@ -26,7 +25,7 @@
         text-decoration: none;
         font-size: 1.3rem;
         font-weight: 600;
-        margin-bottom: 2rem;
+        margin-bottom: 1.2rem;
         transition: all 0.3s ease;
     }
 
@@ -38,27 +37,28 @@
     .product-main {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 3rem;
+        gap: 2rem;
         background: white;
-        padding: 3rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        margin-bottom: 3rem;
+        padding: 2rem;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        margin-bottom: 2rem;
     }
 
     .product-images {
         display: flex;
         flex-direction: column;
-        gap: 1.5rem;
+        gap: 1rem;
     }
 
     .main-image-container {
         width: 100%;
-        height: 500px;
+        height: 390px;
         background: #f8f9fa;
-        border-radius: 12px;
+        border-radius: 10px;
         overflow: hidden;
-        border: 2px solid #27ae60;
+        border: 1px solid #d1fae5;
     }
 
     .main-image {
@@ -67,51 +67,30 @@
         object-fit: contain;
     }
 
-    .thumbnail-images {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-    }
-
-    .thumbnail {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 8px;
-        cursor: pointer;
-        border: 2px solid #ddd;
-        transition: all 0.3s ease;
-    }
-
-    .thumbnail:hover,
-    .thumbnail.active {
-        border-color: #27ae60;
-        transform: scale(1.05);
-    }
-
     .product-info {
         display: flex;
         flex-direction: column;
-        gap: 2rem;
+        gap: 1.1rem;
     }
 
     .product-title {
-        font-size: 2.8rem;
+        font-size: 2.2rem;
         color: #333;
         font-weight: 700;
         margin: 0;
+        line-height: 1.2;
     }
 
     .product-rating {
         display: flex;
         align-items: center;
-        gap: 1rem;
-        font-size: 1.6rem;
+        gap: .8rem;
+        font-size: 1.35rem;
     }
 
     .stars {
         color: #ffd700;
-        font-size: 2rem;
+        font-size: 1.7rem;
     }
 
     .rating-summary {
@@ -119,7 +98,7 @@
     }
 
     .product-price {
-        font-size: 3.5rem;
+        font-size: 2.7rem;
         color: #27ae60;
         font-weight: 700;
         display: flex;
@@ -129,7 +108,7 @@
     }
 
     .product-price .price-old {
-        font-size: 2.1rem;
+        font-size: 1.55rem;
         color: #9ca3af;
         font-weight: 600;
         text-decoration: line-through;
@@ -146,14 +125,14 @@
     }
 
     .product-bundle {
-        font-size: 1.5rem;
+        font-size: 1.35rem;
         color: #374151;
     }
 
     .product-stock {
-        font-size: 1.6rem;
-        padding: 0.8rem 1.5rem;
-        border-radius: 8px;
+        font-size: 1.35rem;
+        padding: 0.6rem 1rem;
+        border-radius: 7px;
         display: inline-block;
     }
 
@@ -173,28 +152,29 @@
     }
 
     .product-details {
-        font-size: 1.6rem;
-        color: #666;
-        line-height: 1.8;
-        padding: 1.5rem;
-        background: #f8f9fa;
-        border-radius: 8px;
+        font-size: 1.35rem;
+        color: #4b5563;
+        line-height: 1.65;
+        padding: 1rem 1.1rem;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
     }
 
     .product-meta {
         display: flex;
         gap: 2rem;
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         color: #666;
     }
 
     .add-to-cart-btn {
-        padding: 1.5rem 3rem;
+        padding: 1.1rem 2rem;
         background: linear-gradient(135deg, #27ae60 0%, #219150 100%);
         color: white;
         border: none;
-        border-radius: 10px;
-        font-size: 1.8rem;
+        border-radius: 9px;
+        font-size: 1.5rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -378,8 +358,14 @@
     }
 
     @media (max-width: 968px) {
+        .product-detail-section {
+            padding: 1.2rem;
+        }
+
         .product-main {
             grid-template-columns: 1fr;
+            padding: 1.4rem;
+            gap: 1.4rem;
         }
 
         .reviews-overview {
@@ -387,7 +373,7 @@
         }
 
         .main-image-container {
-            height: 400px;
+            height: 320px;
         }
 
         .review-header {
@@ -416,23 +402,7 @@
             <div class="main-image-container">
                 <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
                      alt="{{ $product->name }}" 
-                     class="main-image" 
-                     id="mainImage">
-            </div>
-            <div class="thumbnail-images">
-                <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
-                     class="thumbnail active" 
-                     onclick="changeImage(this)">
-                @if(!empty($product->image_02))
-                    <img src="{{ asset('uploaded_img/' . $product->image_02) }}" 
-                         class="thumbnail" 
-                         onclick="changeImage(this)">
-                @endif
-                @if(!empty($product->image_03))
-                    <img src="{{ asset('uploaded_img/' . $product->image_03) }}" 
-                         class="thumbnail" 
-                         onclick="changeImage(this)">
-                @endif
+                     class="main-image">
             </div>
         </div>
 
@@ -624,18 +594,6 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-    // Function to change the main product image when a thumbnail is clicked
-    function changeImage(element) {
-        // Update main image source
-        document.getElementById('mainImage').src = element.src;
-        
-        // Update the 'active' class on thumbnails
-        document.querySelectorAll('.thumbnail').forEach(thumb => {
-            thumb.classList.remove('active');
-        });
-        element.classList.add('active');
-    }
-
     // Intercept the 'Add to Cart' form submission
     document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
         e.preventDefault(); // Prevent the default form submission

@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Cart;
+use App\Models\Product;
 use App\Models\Wishlist;
 
 class ViewServiceProvider extends ServiceProvider
@@ -28,6 +29,7 @@ class ViewServiceProvider extends ServiceProvider
         View::composer('*', function ($view) {
             static $siteLogoUrl = null;
             static $heroBgPath  = false; // false = not yet fetched; null = fetched, no value
+            static $saleItems = null;
 
             $cartCount = 0;
             $wishlistCount = 0;
@@ -56,6 +58,18 @@ class ViewServiceProvider extends ServiceProvider
                 }
             }
 
+            if ($saleItems === null) {
+                $saleItems = Product::query()
+                    ->where('is_active', true)
+                    ->whereNotNull('sale_price')
+                    ->whereRaw('sale_price > 0')
+                    ->whereColumn('sale_price', '<', 'price')
+                    ->orderByRaw('(price - sale_price) DESC')
+                    ->orderByDesc('id')
+                    ->limit(4)
+                    ->get(['id', 'name', 'price', 'sale_price', 'image_01']);
+            }
+
             $view->with('cartCount', $cartCount);
             $view->with('wishlistCount', $wishlistCount);
             $view->with('siteLogoUrl', $siteLogoUrl);
@@ -64,6 +78,7 @@ class ViewServiceProvider extends ServiceProvider
             $view->with('seasonalBannerBgColor', $seasonalBannerBgColor ?? '#1a3009');
             $view->with('seasonalBannerTextColor', $seasonalBannerTextColor ?? '#ffffff');
             $view->with('seasonalBannerMessage', $seasonalBannerMessage ?? null);
+            $view->with('saleItems', $saleItems);
         });
     }
 }

@@ -619,7 +619,7 @@ CREATE TABLE `notifications` (
 CREATE TABLE `order_tracking` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
   `order_id` int(100) NOT NULL,
-  `status` varchar(50) NOT NULL COMMENT 'order_placed, confirmed, packed, shipped, in_transit, out_for_delivery, delivered, cancelled, return_pickup_scheduled, return_picked_up, return_preparing, return_in_transit_to_seller, returned, refunded',
+  `status` varchar(50) NOT NULL COMMENT 'order_placed, confirmed, packed, shipped, in_transit, out_for_delivery, delivered, cancelled, returned, refunded',
   `title` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
@@ -784,3 +784,10 @@ ALTER TABLE `discounts` MODIFY `seller_id` int(100) NULL;
 
 ALTER TABLE `orders` MODIFY `number` VARCHAR(20) NOT NULL;
 
+
+ALTER TABLE `orders`
+  MODIFY COLUMN `status` VARCHAR(50) NOT NULL DEFAULT 'pending';
+
+ALTER TABLE `order_tracking`
+  MODIFY COLUMN `status` VARCHAR(50) NOT NULL
+  COMMENT 'order_placed, confirmed, packed, shipped, in_transit, out_for_delivery, delivered, cancelled, return_pickup_scheduled, return_picked_up, return_preparing, return_in_transit_to_seller, returned, refunded';
