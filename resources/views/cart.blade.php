@@ -245,21 +245,104 @@
 
     /* Responsive */
     @media (max-width: 768px) {
-        .cart-table-container { overflow-x: auto; }
-        .cart-table { min-width: 760px; }
-        .cart-underbar { flex-direction: column; align-items: stretch; }
-        .coupon-box { justify-content: flex-start; }
-    }
+        .cart-section { padding: 2.2rem 1.2rem; }
+        .cart-layout { gap: 1.8rem; margin-top: 1.8rem; }
 
-    @media (max-width: 450px) {
-        .cart-section {
-            padding: 2rem 1rem;
+        .cart-table-container {
+            overflow: visible;
+            border: none;
+            background: transparent;
+        }
+
+        .cart-table { min-width: 0; }
+        .cart-table thead { display: none; }
+        .cart-table tbody,
+        .cart-table tr,
+        .cart-table td { display: block; width: 100%; }
+
+        .cart-table tr {
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 1.2rem;
+        }
+
+        .cart-table td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #edf0f3;
+            text-align: left;
+            position: relative;
+        }
+
+        .cart-table td:last-child { border-bottom: none; }
+
+        .cart-table td[data-label] {
+            padding-left: 10.2rem;
+            min-height: 4.2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .cart-table td[data-label]::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8.2rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .cart-table td:first-child {
+            display: flex;
+            justify-content: flex-end;
+            padding: .8rem 1rem .4rem;
+            border-bottom: none;
         }
 
         .product-cell {
-            flex-direction: column;
-            text-align: center;
+            gap: 1rem;
+            align-items: center;
         }
+
+        .product-image {
+            width: 60px;
+            height: 60px;
+        }
+
+        .product-name { font-size: 1.45rem; }
+        .quantity-input { width: 74px; }
+
+        .cart-underbar {
+            flex-direction: column;
+            align-items: stretch;
+            padding: 1.2rem;
+            gap: 1rem;
+        }
+
+        .coupon-box {
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .coupon-box input,
+        .btn-outline {
+            width: 100%;
+            max-width: none;
+        }
+
+        .cart-totals { padding: 1.5rem; }
+    }
+
+    @media (max-width: 450px) {
+        .cart-section { padding: 1.8rem .9rem; }
+        .cart-table td[data-label] { padding-left: 8.9rem; }
+        .cart-table td[data-label]::before { width: 7.1rem; font-size: 1.1rem; }
+        .cart-table td { padding: .9rem 1rem; }
+        .product-name { font-size: 1.35rem; }
     }
 </style>
 @endpush
@@ -294,7 +377,7 @@
                                     <i class="fas fa-times-circle"></i>
                                 </button>
                             </td>
-                            <td>
+                            <td data-label="Product">
                                 <div class="product-cell">
                                     <img src="{{ asset('uploaded_img/' . $item->image) }}" 
                                          alt="{{ $item->name }}" 
@@ -305,10 +388,10 @@
                                     </div>
                                 </div>
                             </td>
-                            <td>
+                            <td data-label="Price">
                                 <span class="price-cell">₱{{ number_format($item->price, 2) }}</span>
                             </td>
-                            <td>
+                            <td data-label="Quantity">
                                 <input
                                     type="number"
                                     class="quantity-input"
@@ -318,7 +401,7 @@
                                     data-cart-id="{{ $item->id }}"
                                 >
                             </td>
-                            <td>
+                            <td data-label="Subtotal">
                                 <span class="price-cell subtotal" data-price="{{ $item->price }}">
                                     ₱{{ number_format($item->price * $item->quantity, 2) }}
                                 </span>

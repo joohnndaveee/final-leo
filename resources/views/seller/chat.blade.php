@@ -99,7 +99,7 @@
         display: flex;
         gap: 1rem;
         align-items: center;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
     .attach-btn {
         width: 50px; height: 50px;
@@ -132,7 +132,7 @@
     .file-link { font-size: 1.25rem; text-decoration: underline; color: inherit; cursor: pointer; }
     .chat-input {
         flex: 1;
-        min-width: 220px;
+        min-width: 0;
         padding: 1rem 1.5rem;
         font-size: 1.45rem;
         border: 1px solid #d1d5db;
@@ -152,6 +152,26 @@
         justify-content: center;
     }
     .send-btn:hover { opacity: 0.9; }
+
+    @media (max-width: 768px) {
+        .chat-input-container {
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+
+        .attach-btn,
+        .send-btn {
+            width: 46px;
+            height: 46px;
+            flex: 0 0 46px;
+        }
+
+        .chat-input {
+            min-width: 0;
+            font-size: 1.35rem;
+            padding: 0.9rem 1.1rem;
+        }
+    }
     .empty-chat { text-align: center; padding: 4rem 2rem; color: #6b7280; }
     .empty-chat i { font-size: 5rem; margin-bottom: 1.5rem; opacity: 0.5; }
 

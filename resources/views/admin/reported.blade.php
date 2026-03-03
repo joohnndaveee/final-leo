@@ -28,7 +28,16 @@
 .badge-gray   { background:#f3f4f6; color:#6b7280; }
 .badge-red    { background:#fee2e2; color:#991b1b; }
 .badge-purple { background:#ede9fe; color:#5b21b6; }
-.action-row { display:flex; gap:.5rem; }
+.action-row { display:flex; align-items:center; gap:.45rem; }
+.action-row form { margin:0; }
+.action-row .btn {
+    width: 34px;
+    height: 30px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 9px;
+    gap: 0;
+}
 @media (max-width:900px) {
     .dashboard-content { padding: 1.6rem; }
 }

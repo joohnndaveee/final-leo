@@ -40,6 +40,101 @@
         .dashboard-content { padding: 1.6rem; }
         .page-header { align-items:flex-start; }
     }
+
+    @media (max-width:768px) {
+        .heading {
+            font-size: 2rem !important;
+            margin-bottom: .9rem;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: .8rem;
+            margin-bottom: .9rem;
+        }
+
+        .page-header .btn {
+            width: 100% !important;
+            justify-content: center;
+        }
+
+        .table-card {
+            overflow: hidden;
+        }
+
+        .table-card table {
+            width: 100%;
+            table-layout: fixed;
+        }
+
+        .table-card th,
+        .table-card td {
+            padding: .7rem .55rem;
+            font-size: .78rem;
+            vertical-align: middle;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .table-card th:nth-child(4),
+        .table-card th:nth-child(5),
+        .table-card td:nth-child(4),
+        .table-card td:nth-child(5) {
+            display: none;
+        }
+
+        .table-card th:nth-child(1), .table-card td:nth-child(1) { width: 30%; }
+        .table-card th:nth-child(2), .table-card td:nth-child(2) { width: 16%; }
+        .table-card th:nth-child(3), .table-card td:nth-child(3) { width: 14%; }
+        .table-card th:nth-child(6), .table-card td:nth-child(6) { width: 20%; }
+        .table-card th:nth-child(7), .table-card td:nth-child(7) { width: 20%; }
+
+        .table-card td:nth-child(1) strong {
+            display: block;
+            font-size: .82rem;
+        }
+
+        .action-buttons {
+            white-space: nowrap;
+            flex-wrap: nowrap;
+            justify-content: flex-start;
+            gap: .35rem;
+        }
+
+        .btn-sm {
+            min-width: 28px;
+            height: 28px;
+            padding: .2rem .5rem;
+        }
+
+        .badge {
+            font-size: .66rem;
+            padding: .2rem .45rem;
+        }
+
+        .modal {
+            max-width: min(94vw, 500px);
+            padding: 1.2rem;
+            border-radius: 12px;
+        }
+
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: .75rem;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: .6rem;
+        }
+
+        .form-actions .btn {
+            width: 100% !important;
+            justify-content: center;
+        }
+    }
 </style>
 @endpush
 

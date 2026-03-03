@@ -349,11 +349,27 @@ class OrderController extends Controller
             return redirect()->route('login')->with('info', 'Please login to view your orders!');
         }
 
-        $orders = Order::where('user_id', Auth::id())
-                      ->orderBy('id', 'desc')
-                      ->get();
+        $tab = $this->normalizeOrderTab(request('tab'));
 
-        return view('orders', compact('orders'));
+        $allOrders = Order::where('user_id', Auth::id())
+            ->with(['orderItems.product.seller'])
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $orders = $allOrders
+            ->filter(fn (Order $order) => $this->orderMatchesTab($order, $tab))
+            ->values();
+
+        $tabCounts = [
+            'all' => $allOrders->count(),
+            'to_pay' => $allOrders->filter(fn (Order $order) => $this->orderMatchesTab($order, 'to_pay'))->count(),
+            'to_ship' => $allOrders->filter(fn (Order $order) => $this->orderMatchesTab($order, 'to_ship'))->count(),
+            'to_receive' => $allOrders->filter(fn (Order $order) => $this->orderMatchesTab($order, 'to_receive'))->count(),
+            'to_review' => $allOrders->filter(fn (Order $order) => $this->orderMatchesTab($order, 'to_review'))->count(),
+            'returns' => $allOrders->filter(fn (Order $order) => $this->orderMatchesTab($order, 'returns'))->count(),
+        ];
+
+        return view('orders', compact('orders', 'tab', 'tabCounts'));
     }
 
     /**
@@ -453,5 +469,108 @@ class OrderController extends Controller
         }
 
         return redirect()->back()->with('success', 'Thanks! Your order is marked as received.');
+    }
+
+    /**
+     * Customer requests return when item was not received.
+     */
+    public function requestReturn(Request $request, $orderId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::with('orderItems.product')
+            ->where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $request->validate([
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $status = strtolower((string) ($order->status ?? ''));
+        if (!in_array($status, ['completed', 'complete'], true)) {
+            return redirect()->back()->with('error', 'Return request is allowed only for completed orders.');
+        }
+
+        if (in_array($status, ['return_requested', 'returned', 'refunded'], true)) {
+            return redirect()->back()->with('info', 'This order already has a return request/process.');
+        }
+
+        $reason = trim((string) $request->input('reason', 'Product not received by customer.'));
+
+        $order->status = 'return_requested';
+        $order->save();
+
+        OrderTracking::log(
+            $order->id,
+            'returned',
+            'Return Requested by Customer',
+            $reason
+        );
+
+        Notification::notifyUser(
+            $order->user_id,
+            'order_return_requested',
+            'Return Request Submitted',
+            "Order #{$order->id}: your return request has been submitted.",
+            $order->id,
+            'order'
+        );
+
+        $sellerIds = $order->orderItems
+            ->map(fn ($item) => $item->product?->seller_id)
+            ->filter()
+            ->unique()
+            ->values();
+
+        $customerName = Auth::user()->name ?? 'Customer';
+        foreach ($sellerIds as $sellerId) {
+            SellerChat::create([
+                'seller_id' => (int) $sellerId,
+                'message' => "Return requested\n\nOrder #{$order->id} has a return request from {$customerName}.\nReason: {$reason}",
+                'sender_type' => 'admin',
+                'is_read' => false,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Return request submitted. Seller will process this order.');
+    }
+
+    private function normalizeOrderTab(?string $tab): string
+    {
+        $allowedTabs = ['all', 'to_pay', 'to_ship', 'to_receive', 'to_review', 'returns'];
+        return in_array($tab, $allowedTabs, true) ? $tab : 'all';
+    }
+
+    private function orderMatchesTab(Order $order, string $tab): bool
+    {
+        if ($tab === 'all') {
+            return true;
+        }
+
+        $status = strtolower((string) ($order->status ?? ''));
+        $paymentStatus = strtolower((string) ($order->payment_status ?? ''));
+
+        return match ($tab) {
+            'to_pay' => $paymentStatus === 'pending' && in_array($status, ['pending', 'paid', ''], true),
+            'to_ship' => in_array($status, ['paid', 'confirmed', 'packed', 'processing'], true)
+                || ($status === 'pending' && in_array($paymentStatus, ['paid', 'completed', 'complete'], true)),
+            'to_receive' => in_array($status, ['shipped', 'out_for_delivery', 'delivered', 'in_transit'], true),
+            'to_review' => in_array($status, ['completed', 'complete'], true),
+            'returns' => in_array($status, [
+                'cancelled',
+                'refunded',
+                'returned',
+                'return_requested',
+                'return_pickup_scheduled',
+                'return_picked_up',
+                'return_preparing',
+                'return_in_transit_to_seller',
+            ], true)
+                || in_array($paymentStatus, ['refunded'], true),
+            default => true,
+        };
     }
 }

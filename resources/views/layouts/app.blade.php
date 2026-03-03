@@ -282,7 +282,299 @@
             right: -9px;
         }
 
-        #menu-btn { display: none; font-size: 2rem; cursor: pointer; color: #111; }
+        .notif-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+
+        .notif-popover {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            width: min(92vw, 360px);
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+            display: none;
+            z-index: 1200;
+            overflow: hidden;
+        }
+
+        .notif-popover.open {
+            display: block;
+        }
+
+        .notif-popover-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #eef2f7;
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .notif-seeall {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #166534;
+            text-decoration: none;
+        }
+
+        .notif-seeall:hover {
+            text-decoration: underline;
+        }
+
+        .notif-popover-list {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .notif-item {
+            display: block;
+            width: 100%;
+            border: 0;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fff;
+            padding: .9rem 1.2rem;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .notif-item:hover {
+            background: #f8fafc;
+        }
+
+        .notif-item-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: .2rem;
+        }
+
+        .notif-item-msg {
+            font-size: 1.2rem;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        .notif-item-time {
+            margin-top: .35rem;
+            font-size: 1.1rem;
+            color: #94a3b8;
+        }
+
+        .notif-empty {
+            padding: 1.2rem;
+            font-size: 1.25rem;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .notif-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1600;
+            padding: 1.2rem;
+        }
+
+        .notif-modal-overlay.open {
+            display: flex;
+        }
+
+        .notif-modal {
+            width: min(94vw, 520px);
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+            overflow: hidden;
+        }
+
+        .notif-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: .95rem 1.1rem;
+            border-bottom: 1px solid #eef2f7;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .notif-modal-close {
+            width: 32px;
+            height: 32px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: #fff;
+            color: #111827;
+            cursor: pointer;
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+
+        .notif-modal-body {
+            padding: 1rem 1.1rem 1.2rem;
+        }
+
+        .notif-modal-msg {
+            font-size: 1.4rem;
+            color: #334155;
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+
+        .notif-modal-time {
+            margin-top: .8rem;
+            font-size: 1.2rem;
+            color: #94a3b8;
+        }
+
+        #menu-btn {
+            display: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #111;
+        }
+
+        /* Mobile nav drawer */
+        @media (max-width: 768px) {
+            .header .flex {
+                grid-template-columns: auto 1fr auto;
+                padding: 0 1.4rem;
+            }
+
+            #menu-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 3.6rem;
+                height: 3.6rem;
+                border: 1px solid #e5e7eb;
+                border-radius: .8rem;
+                background: #fff;
+                font-size: 1.9rem;
+            }
+
+            .logo-center {
+                justify-content: center;
+            }
+
+            .logo-center .text {
+                font-size: 1.9rem;
+            }
+
+            .logo-center img {
+                width: 30px;
+            }
+
+            .nav-left {
+                display: none;
+            }
+
+            .nav-left.active {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #fff;
+                border-top: 1px solid #e8e8e8;
+                border-bottom: 1px solid #e8e8e8;
+                box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+                z-index: 1000;
+            }
+
+            .nav-left .navbar,
+            .nav-left .cat-dropdown {
+                display: none;
+            }
+
+            .nav-left.active .navbar.active {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                gap: 0;
+                order: 1;
+                width: 100%;
+            }
+
+            .nav-left.active .navbar a {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                width: 100%;
+                padding: 1.3rem 2.4rem;
+                border-bottom: 1px solid #edf0f3;
+                font-size: 1.7rem;
+                line-height: 1.2;
+                text-align: left !important;
+            }
+
+            .header .flex .nav-left.active .navbar.active a,
+            .header .flex .nav-left.active .navbar.active a.active {
+                justify-content: flex-start !important;
+                text-align: left !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding-left: 2.4rem !important;
+            }
+
+            .nav-left.active .cat-dropdown {
+                display: block;
+                width: 100%;
+                order: 2;
+                position: static;
+                background: #fff;
+                border-top: 1px solid #edf0f3;
+                z-index: 1;
+                padding: 0 !important;
+            }
+
+            .nav-left.active .cat-btn {
+                display: flex;
+                align-items: center;
+                width: 100%;
+                justify-content: space-between;
+                padding: 1.3rem 2.4rem;
+                font-size: 1.7rem;
+                text-align: left !important;
+                background: #fff;
+                position: relative;
+                z-index: 2;
+            }
+
+            .nav-left.active .cat-menu {
+                position: static;
+                min-width: 0;
+                width: 100%;
+                border: 0;
+                border-top: 1px solid #edf0f3;
+                box-shadow: none;
+                padding: 0;
+                background: #f8fafc;
+                animation: none;
+            }
+
+            .nav-left.active .cat-menu a {
+                padding: 1rem 1.9rem;
+                border-bottom: 1px solid #edf0f3;
+                font-size: 1.45rem;
+            }
+
+            .nav-right {
+                gap: 1.4rem;
+            }
+        }
 
         /* ===== FOOTER — VERDANT-STYLE ===== */
         .modern-footer {
@@ -527,11 +819,10 @@
 {{-- Header --}}
 <header class="header">
     <section class="flex">
+        <div id="menu-btn" class="fas fa-bars"></div>
 
         {{-- LEFT: hamburger (mobile) + category dropdown + nav links --}}
         <div class="nav-left">
-            <div id="menu-btn" class="fas fa-bars"></div>
-
         <div class="cat-dropdown" id="cat-dropdown">
                 <button class="cat-btn" type="button">
                     Shop By Category <i class="fas fa-chevron-down"></i>
@@ -561,10 +852,21 @@
         {{-- RIGHT: Notifications, Cart, User --}}
         <div class="nav-right">
             @auth
-            <a href="{{ route('notifications.index') }}" id="notif-bell" title="Notifications">
-                <i class="fas fa-bell"></i>
-                <span id="notif-count" style="display:none;position:absolute;top:-6px;right:-8px;background:#dc2626;color:#fff;font-size:.65rem;font-weight:700;min-width:16px;height:16px;border-radius:999px;text-align:center;line-height:16px;padding:0 3px">0</span>
-            </a>
+            <div class="notif-wrap">
+                <a href="#" id="notif-bell" title="Notifications">
+                    <i class="fas fa-bell"></i>
+                    <span id="notif-count" style="display:none;position:absolute;top:-6px;right:-8px;background:#dc2626;color:#fff;font-size:.65rem;font-weight:700;min-width:16px;height:16px;border-radius:999px;text-align:center;line-height:16px;padding:0 3px">0</span>
+                </a>
+                <div class="notif-popover" id="notif-popover">
+                    <div class="notif-popover-head">
+                        <span>Notifications</span>
+                        <a href="{{ route('notifications.index') }}" class="notif-seeall">See all notifications</a>
+                    </div>
+                    <div class="notif-popover-list" id="notif-list">
+                        <div class="notif-empty">No new notifications.</div>
+                    </div>
+                </div>
+            </div>
             @endauth
             <a href="{{ route('cart') }}" id="cart-link" title="Cart">
                 <i class="fas fa-shopping-bag"></i>
@@ -1087,20 +1389,139 @@
 
 @auth
 <script>
-(function loadNotifCount() {
-    fetch('{{ route("notifications.unread") }}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        var cnt = data.count || 0;
-        var el = document.getElementById('notif-count');
-        if (el && cnt > 0) {
-            el.textContent = cnt > 99 ? '99+' : cnt;
-            el.style.display = 'inline-block';
+(function initNotifications() {
+    const bell = document.getElementById('notif-bell');
+    const countEl = document.getElementById('notif-count');
+    const popover = document.getElementById('notif-popover');
+    const listEl = document.getElementById('notif-list');
+    if (!bell || !countEl || !popover || !listEl) return;
+
+    const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    const markReadBase = '{{ url("/notifications") }}';
+
+    function escapeHtml(text) {
+        const map = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'};
+        return String(text || '').replace(/[&<>"']/g, (m) => map[m]);
+    }
+
+    function renderList(items) {
+        if (!items || !items.length) {
+            listEl.innerHTML = '<div class="notif-empty">No new notifications.</div>';
+            return;
         }
-    })
-    .catch(() => {});
+        listEl.innerHTML = items.map((item) => `
+            <button type="button" class="notif-item" data-id="${item.id}" data-title="${escapeHtml(item.title)}" data-message="${escapeHtml(item.message)}" data-time="${escapeHtml(item.created_at)}">
+                <div class="notif-item-title">${escapeHtml(item.title)}</div>
+                <div class="notif-item-msg">${escapeHtml(item.message)}</div>
+                <div class="notif-item-time">${escapeHtml(item.created_at)}</div>
+            </button>
+        `).join('');
+    }
+
+    function updateCount(count) {
+        const cnt = Number(count || 0);
+        if (cnt > 0) {
+            countEl.textContent = cnt > 99 ? '99+' : String(cnt);
+            countEl.style.display = 'inline-block';
+        } else {
+            countEl.style.display = 'none';
+        }
+    }
+
+    function fetchUnread() {
+        return fetch('{{ route("notifications.unread") }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then((data) => {
+            updateCount(data.count || 0);
+            renderList(data.items || []);
+            return data;
+        })
+        .catch(() => ({ count: 0, items: [] }));
+    }
+
+    function openPopover() {
+        popover.classList.add('open');
+        fetchUnread();
+    }
+
+    function closePopover() {
+        popover.classList.remove('open');
+    }
+
+    function ensureModal() {
+        let overlay = document.getElementById('notif-modal-overlay');
+        if (overlay) return overlay;
+        overlay = document.createElement('div');
+        overlay.id = 'notif-modal-overlay';
+        overlay.className = 'notif-modal-overlay';
+        overlay.innerHTML = `
+            <div class="notif-modal" role="dialog" aria-modal="true" aria-labelledby="notif-modal-title">
+                <div class="notif-modal-head">
+                    <span id="notif-modal-title">Notification</span>
+                    <button type="button" class="notif-modal-close" id="notif-modal-close" aria-label="Close">×</button>
+                </div>
+                <div class="notif-modal-body">
+                    <div class="notif-modal-msg" id="notif-modal-message"></div>
+                    <div class="notif-modal-time" id="notif-modal-time"></div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        const closeBtn = overlay.querySelector('#notif-modal-close');
+        closeBtn?.addEventListener('click', () => overlay.classList.remove('open'));
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) overlay.classList.remove('open');
+        });
+        return overlay;
+    }
+
+    function openModal(title, message, time) {
+        const overlay = ensureModal();
+        const titleEl = overlay.querySelector('#notif-modal-title');
+        const msgEl = overlay.querySelector('#notif-modal-message');
+        const timeEl = overlay.querySelector('#notif-modal-time');
+        if (titleEl) titleEl.textContent = title || 'Notification';
+        if (msgEl) msgEl.textContent = message || '';
+        if (timeEl) timeEl.textContent = time || '';
+        overlay.classList.add('open');
+    }
+
+    bell.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (popover.classList.contains('open')) closePopover();
+        else openPopover();
+    });
+
+    listEl.addEventListener('click', (e) => {
+        const btn = e.target.closest('.notif-item');
+        if (!btn) return;
+
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title') || 'Notification';
+        const message = btn.getAttribute('data-message') || '';
+        const time = btn.getAttribute('data-time') || '';
+        openModal(title, message, time);
+
+        if (id) {
+            fetch(`${markReadBase}/${id}/read`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrf,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            }).finally(() => fetchUnread());
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!popover.contains(e.target) && !bell.contains(e.target)) {
+            closePopover();
+        }
+    });
+
+    fetchUnread();
 })();
 </script>
 @endauth

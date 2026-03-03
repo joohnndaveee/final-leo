@@ -31,6 +31,10 @@
             position: relative;
         }
 
+        body.seller-menu-open {
+            overflow: hidden;
+        }
+
         body::before {
             content: '';
             position: fixed;
@@ -62,6 +66,21 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 998;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .sidebar.collapsed {
@@ -477,19 +496,36 @@
         }
 
         .message {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-radius: 16px;
-            border: 1px solid rgba(16, 185, 129, 0.1);
-            padding: 1rem 1.5rem;
-            margin-bottom: 1rem;
-            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.1);
+            border-radius: 12px;
+            border: 1px solid transparent;
+            padding: 0.85rem 1rem;
+            margin-bottom: 0.8rem;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.95rem;
+            font-size: 0.92rem;
+            font-weight: 600;
+            line-height: 1.4;
             animation: slideIn 0.3s ease;
+        }
+
+        .message-success {
+            background: #ecfdf5;
+            border-color: #a7f3d0;
+            color: #065f46;
+        }
+
+        .message-error {
+            background: #fef2f2;
+            border-color: #fecaca;
+            color: #991b1b;
+        }
+
+        .message-info {
+            background: #eff6ff;
+            border-color: #bfdbfe;
+            color: #1e3a8a;
         }
 
         @keyframes slideIn {
@@ -505,35 +541,58 @@
 
         .message i {
             cursor: pointer;
-            color: #9ca3af;
+            color: inherit;
+            opacity: 0.65;
             transition: color 0.2s ease;
         }
 
         .message i:hover {
-            color: #374151;
+            opacity: 1;
         }
 
         /* Mobile Responsive */
         @media (max-width: 768px) {
-            .sidebar {
+            .sidebar,
+            .sidebar.collapsed {
                 transform: translateX(-100%);
+                width: min(84vw, 320px);
             }
 
-            .sidebar.mobile-open {
+            .sidebar.mobile-open,
+            .sidebar.collapsed.mobile-open {
                 transform: translateX(0);
+            }
+
+            .sidebar.collapsed .shop-info,
+            .sidebar.collapsed .nav-text,
+            .sidebar.collapsed .footer-btn span {
+                opacity: 1;
+                width: auto;
+                height: auto;
+                display: inline;
+                overflow: visible;
+            }
+
+            .sidebar.collapsed .nav-link,
+            .sidebar.collapsed .footer-btn {
+                justify-content: flex-start;
+                padding: 0.9rem 1rem;
             }
 
             .topbar {
                 left: 0;
+                padding: 0 1rem;
+                gap: 1rem;
             }
 
             .main-content {
                 margin-left: 0;
-                padding: 1.5rem;
+                padding: 1.2rem;
             }
 
             .notification-dropdown {
-                width: 320px;
+                width: min(92vw, 340px);
+                right: -0.4rem;
             }
         }
 
@@ -778,6 +837,28 @@
         .sidebar-toggle {
             transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease !important;
         }
+
+        /* Final mobile override (must stay last to beat desktop overrides above) */
+        @media (max-width: 768px) {
+            .topbar {
+                left: 0 !important;
+                right: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                margin-top: 68px;
+                width: 100%;
+                max-width: 100%;
+                padding: 1.2rem !important;
+            }
+
+            .sidebar.collapsed ~ .topbar,
+            .sidebar.collapsed ~ .main-content {
+                left: 0 !important;
+                margin-left: 0 !important;
+            }
+        }
     </style>
 
     @stack('styles')
@@ -879,6 +960,7 @@
         </div>
     </div>
 </aside>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <!-- Top Bar -->
 <div class="topbar">
@@ -927,24 +1009,24 @@
 <!-- Main Content -->
 <main class="main-content">
     <div class="seller-messages">
-        @if ($errors->any())
+        @if ($errors->any() && !request()->routeIs('seller.orders.actions'))
             @foreach ($errors->all() as $error)
-                <div class="message">
+                <div class="message message-error">
                     <span>{{ $error }}</span>
                     <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
                 </div>
             @endforeach
         @endif
 
-        @if (session('success'))
-            <div class="message">
+        @if (session('success') && !request()->routeIs('seller.orders.actions'))
+            <div class="message message-success">
                 <span>{{ session('success') }}</span>
                 <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
             </div>
         @endif
 
-        @if (session('info'))
-            <div class="message">
+        @if (session('info') && !request()->routeIs('seller.orders.actions'))
+            <div class="message message-info">
                 <span>{{ session('info') }}</span>
                 <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
             </div>
@@ -961,26 +1043,57 @@
 @stack('scripts')
 
 <script>
-    // Sidebar Toggle
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
-    
-    sidebarToggle.addEventListener('click', function() {
-        sidebar.classList.toggle('collapsed');
-        localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-    });
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const mobileQuery = window.matchMedia('(max-width: 768px)');
 
-    // Restore sidebar state from localStorage
-    if (localStorage.getItem('sidebarCollapsed') === 'true') {
-        sidebar.classList.add('collapsed');
+    function isMobile() {
+        return mobileQuery.matches;
     }
 
-    // Mobile sidebar toggle
-    if (window.innerWidth <= 768) {
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('mobile-open');
+    function setMobileMenu(open) {
+        if (!sidebar) return;
+        sidebar.classList.toggle('mobile-open', !!open);
+        if (sidebarOverlay) sidebarOverlay.classList.toggle('active', !!open);
+        document.body.classList.toggle('seller-menu-open', !!open);
+    }
+
+    function syncSidebarMode() {
+        if (!sidebar) return;
+        if (isMobile()) {
+            sidebar.classList.remove('collapsed');
+            setMobileMenu(false);
+        } else {
+            setMobileMenu(false);
+            if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                sidebar.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+        }
+    }
+
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            if (isMobile()) {
+                setMobileMenu(!sidebar.classList.contains('mobile-open'));
+                return;
+            }
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
         });
     }
+
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+            setMobileMenu(false);
+        });
+    }
+
+    syncSidebarMode();
+    window.addEventListener('resize', syncSidebarMode);
 
     // Notification Dropdown
     const notificationBtn = document.getElementById('notificationBtn');
@@ -1000,9 +1113,9 @@
 
     // Close sidebar on mobile when clicking outside
     document.addEventListener('click', function(e) {
-        if (window.innerWidth <= 768) {
+        if (isMobile()) {
             if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                sidebar.classList.remove('mobile-open');
+                setMobileMenu(false);
             }
         }
     });

@@ -7,47 +7,68 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
 <style>
+    :root {
+        --panel-bg: #ffffff;
+        --page-bg: #f6f7f9;
+        --text: #111827;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --shadow: 0 1px 2px rgba(17, 24, 39, 0.06);
+        --radius: 10px;
+        --radius-sm: 8px;
+    }
+
     .users-container {
-        padding: 2rem;
+        padding: 1.6rem;
+        background: var(--panel-bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
     }
 
     .page-header {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 3rem;
-        padding-bottom: 1.5rem;
-        border-bottom: 3px solid var(--main-color);
+        align-items: flex-start;
+        gap: 1rem;
+        margin-bottom: 1.6rem;
+        padding-bottom: 1.2rem;
+        border-bottom: 1px solid var(--border);
     }
 
     .page-header h1 {
-        font-size: 3rem;
-        color: var(--black);
+        margin: 0;
+        font-size: 2.2rem;
+        color: var(--text);
         font-weight: 700;
         display: flex;
         align-items: center;
-        gap: 1rem;
+        gap: 0.8rem;
+        line-height: 1.2;
     }
 
     .page-header h1 i {
-        color: var(--main-color);
+        color: var(--text);
+        opacity: 0.9;
     }
 
     .users-count {
-        font-size: 1.6rem;
-        color: var(--light-color);
-        background: rgba(58, 199, 45, 0.1);
-        padding: 0.8rem 1.5rem;
-        border-radius: 50px;
+        font-size: 1.3rem;
+        color: var(--muted);
+        background: #f9fafb;
+        border: 1px solid var(--border);
+        padding: 0.7rem 1.1rem;
+        border-radius: var(--radius-sm);
         font-weight: 600;
+        white-space: nowrap;
     }
 
-    /* Users Table */
     .users-table-wrapper {
-        background: var(--white);
-        border-radius: 1.5rem;
+        background: var(--panel-bg);
+        border-radius: var(--radius);
         overflow: hidden;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
     }
 
     .users-table {
@@ -56,69 +77,79 @@
     }
 
     .users-table thead {
-        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        background: #f3f4f6;
     }
 
     .users-table thead th {
-        padding: 2rem;
+        padding: 1.2rem 1.4rem;
         text-align: left;
-        font-size: 1.6rem;
+        font-size: 1.25rem;
         font-weight: 600;
-        color: white;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+        color: #111827;
+        text-transform: none;
+        letter-spacing: 0.02em;
+        border-bottom: 1px solid var(--border);
     }
 
     .users-table tbody tr {
-        border-bottom: 1px solid #e5e7eb;
-        transition: all 0.3s ease;
+        border-bottom: 1px solid var(--border);
+        transition: background 0.15s ease;
     }
 
     .users-table tbody tr:hover {
-        background: rgba(58, 199, 45, 0.05);
+        background: #f9fafb;
     }
 
     .users-table tbody td {
-        padding: 2rem;
-        font-size: 1.5rem;
-        color: #4b5563;
+        padding: 1.2rem 1.4rem;
+        font-size: 1.4rem;
+        color: #374151;
+        vertical-align: middle;
     }
 
     .user-info {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
+        gap: 1rem;
+        min-width: 0;
     }
 
     .user-avatar {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #111827;
+        border: 1px solid var(--border);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        font-size: 2rem;
+        font-size: 1.4rem;
         font-weight: 700;
         text-transform: uppercase;
+        flex-shrink: 0;
     }
 
     .user-details {
         display: flex;
         flex-direction: column;
-        gap: 0.3rem;
+        gap: 0.2rem;
+        min-width: 0;
     }
 
     .user-name {
         font-weight: 600;
-        color: var(--black);
-        font-size: 1.6rem;
+        color: #111827;
+        font-size: 1.4rem;
+        line-height: 1.25;
     }
 
     .user-email {
-        color: var(--light-color);
-        font-size: 1.4rem;
+        color: #6b7280;
+        font-size: 1.25rem;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .user-contact {
@@ -128,98 +159,75 @@
     }
 
     .user-contact i {
-        color: var(--main-color);
-        font-size: 1.4rem;
+        color: #6b7280;
+        font-size: 1.2rem;
     }
 
     .user-address {
-        max-width: 300px;
-        line-height: 1.6;
+        max-width: 360px;
+        line-height: 1.45;
+        color: #4b5563;
     }
 
     .user-date {
-        color: #9ca3af;
-        font-size: 1.4rem;
+        color: #6b7280;
+        font-size: 1.3rem;
+        line-height: 1.35;
     }
 
-    .btn-delete-user {
-        background: #ef4444;
-        color: white;
-        border: none;
-        padding: 1rem 2rem;
-        border-radius: 0.8rem;
-        cursor: pointer;
-        font-size: 1.5rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    .badge-missing {
+        display: inline-block;
+        padding: 0.35rem 0.7rem;
+        background: #f3f4f6;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+        border-radius: 999px;
+        font-size: 1.2rem;
+        font-style: normal;
     }
 
-    .btn-delete-user:hover {
-        background: #dc2626;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-    }
-
-    /* Empty State */
     .empty-users {
         text-align: center;
-        padding: 8rem 2rem;
-        background: var(--white);
-        border-radius: 1.5rem;
-        border: 2px dashed #e5e7eb;
+        padding: 5rem 2rem;
+        background: #fff;
+        border-radius: var(--radius);
+        border: 1px dashed #d1d5db;
     }
 
     .empty-users i {
-        font-size: 10rem;
-        color: var(--light-color);
-        margin-bottom: 2rem;
-    }
-
-    .empty-users h2 {
-        font-size: 2.5rem;
-        color: var(--black);
+        font-size: 6rem;
+        color: #9ca3af;
         margin-bottom: 1rem;
     }
 
+    .empty-users h2 {
+        font-size: 2rem;
+        color: #111827;
+        margin-bottom: 0.6rem;
+    }
+
     .empty-users p {
-        font-size: 1.8rem;
-        color: var(--light-color);
-    }
-
-    /* Badge for missing data */
-    .badge-missing {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background: #f3f4f6;
+        font-size: 1.4rem;
         color: #6b7280;
-        border-radius: 0.5rem;
-        font-size: 1.3rem;
-        font-style: italic;
     }
 
-    /* Responsive */
-    @media (max-width: 1200px) {
+    @media (max-width: 1100px) {
         .users-table-wrapper {
             overflow-x: auto;
         }
-
         .users-table {
-            min-width: 900px;
+            min-width: 880px;
         }
     }
 
     @media (max-width: 768px) {
+        .users-container {
+            padding: 1.2rem;
+        }
         .page-header {
             flex-direction: column;
-            align-items: flex-start;
-            gap: 1.5rem;
-        }
-
-        .users-container {
-            padding: 1.5rem;
+            align-items: stretch;
+            gap: .8rem;
         }
     }
 </style>

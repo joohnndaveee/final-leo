@@ -75,6 +75,62 @@
             z-index: 1;
         }
 
+        .header .flex .icons {
+            justify-self: end;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+        }
+
+        .header .flex .navbar {
+            display: flex;
+            justify-content: center;
+            gap: 0.7rem;
+        }
+
+        .header .flex .navbar a {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.3rem;
+            border-radius: 999px;
+            font-size: 1.36rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            color: #1f2937;
+            background: transparent;
+            border: 1px solid transparent;
+            transition: all 0.25s ease;
+            text-decoration: none;
+        }
+
+        .header .flex .navbar a::after {
+            content: '';
+            position: absolute;
+            left: 14px;
+            right: 14px;
+            bottom: 6px;
+            height: 2px;
+            border-radius: 2px;
+            background: var(--main-color);
+            transform: scaleX(0);
+            transform-origin: center;
+            transition: transform 0.25s ease;
+            opacity: 0.85;
+        }
+
+        .header .flex .navbar a:hover {
+            color: #0f172a;
+            background: #f8fafc;
+            border-color: #dbe4ee;
+            transform: translateY(-1px);
+        }
+
+        .header .flex .navbar a:hover::after {
+            transform: scaleX(1);
+        }
+
         /* Logo styling */
         .header .flex .logo {
             display: flex;
@@ -101,7 +157,7 @@
 
         /* Modern form container */
         .form-container {
-            padding: 2rem 0;
+            padding: 2rem 1.6rem;
             flex: 1;
             display: flex;
             align-items: center;
@@ -115,8 +171,9 @@
             padding: 3rem 4rem !important;
             margin: 0 auto !important;
             max-width: 600px !important;
-            width: 600px !important;
+            width: min(100%, 600px) !important;
             border: 1px solid rgba(39, 174, 96, 0.1);
+            box-sizing: border-box;
         }
 
         .form-container form h3 {
@@ -451,7 +508,96 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .header .flex {
+                grid-template-columns: auto 1fr auto;
+                padding: 0.8rem 1.2rem;
+                min-height: 66px;
+                height: auto;
+                gap: 0.8rem;
+            }
+
+            .header .flex .logo .text {
+                font-size: 2rem;
+            }
+
+            .header .flex .logo img {
+                width: 32px;
+            }
+
+            #menu-btn {
+                display: inline-block !important;
+            }
+
+            .header .flex .navbar {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: #fff;
+                border-top: 1px solid #e8e8e8;
+                box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+                padding: 0.6rem 0;
+                gap: 0;
+            }
+
+            .header .flex .navbar.active {
+                display: flex;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header .flex .navbar a {
+                display: block;
+                width: 100%;
+                padding: 1.2rem 1.6rem;
+                font-size: 1.5rem;
+                border: none;
+                border-bottom: 1px solid #eef2f7;
+                border-radius: 0;
+                text-align: left;
+                background: transparent;
+                transform: none;
+            }
+
+            .header .flex .navbar a::after {
+                left: 1.6rem;
+                right: auto;
+                width: 2.4rem;
+                bottom: 0.55rem;
+            }
+
+            .header .flex .navbar a:hover {
+                background: #f8fafc;
+                border-color: transparent;
+                transform: none;
+            }
+
+            .form-container {
+                align-items: flex-start;
+                padding: 1.5rem 1.2rem 2rem;
+            }
+
+            .form-container form {
+                padding: 2rem 1.6rem !important;
+                border-radius: 1.2rem;
+            }
+        }
+
         @media (max-width: 450px) {
+            .form-container {
+                padding: 1.2rem 0.9rem 1.8rem;
+            }
+
+            .form-container form {
+                padding: 1.6rem 1.2rem !important;
+            }
+
+            .form-container form h3 {
+                font-size: 2.1rem !important;
+            }
+
             .footer-content {
                 padding: 3rem 1.5rem 1.5rem;
             }
@@ -489,11 +635,6 @@
         {{-- Icons --}}
         <div class="icons">
             <div id="menu-btn" class="fas fa-bars"></div>
-            <a href="{{ route('search') }}"><i class="fas fa-search"></i></a>
-            <a href="{{ route('wishlist') }}">
-                <i class="fas fa-heart"></i>
-                <span>({{ $wishlistCount }})</span>
-            </a>
             <a href="{{ route('cart') }}">
                 <i class="fas fa-shopping-cart"></i>
                 <span>({{ $cartCount }})</span>

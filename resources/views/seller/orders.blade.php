@@ -237,52 +237,37 @@
         border-color: #34d399;
     }
 
+    .status-completed,
+    .status-refunded,
+    .status-returned {
+        background: #dbeafe;
+        color: #1e3a8a;
+        border-color: #93c5fd;
+    }
+
     .status-cancelled {
         background: #fee2e2;
         color: #991b1b;
         border-color: #f87171;
     }
 
-    .action-form {
-        display: flex;
-        gap: 0.8rem;
-        flex-wrap: wrap;
+    .action-link {
+        display: inline-flex;
         align-items: center;
-    }
-
-    .action-form input {
-        padding: 0.8rem 1rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.6rem;
-        font-size: 1.2rem;
-        flex: 1;
-        min-width: 120px;
-    }
-
-    .action-form input:focus {
-        outline: none;
-        border-color: rgba(16, 185, 129, 0.5);
-        box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
-        background: rgba(255, 255, 255, 0.95);
-    }
-
-    .action-form button {
+        gap: 0.5rem;
         padding: 0.8rem 1.5rem;
         background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
         color: white;
-        border: none;
+        border: 0;
         border-radius: 12px;
         font-size: 1.2rem;
         font-weight: 600;
-        cursor: pointer;
         transition: all 0.3s ease;
-        white-space: nowrap;
+        text-decoration: none;
         box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
     }
 
-    .action-form button:hover {
+    .action-link:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
     }
@@ -306,6 +291,17 @@
 
     .success-message i {
         font-size: 1.6rem;
+    }
+
+    .error-message {
+        background: rgba(254, 226, 226, 0.95);
+        border-left: 4px solid #ef4444;
+        color: #991b1b;
+        padding: 1.2rem;
+        border-radius: 12px;
+        margin-bottom: 1.2rem;
+        font-size: 1.4rem;
+        font-weight: 500;
     }
 
     .empty-state {
@@ -365,7 +361,6 @@
         color: white;
         border-color: #10b981;
     }
-
     @media (max-width: 768px) {
         .header-section {
             flex-direction: column;
@@ -373,14 +368,7 @@
             text-align: center;
         }
 
-        .action-form {
-            flex-direction: column;
-        }
-
-        .action-form input,
-        .action-form button {
-            width: 100%;
-        }
+        .action-link { width: 100%; justify-content: center; }
 
         .orders-section {
             padding: 0 0.8rem;
@@ -419,6 +407,9 @@
             <i class="fas fa-check-circle"></i>
             {{ session('success') }}
         </div>
+    @endif
+    @if(session('error'))
+        <div class="error-message">{{ session('error') }}</div>
     @endif
 
     <!-- Stats Cards -->
@@ -515,25 +506,9 @@
                             </td>
                             <td>{{ date('M d, Y', strtotime($order->placed_on)) }}</td>
                             <td>
-                                @if(strtolower($order->status ?? '') === 'pending')
-                                    <form action="{{ route('seller.orders.ship', $order) }}" method="POST" class="action-form">
-                                        @csrf
-                                        <input type="text" name="tracking_number" placeholder="Tracking #" required title="Enter tracking number">
-                                        <input type="text" name="shipping_method" placeholder="Courier (e.g., JNE)" required title="Enter shipping method/courier">
-                                        <button type="submit" title="Mark as shipped">
-                                            <i class="fas fa-paper-plane"></i> Ship
-                                        </button>
-                                    </form>
-                                @elseif(strtolower($order->status ?? '') === 'shipped')
-                                    <form action="{{ route('seller.orders.deliver', $order) }}" method="POST" class="action-form">
-                                        @csrf
-                                        <button type="submit" title="Mark as delivered">
-                                            <i class="fas fa-check-circle"></i> Delivered
-                                        </button>
-                                    </form>
-                                @else
-                                    <span style="color:#9ca3af;font-size:1.2rem;">No action available</span>
-                                @endif
+                                <a href="{{ route('seller.orders.actions', $order) }}" class="action-link">
+                                    <i class="fas fa-sliders-h"></i> Open Actions Page
+                                </a>
                             </td>
                         </tr>
             @if($loop->last)

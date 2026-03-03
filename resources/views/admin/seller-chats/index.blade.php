@@ -7,6 +7,28 @@
     .chats-container { padding: 2rem; max-width: 1200px; margin: 0 auto; }
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid #e5e7eb; }
     .page-header h1 { font-size: 2.5rem; color: var(--black); font-weight: 700; display: flex; align-items: center; gap: 1rem; }
+    .module-nav {
+        margin-bottom: 1.2rem;
+        display: inline-flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 0.4rem;
+    }
+    .module-nav a {
+        padding: 0.6rem 1rem;
+        border-radius: 7px;
+        border: 1px solid transparent;
+        font-size: 1.3rem;
+        text-decoration: none;
+        color: #374151;
+        font-weight: 600;
+        background: transparent;
+    }
+    .module-nav a:hover { background: #ffffff; border-color: #e5e7eb; }
+    .module-nav a.active { background: rgba(58, 199, 45, 0.14); color: #166534; border-color: rgba(58, 199, 45, 0.22); }
     .conversations-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 1.5rem; }
     .conversation-card {
         background: white; border: 1px solid #e5e7eb; border-radius: 1rem; padding: 1.5rem;
@@ -29,6 +51,12 @@
     <div class="page-header">
         <h1><i class="fas fa-store"></i> Seller Chats</h1>
         <span>{{ $conversations->count() }} {{ $conversations->count() === 1 ? 'Conversation' : 'Conversations' }}</span>
+    </div>
+    <div class="module-nav">
+        <a href="{{ route('admin.chats.index') }}" class="{{ request()->routeIs('admin.chats*') ? 'active' : '' }}">Users</a>
+        <a href="{{ route('admin.seller-chats.index') }}" class="{{ request()->routeIs('admin.seller-chats*') ? 'active' : '' }}">Seller Chats</a>
+        <a href="{{ route('admin.messages', ['source' => 'guest']) }}" class="{{ request()->routeIs('admin.messages*') && request('source') !== 'seller' ? 'active' : '' }}">Guests</a>
+        <a href="{{ route('admin.messages', ['source' => 'seller']) }}" class="{{ request()->routeIs('admin.messages*') && request('source') === 'seller' ? 'active' : '' }}">Seller Messages</a>
     </div>
     @if($conversations->count() > 0)
         <div class="conversations-grid">

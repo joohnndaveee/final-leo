@@ -561,11 +561,85 @@
             .dashboard-sidebar { width: 240px; }
             .dashboard-content { margin-left: 240px; }
         }
+
+        /* Final mobile override (must stay last) */
+        @media (max-width: 768px) {
+            .dashboard-layout {
+                display: block;
+            }
+
+            .admin-mobile-toggle {
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                width: 42px;
+                height: 42px;
+                border: 1px solid #d1d5db;
+                border-radius: 10px;
+                background: #fff;
+                color: #111827;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.8rem;
+                z-index: 1002;
+                box-shadow: 0 6px 16px rgba(15, 23, 42, 0.16);
+                cursor: pointer;
+            }
+
+            .admin-sidebar-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(15, 23, 42, 0.45);
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.2s ease;
+                z-index: 1000;
+            }
+
+            .admin-sidebar-overlay.active {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .dashboard-sidebar {
+                position: fixed !important;
+                width: min(82vw, 300px) !important;
+                height: 100vh !important;
+                left: 0 !important;
+                top: 0 !important;
+                padding: 1.2rem 1rem !important;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                z-index: 1001;
+            }
+
+            .dashboard-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .dashboard-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                padding: 4.8rem 1.2rem 1.2rem !important;
+                min-height: auto;
+            }
+
+            .dashboard-content::before {
+                content: none !important;
+                left: 0 !important;
+            }
+        }
     </style>
 
     @stack('styles')
 </head>
 <body>
+<button type="button" class="admin-mobile-toggle" id="adminMobileToggle" aria-label="Toggle admin menu">
+    <i class="fas fa-bars"></i>
+</button>
+<div class="admin-sidebar-overlay" id="adminSidebarOverlay"></div>
 
 <div class="dashboard-layout">
     
@@ -686,6 +760,48 @@
 
 <script src="{{ asset('js/admin_script.js') }}"></script>
 @stack('scripts')
+<script>
+(() => {
+    const mq = window.matchMedia('(max-width: 768px)');
+    const sidebar = document.querySelector('.dashboard-sidebar');
+    const toggle = document.getElementById('adminMobileToggle');
+    const overlay = document.getElementById('adminSidebarOverlay');
+
+    if (!sidebar || !toggle || !overlay) return;
+
+    const setOpen = (open) => {
+        sidebar.classList.toggle('mobile-open', !!open);
+        overlay.classList.toggle('active', !!open);
+        document.body.style.overflow = open ? 'hidden' : '';
+    };
+
+    const sync = () => {
+        if (!mq.matches) {
+            setOpen(false);
+            toggle.style.display = 'none';
+        } else {
+            toggle.style.display = 'inline-flex';
+        }
+    };
+
+    toggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setOpen(!sidebar.classList.contains('mobile-open'));
+    });
+
+    overlay.addEventListener('click', () => setOpen(false));
+
+    document.addEventListener('click', (e) => {
+        if (!mq.matches) return;
+        if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+            setOpen(false);
+        }
+    });
+
+    window.addEventListener('resize', sync);
+    sync();
+})();
+</script>
 
 </body>
 </html>

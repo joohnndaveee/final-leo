@@ -619,7 +619,7 @@ CREATE TABLE `notifications` (
 CREATE TABLE `order_tracking` (
   `id` int(100) NOT NULL AUTO_INCREMENT,
   `order_id` int(100) NOT NULL,
-  `status` varchar(50) NOT NULL COMMENT 'order_placed, confirmed, packed, shipped, out_for_delivery, delivered, cancelled',
+  `status` varchar(50) NOT NULL COMMENT 'order_placed, confirmed, packed, shipped, in_transit, out_for_delivery, delivered, cancelled, return_pickup_scheduled, return_picked_up, return_preparing, return_in_transit_to_seller, returned, refunded',
   `title` varchar(100) NOT NULL,
   `description` varchar(255) DEFAULT NULL,
   `location` varchar(255) DEFAULT NULL,
@@ -771,15 +771,6 @@ ALTER TABLE `site_settings`
     ADD COLUMN IF NOT EXISTS `hero_bg_path` VARCHAR(255) DEFAULT NULL;
 
 -- =========================================================
--- PATCH: Seasonal sale banner settings (colors + message)
--- =========================================================
-ALTER TABLE `site_settings`
-    ADD COLUMN IF NOT EXISTS `seasonal_banner_enabled` TINYINT(1) NOT NULL DEFAULT 1,
-    ADD COLUMN IF NOT EXISTS `seasonal_banner_bg_color` VARCHAR(20) DEFAULT '#1a3009',
-    ADD COLUMN IF NOT EXISTS `seasonal_banner_text_color` VARCHAR(20) DEFAULT '#ffffff',
-    ADD COLUMN IF NOT EXISTS `seasonal_banner_message` VARCHAR(255) DEFAULT NULL;
-
--- =========================================================
 -- PATCH: Product sale price + bundle pieces
 -- (No migrations: append-only schema patch)
 -- =========================================================
@@ -788,3 +779,8 @@ ALTER TABLE `products`
 
 ALTER TABLE `products`
     ADD COLUMN IF NOT EXISTS `pieces` int(10) NOT NULL DEFAULT 1 AFTER `stock`;
+
+ALTER TABLE `discounts` MODIFY `seller_id` int(100) NULL;
+
+ALTER TABLE `orders` MODIFY `number` VARCHAR(20) NOT NULL;
+

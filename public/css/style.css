@@ -186,8 +186,9 @@ section{
 
 .header .flex .profile{
    position: absolute;
-   top:120%; right:2rem;
-   width: 34rem;
+   top: 115%;
+   right: 1.2rem;
+   width: min(90vw, 28rem);
    display: none;
    z-index: 1000;
    animation: fadeIn .3s ease;
@@ -199,104 +200,141 @@ section{
 
 .header .flex .profile .profile-card{
    background: #ffffff;
-   border: 1px solid #e5e7eb;
-   border-radius: 1.2rem;
-   box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
-   padding: 1.8rem;
+   border: 1px solid #e2e8f0;
+   border-radius: 1.4rem;
+   box-shadow: 0 18px 34px rgba(15, 23, 42, 0.16);
+   padding: 1.4rem;
+}
+
+.header .flex .profile .profile-meta{
+   min-width: 0;
+}
+
+.header .flex .profile .profile-guest{
+   background: #f8fafc;
+   border: 1px solid #e6edf5;
+   border-radius: 1rem;
+   padding: 1rem;
 }
 
 .header .flex .profile .profile-header{
    display: flex;
    align-items: center;
-   gap: 1.2rem;
-   padding-bottom: 1.2rem;
-   margin-bottom: 1.2rem;
-   border-bottom: 1px solid #f1f5f9;
+   gap: 1rem;
+   padding: .2rem 0 1rem;
+   margin-bottom: 1rem;
+   border-bottom: 1px solid #edf2f7;
 }
 
 .header .flex .profile .profile-avatar{
-   width: 4.8rem;
-   height: 4.8rem;
+   width: 4.2rem;
+   height: 4.2rem;
    border-radius: 50%;
-   background: linear-gradient(135deg, #0f172a, #1f2937);
+   background: linear-gradient(135deg, #166534, #15803d);
    color: #ffffff;
    display: flex;
    align-items: center;
    justify-content: center;
-   font-size: 1.8rem;
+   font-size: 1.55rem;
    font-weight: 700;
-   letter-spacing: 0.5px;
+   letter-spacing: .02em;
 }
 
 .header .flex .profile .profile-name{
-   font-size: 1.6rem;
+   font-size: 1.45rem;
    font-weight: 700;
    color: #0f172a;
    text-transform: capitalize;
 }
 
 .header .flex .profile .profile-email{
-   font-size: 1.2rem;
+   font-size: 1.15rem;
    color: #6b7280;
 }
 
 .header .flex .profile .profile-actions{
    display: grid;
-   gap: 0.8rem;
+   gap: .65rem;
+}
+
+.header .flex .profile form{
+   width: 100%;
+}
+
+.header .flex .profile .profile-actions + form{
+   margin-top: .65rem !important;
 }
 
 .header .flex .profile .profile-btn{
    display: flex;
    align-items: center;
    justify-content: center;
-   gap: 0.6rem;
-   padding: 0.9rem 1.2rem;
+   gap: 0.5rem;
+   padding: 0.85rem 1rem;
    border-radius: 0.8rem;
-   border: 1px solid #e5e7eb;
-   font-size: 1.3rem;
+   border: 1px solid #dbe3ee;
+   font-size: 1.25rem;
    font-weight: 600;
    text-decoration: none;
    color: #111827;
    background: #f8fafc;
    transition: all 0.2s ease;
+   width: 100%;
+}
+
+.header .flex .profile .profile-btn i{
+   font-size: 1.15rem;
 }
 
 .header .flex .profile .profile-btn:hover{
    background: #eef2f7;
-   transform: translateY(-1px);
+   border-color: #cfd9e6;
 }
 
 .header .flex .profile .profile-btn.primary{
-   background: var(--main-color);
-   color: #ffffff;
-   border-color: var(--main-color);
+   background: #f8fafc;
+   color: #111827;
+   border-color: #dbe3ee;
 }
 
 .header .flex .profile .profile-btn.primary:hover{
-   background: #1f8f52;
+   background: #eef2f7;
+   border-color: #cfd9e6;
 }
 
 .header .flex .profile .profile-btn.danger{
-   background: #ef4444;
-   color: #ffffff;
-   border-color: #ef4444;
+   background: #f8fafc;
+   color: #111827;
+   border-color: #dbe3ee;
 }
 
 .header .flex .profile .profile-btn.danger:hover{
-   background: #dc2626;
+   background: #eef2f7;
+   border-color: #cfd9e6;
 }
 
 .header .flex .profile .profile-guest-title{
-   font-size: 1.5rem;
+   font-size: 1.4rem;
    font-weight: 700;
    color: #0f172a;
-   margin-bottom: 0.4rem;
+   margin-bottom: 0.25rem;
 }
 
 .header .flex .profile .profile-guest-text{
-   font-size: 1.2rem;
+   font-size: 1.15rem;
    color: #6b7280;
-   margin-bottom: 1.2rem;
+   margin-bottom: 1rem;
+}
+
+@media (max-width:450px){
+   .header .flex .profile .profile-card{
+      padding: 1.1rem;
+   }
+
+   .header .flex .profile .profile-btn{
+      padding: .8rem .9rem;
+      font-size: 1.2rem;
+   }
 }
 
 #menu-btn{
@@ -1080,24 +1118,60 @@ section{
       display: none;
    }
 
-   .nav-left .navbar.active {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
+   .nav-left.active {
       position: absolute;
       top: 66px; left: 0; right: 0;
+      display: flex;
+      flex-direction: column;
       background: #fff;
       border-top: 1px solid #e8e8e8;
       border-bottom: 1px solid #e8e8e8;
-      padding: 1rem 0;
-      z-index: 999;
+      z-index: 1000;
+      gap: 0;
    }
 
-   .nav-left .navbar a {
+   .nav-left.active .navbar.active {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      position: static;
+      background: transparent;
+      padding: 0;
+      z-index: auto;
+      order: 1;
+   }
+
+   .nav-left.active .navbar a {
       padding: 1.2rem 2.4rem;
       font-size: 1.5rem;
       width: 100%;
       display: block;
+      border-bottom: 1px solid #e8e8e8;
+   }
+
+   .nav-left.active .cat-dropdown {
+      display: flex;
+      font-size: 1.5rem;
+      align-items: center;
+      position: static;
+      background: transparent;
+      border-top: none;
+      padding: 1rem 2.4rem;
+      z-index: auto;
+      height: auto;
+      width: 100%;
+      order: 2;
+   }
+
+   .nav-left.active .cat-dropdown .cat-btn {
+      font-size: 1.5rem;
+   }
+
+   .nav-left.active .cat-dropdown .cat-menu {
+      left: 2.4rem;
+      right: 2.4rem;
+      min-width: 0;
+      top: calc(100% + .6rem);
    }
 
    .header .flex {
@@ -1115,6 +1189,11 @@ section{
 
    .logo-center img {
       width: 30px;
+   }
+
+   .header .flex .profile{
+      right: 1rem;
+      width: min(92vw, 31rem);
    }
 
    .home-bg .home .slide .content{

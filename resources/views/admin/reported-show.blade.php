@@ -4,6 +4,7 @@
 
 @push('styles')
 <style>
+.report-detail-shell { max-width: none; margin: 0; }
 .back-link { display:inline-flex; align-items:center; gap:.5rem; color:#6b7280; text-decoration:none; margin-bottom:1.5rem; font-size:.9rem; }
 .back-link:hover { color:#374151; }
 .detail-grid { display:grid; grid-template-columns:2fr 1fr; gap:2rem; }
@@ -24,11 +25,14 @@
 .btn { display:inline-flex; align-items:center; gap:.5rem; padding:.65rem 1.25rem; border-radius:8px; font-size:.9rem; font-weight:600; cursor:pointer; border:none; text-decoration:none; transition:.2s; }
 .btn-primary { background:#2d5016; color:#fff; }
 .evidence-img { max-width:100%; border-radius:8px; border:1px solid #e5e7eb; margin-top:.5rem; }
+@media (max-width: 980px) {
+    .detail-grid { grid-template-columns: 1fr; gap: 1.2rem; }
+}
 </style>
 @endpush
 
 @section('content')
-<div class="dashboard-content">
+<div class="report-detail-shell">
     <a href="{{ route('admin.reported.index') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back to Reports</a>
 
     @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif

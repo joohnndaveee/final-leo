@@ -13,10 +13,12 @@ class MockPaymentService
     {
         // In a real integration this would call a provider and verify signatures/webhooks.
         $reference = strtoupper($method) . '-MOCK-' . now()->timestamp;
+        $normalizedMethod = strtolower(trim($method));
+        $isCod = in_array($normalizedMethod, ['cod', 'cash on delivery'], true);
 
         return [
             'reference' => $reference,
-            'status' => $method === 'COD' ? 'pending' : 'paid',
+            'status' => $isCod ? 'pending' : 'paid',
         ];
     }
 }

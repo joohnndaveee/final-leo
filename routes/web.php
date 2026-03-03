@@ -50,6 +50,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
     Route::get('/order/{id}/details', [OrderController::class, 'show'])->name('order.details');
     Route::post('/order/{id}/received', [OrderController::class, 'markReceived'])->name('order.received');
+    Route::post('/order/{id}/return-request', [OrderController::class, 'requestReturn'])->name('order.return.request');
 
     // Cart routes
     Route::get('/cart', [CartController::class, 'index'])->name('cart');
@@ -191,8 +192,11 @@ Route::prefix('seller')->middleware(['auth:seller', 'check.seller.subscription']
     Route::post('/products/{id}/toggle-active', [\App\Http\Controllers\SellerController::class, 'toggleActive'])->name('seller.products.toggleActive');
 
     Route::get('/orders', [\App\Http\Controllers\SellerController::class, 'orders'])->name('seller.orders.index');
+    Route::get('/orders/{order}/actions', [\App\Http\Controllers\SellerController::class, 'orderActions'])->name('seller.orders.actions');
     Route::post('/orders/{order}/ship', [\App\Http\Controllers\SellerController::class, 'markShipped'])->name('seller.orders.ship');
     Route::post('/orders/{order}/deliver', [\App\Http\Controllers\SellerController::class, 'markDelivered'])->name('seller.orders.deliver');
+    Route::post('/orders/{order}/return-complete', [\App\Http\Controllers\SellerController::class, 'completeReturn'])->name('seller.orders.return.complete');
+    Route::post('/orders/{order}/tracking', [\App\Http\Controllers\SellerController::class, 'addTrackingUpdate'])->name('seller.orders.tracking');
 
     // Sales Analytics
     Route::get('/analytics', [SellerAnalyticsController::class, 'index'])->name('seller.analytics.index');

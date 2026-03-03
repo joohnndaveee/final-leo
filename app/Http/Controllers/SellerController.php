@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Carbon;
 use App\Models\SellerChat;
 
 class SellerController extends Controller
@@ -209,16 +210,31 @@ class SellerController extends Controller
         $seller = Auth::user();
         $sellerId = $seller->id;
 
-        $orders = Order::whereHas('orderItems.product', function ($query) use ($sellerId) {
+        $ordersQuery = Order::whereHas('orderItems.product', function ($query) use ($sellerId) {
             $query->where('seller_id', $sellerId);
         })
             ->with(['orderItems' => function ($query) use ($sellerId) {
                 $query->whereHas('product', function ($inner) use ($sellerId) {
                     $inner->where('seller_id', $sellerId);
                 })->with('product');
-            }])
+            }]);
+
+        if (request()->filled('status')) {
+            $ordersQuery->where('status', request('status'));
+        }
+
+        if (request()->filled('search')) {
+            $search = trim((string) request('search'));
+            $numericId = preg_replace('/\D+/', '', $search);
+            if ($numericId !== '') {
+                $ordersQuery->where('id', (int) $numericId);
+            }
+        }
+
+        $orders = $ordersQuery
             ->orderByDesc('id')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
         return view('seller.orders', compact('seller', 'orders'));
     }
@@ -229,6 +245,8 @@ class SellerController extends Controller
             'tracking_number' => 'required|string|max:100',
             'shipping_method' => 'required|string|max:100',
         ]);
+
+        $this->ensureSellerOwnsOrder($order);
 
         $order->tracking_number = $request->tracking_number;
         $order->shipping_method = $request->shipping_method;
@@ -260,25 +278,15 @@ class SellerController extends Controller
             );
         }
 
-        return redirect()->route('seller.orders.index')->with('success', 'Order marked as shipped.');
+        return redirect()->route('seller.orders.actions', $order)->with('success', 'Order marked as shipped.');
     }
 
     public function markDelivered(Order $order)
     {
-        $sellerId = Auth::id();
-
-        $ownsOrder = $order->orderItems()
-            ->whereHas('product', function ($query) use ($sellerId) {
-                $query->where('seller_id', $sellerId);
-            })
-            ->exists();
-
-        if (!$ownsOrder) {
-            abort(403);
-        }
+        $this->ensureSellerOwnsOrder($order);
 
         if (strtolower($order->status ?? '') !== 'shipped') {
-            return redirect()->route('seller.orders.index')
+            return redirect()->route('seller.orders.actions', $order)
                 ->with('error', 'Only shipped orders can be marked as delivered.');
         }
 
@@ -310,7 +318,271 @@ class SellerController extends Controller
             );
         }
 
-        return redirect()->route('seller.orders.index')->with('success', 'Order marked as delivered.');
+        return redirect()->route('seller.orders.actions', $order)->with('success', 'Order marked as delivered.');
+    }
+
+    public function orderActions(Order $order)
+    {
+        $this->ensureSellerOwnsOrder($order);
+
+        $order->load([
+            'orderItems' => function ($query) {
+                $query->with('product.seller');
+            },
+            'tracking',
+        ]);
+
+        $statusText = $this->trackingStatusText();
+        $nextStatuses = $this->nextTrackingStatuses($order);
+
+        return view('seller.order-actions', compact('order', 'statusText', 'nextStatuses'));
+    }
+
+    public function addTrackingUpdate(Request $request, Order $order)
+    {
+        $this->ensureSellerOwnsOrder($order);
+
+        $validated = $request->validate([
+            'status' => 'required|in:confirmed,packed,shipped,out_for_delivery,delivered,cancelled,in_transit,return_pickup_scheduled,return_picked_up,return_preparing,return_in_transit_to_seller,returned,refunded',
+            'description' => 'nullable|string|max:255',
+            'location' => 'nullable|string|max:255',
+            'event_date' => 'required|date',
+            'event_time' => 'required|date_format:H:i',
+            'shipping_method' => 'nullable|string|max:100|required_if:status,shipped',
+            'tracking_number' => 'nullable|string|max:100|required_if:status,shipped',
+        ]);
+
+        $allowedStatuses = $this->nextTrackingStatuses($order);
+        if (!in_array($validated['status'], $allowedStatuses, true)) {
+            return redirect()->route('seller.orders.actions', $order)
+                ->with('error', 'Invalid status sequence. Please use the next allowed timeline action only.');
+        }
+
+        $eventTimestamp = Carbon::parse($validated['event_date'] . ' ' . $validated['event_time'] . ':00');
+
+        $statusText = $this->trackingStatusText();
+
+        $statusDescription = [
+            'confirmed' => 'Seller confirmed the order and started processing.',
+            'packed' => 'Package has been packed and is ready for courier pickup.',
+            'shipped' => 'Package was handed over to the courier.',
+            'in_transit' => 'Package is currently moving through the delivery network.',
+            'out_for_delivery' => 'Courier is delivering your package now.',
+            'delivered' => 'Package was marked as delivered.',
+            'cancelled' => 'Order was cancelled.',
+            'return_pickup_scheduled' => 'Courier was assigned to pick up the return parcel from customer address.',
+            'return_picked_up' => 'Courier picked up the return parcel from the customer.',
+            'return_preparing' => 'Return parcel is being processed at the sorting facility.',
+            'return_in_transit_to_seller' => 'Return parcel is on the way back to seller.',
+            'returned' => 'Package was returned to seller.',
+            'refunded' => 'Refund has been completed.',
+        ];
+
+        $title = $statusText[$validated['status']] ?? 'Order Update';
+        $description = trim((string) ($validated['description'] ?? ''));
+        if ($description === '') {
+            $description = $statusDescription[$validated['status']] ?? null;
+        }
+        $newOrderStatus = strtolower((string) $validated['status']);
+        if ($newOrderStatus === 'shipped') {
+            $courier = trim((string) ($validated['shipping_method'] ?? ''));
+            $tracking = trim((string) ($validated['tracking_number'] ?? ''));
+            if ($description === ($statusDescription['shipped'] ?? null) || $description === null || $description === '') {
+                $description = "Package was handed over via {$courier}. Tracking #: {$tracking}.";
+            }
+        }
+
+        $event = new OrderTracking([
+            'order_id' => $order->id,
+            'status' => $validated['status'],
+            'title' => $title,
+            'description' => $description,
+            'location' => $validated['location'] ?? null,
+            'created_by' => (int) Auth::id(),
+        ]);
+        $event->created_at = $eventTimestamp;
+        $event->save();
+
+        $order->status = $newOrderStatus;
+
+        if ($newOrderStatus === 'shipped') {
+            $order->shipping_method = $validated['shipping_method'] ?? $order->shipping_method;
+            $order->tracking_number = $validated['tracking_number'] ?? $order->tracking_number;
+        }
+
+        if ($newOrderStatus === 'delivered') {
+            $order->payment_status = 'completed';
+        } elseif (in_array($newOrderStatus, ['cancelled'], true)) {
+            $order->payment_status = 'cancelled';
+        } elseif ($newOrderStatus === 'refunded') {
+            $order->payment_status = 'refunded';
+        } elseif ($newOrderStatus === 'returned') {
+            $order->payment_status = 'completed';
+        }
+
+        if (in_array($newOrderStatus, ['shipped', 'in_transit', 'out_for_delivery'], true) && !$order->shipped_at) {
+            $order->shipped_at = now();
+        }
+        if (in_array($newOrderStatus, ['return_pickup_scheduled', 'return_picked_up', 'return_preparing', 'return_in_transit_to_seller'], true)) {
+            // Keep return flow grouped under "return requested" for payment/order lifecycle.
+            if (!in_array(strtolower((string) $order->payment_status), ['refunded'], true)) {
+                $order->payment_status = 'completed';
+            }
+        }
+        if ($newOrderStatus === 'delivered') {
+            $order->delivered_at = now();
+        }
+        if ($newOrderStatus === 'cancelled') {
+            $order->cancelled_at = now();
+        }
+
+        if ($newOrderStatus === 'refunded') {
+            foreach ($order->orderItems as $item) {
+                if ($item->product) {
+                    $item->product->increment('stock', (int) $item->quantity);
+                    $item->product->autoDisableIfOutOfStock();
+                }
+            }
+        }
+
+        $order->save();
+
+        Notification::notifyUser(
+            $order->user_id,
+            'order_tracking_update',
+            'Order Tracking Updated',
+            "Order #{$order->id}: {$title}",
+            $order->id,
+            'order'
+        );
+
+        return redirect()->route('seller.orders.actions', $order)
+            ->with('success', 'Tracking update saved successfully.');
+    }
+
+    public function completeReturn(Order $order)
+    {
+        $this->ensureSellerOwnsOrder($order);
+
+        $status = strtolower((string) ($order->status ?? ''));
+        if (!in_array($status, [
+            'return_requested',
+            'return_pickup_scheduled',
+            'return_picked_up',
+            'return_preparing',
+            'return_in_transit_to_seller',
+            'returned',
+            'refunded',
+        ], true)) {
+            return redirect()->route('seller.orders.actions', $order)
+                ->with('error', 'Only orders with return request can be marked as returned/refunded.');
+        }
+
+        if ($status === 'refunded') {
+            return redirect()->route('seller.orders.actions', $order)
+                ->with('info', 'This order is already marked as refunded.');
+        }
+
+        $order->status = 'refunded';
+        $order->payment_status = 'refunded';
+        $order->save();
+
+        foreach ($order->orderItems as $item) {
+            if ($item->product) {
+                $item->product->increment('stock', (int) $item->quantity);
+                $item->product->autoDisableIfOutOfStock();
+            }
+        }
+
+        OrderTracking::log(
+            $order->id,
+            'refunded',
+            'Return Completed - Refunded',
+            'Seller confirmed return to shop and refund completion.'
+        );
+
+        Notification::notifyUser(
+            $order->user_id,
+            'order_refunded',
+            'Order Refund Completed',
+            "Order #{$order->id} has been marked as returned and refunded.",
+            $order->id,
+            'order'
+        );
+
+        return redirect()->route('seller.orders.actions', $order)
+            ->with('success', 'Return completed, refund processed, and item quantity restored.');
+    }
+
+    private function ensureSellerOwnsOrder(Order $order): void
+    {
+        $sellerId = Auth::id();
+
+        $ownsOrder = $order->orderItems()
+            ->whereHas('product', function ($query) use ($sellerId) {
+                $query->where('seller_id', $sellerId);
+            })
+            ->exists();
+
+        if (!$ownsOrder) {
+            abort(403);
+        }
+    }
+
+    private function trackingStatusText(): array
+    {
+        return [
+            'confirmed' => 'Order Confirmed',
+            'packed' => 'Seller is preparing your order',
+            'shipped' => 'Order Shipped',
+            'in_transit' => 'In Transit',
+            'out_for_delivery' => 'Out for Delivery',
+            'delivered' => 'Package Delivered',
+            'cancelled' => 'Order Cancelled',
+            'return_pickup_scheduled' => 'Rider is going to get the parcel to your home',
+            'return_picked_up' => 'Rider received the parcel',
+            'return_preparing' => 'Parcel is being prepared',
+            'return_in_transit_to_seller' => 'Parcel is being back to owner',
+            'returned' => 'Owner received the parcel',
+            'refunded' => 'Completed and refunded',
+        ];
+    }
+
+    private function nextTrackingStatuses(Order $order): array
+    {
+        $status = strtolower(trim((string) ($order->status ?? 'pending')));
+
+        $map = [
+            'pending' => ['packed'],
+            'paid' => ['packed'],
+            'confirmed' => ['packed'],
+            'packed' => ['shipped'],
+            'shipped' => ['in_transit'],
+            'in_transit' => ['in_transit', 'out_for_delivery'],
+            'out_for_delivery' => ['delivered'],
+            'delivered' => [],
+            'completed' => [],
+            'complete' => [],
+            'cancelled' => [],
+            'return_requested' => ['return_pickup_scheduled'],
+            'return_pickup_scheduled' => ['return_picked_up'],
+            'return_picked_up' => ['return_preparing'],
+            'return_preparing' => ['return_in_transit_to_seller'],
+            'return_in_transit_to_seller' => ['returned'],
+            'returned' => ['refunded'],
+            'refunded' => [],
+        ];
+
+        if (isset($map[$status])) {
+            return $map[$status];
+        }
+
+        $paymentStatus = strtolower(trim((string) ($order->payment_status ?? '')));
+        if ($paymentStatus === 'pending') {
+            return ['packed'];
+        }
+
+        return [];
     }
 
     /**

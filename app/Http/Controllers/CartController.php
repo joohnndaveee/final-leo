@@ -35,7 +35,6 @@ class CartController extends Controller
 
         // Get product details
         $product = Product::findOrFail($productId);
-        // Cart shows seller-level pricing only (regular/sale_price). Seasonal (admin) discounts are shown at checkout.
         $effectivePrice = $product->price;
         if ($product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < (float) $product->price) {
             $effectivePrice = $product->sale_price;
@@ -129,8 +128,8 @@ class CartController extends Controller
         }
 
         $cartItems = Cart::where('user_id', Auth::id())
-            ->with('product')
-            ->get();
+                        ->with('product')
+                        ->get();
 
         $grandTotal = $cartItems->sum(function($item) {
             return $item->price * $item->quantity;
@@ -165,6 +164,7 @@ class CartController extends Controller
             'success' => true,
             'cart_count' => $cartItems->sum('quantity'),
             'subtotal' => $subtotal,
+            'html' => view('partials.cart-drawer-items', compact('cartItems', 'subtotal'))->render(),
             'html' => view('partials.cart-drawer-items', compact('cartItems', 'subtotal'))->render(),
         ]);
     }
@@ -201,11 +201,6 @@ class CartController extends Controller
         }
 
         $cartItem->quantity = $request->quantity;
-        $effectivePrice = $product->price;
-        if ($product->sale_price !== null && (float) $product->sale_price > 0 && (float) $product->sale_price < (float) $product->price) {
-            $effectivePrice = $product->sale_price;
-        }
-        $cartItem->price = $effectivePrice;
         $cartItem->save();
 
         return response()->json([

@@ -7,6 +7,7 @@ use App\Models\Report;
 use App\Models\Product;
 use App\Models\Seller;
 use App\Models\User;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -54,6 +55,8 @@ class ReportedController extends Controller
     public function update(Request $request, $id)
     {
         $report = Report::findOrFail($id);
+        $oldStatus = (string) $report->status;
+        $oldNotes = (string) ($report->admin_notes ?? '');
 
         $request->validate([
             'status'      => 'required|in:pending,reviewed,resolved,dismissed',
@@ -66,6 +69,30 @@ class ReportedController extends Controller
             'reviewed_by' => Auth::guard('admin')->id(),
             'reviewed_at' => now(),
         ]);
+
+        $newStatus = (string) $report->status;
+        $newNotes = (string) ($report->admin_notes ?? '');
+        $statusChanged = $oldStatus !== $newStatus;
+        $notesChanged = $oldNotes !== $newNotes;
+
+        // Notify only user reporters when admin updates report progress/notes.
+        if ($report->reporter_type === 'user' && $report->reporter_id && ($statusChanged || $notesChanged)) {
+            $statusLabel = ucfirst($newStatus);
+            $entity = $report->getReportedName();
+            $message = "Your report #{$report->id} ({$entity}) is now {$statusLabel}.";
+            if ($notesChanged && trim($newNotes) !== '') {
+                $message .= " Admin note: " . trim($newNotes);
+            }
+
+            Notification::notifyUser(
+                (int) $report->reporter_id,
+                'report_update',
+                'Report Status Updated',
+                $message,
+                (int) $report->id,
+                'report'
+            );
+        }
 
         return redirect()->route('admin.reported.index')
                          ->with('success', 'Report updated successfully.');

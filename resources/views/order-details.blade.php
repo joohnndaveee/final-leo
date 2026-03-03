@@ -1,523 +1,401 @@
 @extends('layouts.app')
 
-@section('title', 'Order Details - U-KAY HUB')
+@section('title', 'Track Package - U-KAY HUB')
 
 @push('styles')
 <style>
-    .order-details-section {
-        padding: 2rem 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-        min-height: calc(100vh - 200px);
+    .track-page {
+        max-width: 900px;
+        margin: 1.25rem auto 2rem;
+        padding: 0 1rem;
     }
-
-    .back-button {
-        display: inline-flex;
+    .track-top {
+        display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.8rem 1.5rem;
-        background: white;
-        color: #27ae60;
-        border: 2px solid #27ae60;
-        border-radius: 6px;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+    .back-link {
+        color: #111827;
         text-decoration: none;
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 2rem;
-        transition: all 0.3s ease;
+        font-weight: 700;
+        font-size: 0.95rem;
     }
-
-    .back-button:hover {
-        background: #27ae60;
-        color: white;
+    .track-title {
+        font-size: 1.35rem;
+        font-weight: 800;
+        margin: 0;
+        color: #0f172a;
     }
-
-    .order-header {
-        text-align: center;
-        margin-bottom: 2rem;
+    .eta-card,
+    .ship-card,
+    .timeline-card,
+    .order-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        margin-top: 0.9rem;
+        overflow: hidden;
     }
-
-    .order-header h1 {
-        font-size: 2.5rem;
-        color: #27ae60;
-        margin-bottom: 0.5rem;
+    .eta-card {
+        padding: 1rem;
+        background: linear-gradient(120deg, #f8fafc, #ffffff);
     }
-
-    .order-header .order-date {
+    .eta-date {
+        margin: 0 0 0.4rem;
         font-size: 1.4rem;
-        color: #666;
+        font-weight: 800;
+        color: #0f172a;
     }
-
-    .order-content {
+    .eta-date span {
+        color: #0f766e;
+    }
+    .cod-note {
+        font-size: 0.88rem;
+        color: #155e75;
+        background: #cffafe;
+        border-radius: 8px;
+        padding: 0.45rem 0.6rem;
+        display: inline-block;
+    }
+    .ship-card {
+        padding: 1rem;
+    }
+    .ship-head {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #111827;
+    }
+    .ship-meta {
+        margin-top: 0.35rem;
+        font-size: 0.88rem;
+        color: #64748b;
+    }
+    .timeline-card {
+        --pad-x: 1rem;
+        --time-col: 92px;
+        --dot-col: 20px;
+        --gap-col: 0.7rem;
+        position: relative;
+        padding: 0.4rem 1rem 0.7rem;
+    }
+    .timeline-card::before {
+        content: "";
+        position: absolute;
+        left: calc(var(--pad-x) + var(--time-col) + var(--gap-col) + 9px);
+        top: 0.8rem;
+        bottom: 0.8rem;
+        width: 2px;
+        background: #e2e8f0;
+        z-index: 0;
+    }
+    .event {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-bottom: 2rem;
+        grid-template-columns: 92px 20px 1fr;
+        gap: 0.7rem;
+        position: relative;
+        padding: 0.85rem 0;
+        z-index: 1;
     }
-
-    .info-card {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        border: 2px solid #27ae60;
+    .event-time {
+        color: #334155;
+        font-size: 0.84rem;
+        line-height: 1.2;
     }
-
-    .info-card h2 {
-        font-size: 1.8rem;
-        color: #27ae60;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid #27ae60;
-        padding-bottom: 0.8rem;
+    .event-line {
+        position: relative;
     }
-
-    .info-row {
+    .event-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #94a3b8;
+        position: absolute;
+        left: 3px;
+        top: 6px;
+        z-index: 1;
+        border: 2px solid #fff;
+    }
+    .event.latest .event-dot {
+        background: #0f766e;
+        box-shadow: 0 0 0 4px #ccfbf1;
+    }
+    .event-title {
+        margin: 0;
+        font-size: 1.02rem;
+        font-weight: 800;
+        color: #0f172a;
+    }
+    .event-desc {
+        margin: 0.25rem 0 0;
+        color: #334155;
+        font-size: 0.9rem;
+    }
+    .event-loc {
+        margin-top: 0.35rem;
+        color: #0f766e;
+        font-size: 0.84rem;
+        background: #f0fdfa;
+        display: inline-block;
+        padding: 0.25rem 0.45rem;
+        border-radius: 7px;
+    }
+    .order-card {
+        padding: 1rem;
+    }
+    .order-head {
         display: flex;
         justify-content: space-between;
-        padding: 0.8rem 0;
-        border-bottom: 1px solid #eee;
-        font-size: 1.3rem;
+        align-items: center;
+        gap: 0.7rem;
+        margin-bottom: 0.8rem;
     }
-
-    .info-row:last-child {
-        border-bottom: none;
+    .order-no {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #111827;
     }
-
-    .info-label {
-        color: #666;
-        font-weight: 500;
+    .received-btn {
+        border: 0;
+        background: #0f766e;
+        color: #fff;
+        border-radius: 9px;
+        font-weight: 700;
+        font-size: 0.86rem;
+        padding: 0.5rem 0.8rem;
+        cursor: pointer;
     }
-
-    .info-value {
-        color: #333;
-        font-weight: 600;
-        text-align: right;
-        max-width: 60%;
-        word-break: break-word;
-    }
-
-    .status-badge {
-        display: inline-block;
-        padding: 0.5rem 1.2rem;
-        border-radius: 20px;
-        font-size: 1.2rem;
-        font-weight: 600;
-        text-transform: uppercase;
-    }
-
-    .status-pending {
-        background: #fff3cd;
-        color: #856404;
-    }
-
-    .status-complete,
-    .status-completed,
-    .status-delivered {
-        background: #d4edda;
-        color: #155724;
-    }
-
-    .products-card {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 2rem;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        border: 2px solid #27ae60;
-        grid-column: 1 / -1;
-    }
-
-    .products-card h2 {
-        font-size: 1.8rem;
-        color: #27ae60;
-        margin-bottom: 1.5rem;
-        border-bottom: 2px solid #27ae60;
-        padding-bottom: 0.8rem;
-    }
-
-    .product-item {
+    .item {
         display: grid;
-        grid-template-columns: 100px 1fr auto auto;
-        gap: 1.5rem;
-        padding: 1.5rem;
-        border-bottom: 1px solid #eee;
+        grid-template-columns: 70px 1fr auto;
+        gap: 0.75rem;
+        padding: 0.7rem 0;
         align-items: center;
     }
-
-    .product-item:last-child {
-        border-bottom: none;
+    .item + .item {
+        border-top: 1px dashed #e2e8f0;
     }
-
-    .product-image {
-        width: 100px;
-        height: 100px;
+    .item img {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
         object-fit: cover;
-        border-radius: 8px;
-        border: 2px solid #27ae60;
+        border: 1px solid #e2e8f0;
     }
-
-    .product-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .product-name {
-        font-size: 1.6rem;
-        color: #333;
-        font-weight: 600;
-    }
-
-    .product-meta {
-        font-size: 1.3rem;
-        color: #666;
-    }
-
-    .product-price-section {
-        text-align: right;
-    }
-
-    .product-price {
-        font-size: 1.4rem;
-        color: #666;
-        margin-bottom: 0.5rem;
-    }
-
-    .product-subtotal {
-        font-size: 1.8rem;
-        color: #27ae60;
+    .item-name {
+        font-size: 0.92rem;
         font-weight: 700;
+        color: #0f172a;
     }
-
-    .order-summary {
-        margin-top: 2rem;
-        padding-top: 2rem;
-        border-top: 2px solid #27ae60;
+    .item-meta {
+        color: #64748b;
+        font-size: 0.82rem;
     }
-
+    .item-subtotal {
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .review-button {
+        margin-top: 0.3rem;
+        border: 0;
+        border-radius: 8px;
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 700;
+        cursor: pointer;
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+    .review-button.review-action {
+        background: #1d4ed8;
+        color: #fff;
+    }
+    .summary {
+        border-top: 1px solid #e2e8f0;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        font-size: 0.88rem;
+        color: #334155;
+    }
     .summary-row {
         display: flex;
         justify-content: space-between;
-        padding: 0.8rem 0;
-        font-size: 1.5rem;
+        padding: 0.2rem 0;
     }
-
-    .summary-row.grand-total {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #27ae60;
-        border-top: 2px solid #27ae60;
-        padding-top: 1rem;
-        margin-top: 1rem;
-    }
-
-    .review-button {
-        padding: 0.8rem 1.5rem;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1.3rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        white-space: nowrap;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .review-button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .review-button:disabled,
-    .reviewed-badge {
-        background: #95a5a6;
-        cursor: not-allowed;
-        opacity: 0.6;
-    }
-
-    .received-btn {
-        padding: 1.0rem 1.6rem;
-        background: linear-gradient(135deg, #27ae60, #2ecc71);
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-size: 1.4rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-    }
-
-    .received-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 14px rgba(39, 174, 96, 0.35);
-    }
-
-    @media (max-width: 968px) {
-        .order-content {
-            grid-template-columns: 1fr;
-        }
-
-        .product-item {
-            grid-template-columns: 80px 1fr;
-            gap: 1rem;
-        }
-
-        .product-image {
-            width: 80px;
-            height: 80px;
-        }
-
-        .product-price-section,
-        .review-button {
-            grid-column: 2;
-            text-align: left;
-            margin-top: 0.5rem;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .product-item {
-            grid-template-columns: 1fr;
-            text-align: center;
-        }
-
-        .product-image {
-            margin: 0 auto;
-        }
-
-        .product-price-section {
-            text-align: center;
-        }
+    .summary-row.total {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin-top: 0.2rem;
     }
 </style>
 @endpush
 
 @section('content')
-<section class="order-details-section">
-    <a href="{{ route('orders') }}" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to My Orders
-    </a>
+@php
+    $orderStatus = strtolower((string) ($order->status ?? $order->payment_status ?? 'pending'));
+    $canMarkReceived = $orderStatus === 'delivered';
+    $isReceived = in_array($orderStatus, ['completed', 'complete'], true);
+    $canRequestReturn = in_array($orderStatus, ['completed', 'complete'], true);
+    $hasReturnProcess = in_array($orderStatus, [
+        'return_requested',
+        'return_pickup_scheduled',
+        'return_picked_up',
+        'return_preparing',
+        'return_in_transit_to_seller',
+        'returned',
+        'refunded',
+    ], true);
+    $timelineEvents = $order->tracking->sortByDesc('id')->values();
 
-    <div class="order-header">
-        <h1>Order #{{ $order->id }}</h1>
-        <p class="order-date">Placed on {{ date('F d, Y', strtotime($order->placed_on)) }}</p>
+    $baseDate = $order->shipped_at ? \Carbon\Carbon::parse($order->shipped_at) : \Carbon\Carbon::parse($order->placed_on);
+    $etaStart = $baseDate->copy()->addDays(4);
+    $etaEnd = $baseDate->copy()->addDays(8);
+    $isCod = str_contains(strtolower((string) $order->method), 'cash') || str_contains(strtolower((string) $order->method), 'cod');
+@endphp
+
+<section class="track-page">
+    <div class="track-top">
+        <a href="{{ route('orders') }}" class="back-link"><i class="fas fa-arrow-left"></i> Back</a>
+        <h1 class="track-title">Track Package</h1>
+        <span style="width: 44px;"></span>
     </div>
 
-    @php
-        $orderStatus = strtolower((string) ($order->status ?? $order->payment_status ?? 'pending'));
-        $canMarkReceived = $orderStatus === 'delivered';
-        $isReceived = in_array($orderStatus, ['completed', 'complete'], true);
-    @endphp
+    <div class="eta-card">
+        <p class="eta-date">Estimated delivery: <span>{{ $etaStart->format('M j') }} - {{ $etaEnd->format('M j') }}</span></p>
+        @if($isCod)
+            <span class="cod-note">COD: Please prepare &#8369;{{ number_format($order->total_price, 2) }} in cash.</span>
+        @endif
+    </div>
 
-    @if($canMarkReceived)
-        <div style="text-align:center; margin: 0 0 1.5rem 0;">
-            <form action="{{ route('order.received', $order->id) }}" method="POST" onsubmit="return confirm('Mark this order as received?');" style="display:inline-block;">
-                @csrf
-                <button type="submit" class="received-btn">
-                    <i class="fas fa-check-circle"></i>
-                    Mark as Received
-                </button>
-            </form>
+    <div class="ship-card">
+        <div class="ship-head">{{ $order->shipping_method ?: 'Standard Shipping' }}</div>
+        <div class="ship-meta">
+            Tracking #: {{ $order->tracking_number ?: 'Pending assignment' }}
         </div>
-    @elseif($isReceived)
-        <div style="text-align:center; margin: 0 0 1.5rem 0; color:#155724; font-weight:600;">
-            <i class="fas fa-check-circle"></i> Order marked as received.
-        </div>
-    @endif
+    </div>
 
-    <div class="order-content">
-        <!-- Order Information -->
-        <div class="info-card">
-            <h2>Order Information</h2>
-            <div class="info-row">
-                <span class="info-label">Order ID:</span>
-                <span class="info-value">#{{ $order->id }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Date:</span>
-                <span class="info-value">{{ date('M d, Y', strtotime($order->placed_on)) }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Status:</span>
-                <span class="status-badge status-{{ strtolower($order->status ?? $order->payment_status) }}">
-                    {{ strtoupper($order->status ?? $order->payment_status) }}
-                </span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Payment Method:</span>
-                <span class="info-value">{{ $order->method }}</span>
-            </div>
-            @if($order->tracking_number)
-                <div class="info-row">
-                    <span class="info-label">Tracking #:</span>
-                    <span class="info-value">{{ $order->tracking_number }} ({{ $order->shipping_method }})</span>
+    <div class="timeline-card">
+        @forelse($timelineEvents as $i => $event)
+            <div class="event {{ $i === 0 ? 'latest' : '' }}">
+                <div class="event-time">
+                    {{ \Carbon\Carbon::parse($event->created_at)->format('M j') }}<br>
+                    {{ \Carbon\Carbon::parse($event->created_at)->format('g:i A') }}
                 </div>
+                <div class="event-line">
+                    <div class="event-dot"></div>
+                </div>
+                <div>
+                    <p class="event-title">{{ $event->title }}</p>
+                    @if($event->description)
+                        <p class="event-desc">{{ $event->description }}</p>
+                    @endif
+                    @if($event->location)
+                        <div class="event-loc">{{ $event->location }}</div>
+                    @endif
+                </div>
+            </div>
+        @empty
+            <div style="padding: 1rem 0; color:#64748b; font-size: 0.92rem;">No tracking events yet.</div>
+        @endforelse
+    </div>
+
+    <div class="order-card">
+        <div class="order-head">
+            <div class="order-no">Order #{{ $order->id }} - {{ date('M d, Y', strtotime($order->placed_on)) }}</div>
+            @if($canMarkReceived)
+                <form action="{{ route('order.received', $order->id) }}" method="POST" onsubmit="return confirm('Mark this order as received?');">
+                    @csrf
+                    <button type="submit" class="received-btn">Mark as Received</button>
+                </form>
+            @elseif($isReceived)
+                <span style="color:#166534;font-size:0.84rem;font-weight:700;">Order marked as received</span>
+            @elseif($hasReturnProcess)
+                <span style="color:#92400e;font-size:0.84rem;font-weight:700;">Return process: {{ strtoupper(str_replace('_', ' ', $orderStatus)) }}</span>
             @endif
         </div>
 
-        <!-- Delivery Information -->
-        <div class="info-card">
-            <h2>Delivery Information</h2>
-            <div class="info-row">
-                <span class="info-label">Name:</span>
-                <span class="info-value">{{ $order->name }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Phone:</span>
-                <span class="info-value">{{ $order->number }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Email:</span>
-                <span class="info-value">{{ $order->email }}</span>
-            </div>
-            <div class="info-row">
-                <span class="info-label">Address:</span>
-                <span class="info-value">{{ $order->address }}</span>
-            </div>
-        </div>
-    </div>
+        @if($canRequestReturn && !$hasReturnProcess)
+            <form action="{{ route('order.return.request', $order->id) }}" method="POST" style="margin:0 0 .8rem;">
+                @csrf
+                <div style="display:grid;grid-template-columns:1fr auto;gap:.45rem;">
+                    <input type="text" name="reason" placeholder="Reason (e.g. parcel not received)" style="border:1px solid #d1d5db;border-radius:8px;padding:.45rem .6rem;font-size:.88rem;">
+                    <button type="submit" style="border:0;background:#b91c1c;color:#fff;border-radius:8px;padding:.45rem .75rem;font-size:.84rem;font-weight:700;">Not Received / Return</button>
+                </div>
+            </form>
+        @endif
 
-    <!-- Products Ordered -->
-    <div class="products-card">
-        <h2>Products Ordered</h2>
         @foreach($order->orderItems as $item)
             @php
                 $statusValue = strtolower($order->status ?? $order->payment_status ?? '');
-                $isCompleted = in_array($statusValue, ['completed', 'complete', 'delivered', 'paid']) || 
-                              in_array(strtolower($order->payment_status ?? ''), ['completed', 'complete', 'delivered']);
+                $isCompleted = in_array($statusValue, ['completed', 'complete'], true) ||
+                              in_array(strtolower($order->payment_status ?? ''), ['completed', 'complete'], true);
                 $hasReviewed = false;
                 if (Auth::check()) {
                     $hasReviewed = \App\Models\Review::where('user_id', Auth::id())
-                                                      ->where('product_id', $item->product_id)
-                                                      ->where('order_id', $order->id)
-                                                      ->exists();
+                        ->where('product_id', $item->product_id)
+                        ->where('order_id', $order->id)
+                        ->exists();
                 }
             @endphp
-            <div class="product-item">
-                <img src="{{ asset('uploaded_img/' . $item->image) }}" alt="{{ $item->name }}" class="product-image">
-                
-                <div class="product-info">
-                    <div class="product-name">{{ $item->name }}</div>
-                    <div class="product-meta">
-                        Price: ₱{{ number_format($item->price, 2) }} × Quantity: {{ $item->quantity }}
-                    </div>
-                </div>
-
-                <div class="product-price-section">
-                    <div class="product-price">₱{{ number_format($item->price, 2) }} × {{ $item->quantity }}</div>
-                    <div class="product-subtotal">₱{{ number_format($item->price * $item->quantity, 2) }}</div>
-                </div>
-
-                @if(Auth::check())
-                    @if($isCompleted && !$hasReviewed)
-                        <button class="review-button" onclick="openReviewModal({{ $item->product_id }}, '{{ $item->name }}', {{ $order->id }})">
-                            <i class="fas fa-star"></i> Review
-                        </button>
-                    @elseif($hasReviewed)
-                        <span class="review-button reviewed-badge">
-                            <i class="fas fa-check"></i> Reviewed
-                        </span>
+            <div class="item">
+                <img src="{{ asset('uploaded_img/' . $item->image) }}" alt="{{ $item->name }}">
+                <div>
+                    <div class="item-name">{{ $item->name }}</div>
+                    <div class="item-meta">Qty: {{ $item->quantity }} - &#8369;{{ number_format($item->price, 2) }}</div>
+                    @if(Auth::check())
+                        @if($isCompleted && !$hasReviewed)
+                            <button class="review-button review-action" onclick="openReviewModal({{ $item->product_id }}, '{{ $item->name }}', {{ $order->id }})">Review</button>
+                        @elseif($hasReviewed)
+                            <span class="review-button">Reviewed</span>
+                        @endif
                     @endif
-                @endif
+                </div>
+                <div class="item-subtotal">&#8369;{{ number_format($item->price * $item->quantity, 2) }}</div>
             </div>
         @endforeach
 
-        <div class="order-summary">
-            <div class="summary-row">
-                <span>Subtotal:</span>
-                <span>₱{{ number_format($order->total_price, 2) }}</span>
-            </div>
+        <div class="summary">
+            <div class="summary-row"><span>Subtotal</span><span>&#8369;{{ number_format($order->total_price, 2) }}</span></div>
             @if($order->voucher_discount > 0)
-            <div class="summary-row" style="color:#16a34a">
-                <span>Voucher Discount:</span>
-                <span>-₱{{ number_format($order->voucher_discount, 2) }}</span>
-            </div>
+                <div class="summary-row" style="color:#15803d;"><span>Voucher Discount</span><span>-&#8369;{{ number_format($order->voucher_discount, 2) }}</span></div>
             @endif
-            <div class="summary-row">
-                <span>Delivery Fee:</span>
-                <span>FREE</span>
-            </div>
-            <div class="summary-row grand-total">
-                <span>Grand Total:</span>
-                <span>₱{{ number_format($order->total_price, 2) }}</span>
-            </div>
+            <div class="summary-row"><span>Delivery Fee</span><span>FREE</span></div>
+            <div class="summary-row total"><span>Total</span><span>&#8369;{{ number_format($order->total_price, 2) }}</span></div>
         </div>
     </div>
 
-    {{-- Delivery Tracking Timeline --}}
-    @if($order->tracking && $order->tracking->count() > 0)
-    <div style="background:#fff;border:2px solid #27ae60;border-radius:12px;padding:2rem;margin-top:2rem">
-        <h2 style="font-size:1.8rem;color:#27ae60;margin-bottom:1.5rem;border-bottom:2px solid #27ae60;padding-bottom:.8rem">
-            <i class="fas fa-map-marked-alt"></i> Delivery Tracking
-        </h2>
-        <div style="position:relative;padding-left:2rem">
-            {{-- Vertical line --}}
-            <div style="position:absolute;left:.7rem;top:0;bottom:0;width:2px;background:#e5e7eb"></div>
-            @foreach($order->tracking as $i => $event)
-            @php $isLast = $i === $order->tracking->count() - 1; @endphp
-            <div style="position:relative;margin-bottom:{{ $isLast ? '0' : '1.5rem' }};padding-left:1.5rem">
-                {{-- Dot --}}
-                <div style="position:absolute;left:-2.45rem;top:.2rem;width:18px;height:18px;border-radius:50%;background:{{ $isLast ? '#27ae60' : '#9ca3af' }};display:flex;align-items:center;justify-content:center;z-index:1">
-                    <i class="{{ \App\Models\OrderTracking::iconFor($event->status) }}" style="font-size:.55rem;color:#fff"></i>
-                </div>
-                <div style="background:{{ $isLast ? '#f0fdf4' : '#f9fafb' }};border:1px solid {{ $isLast ? '#86efac' : '#e5e7eb' }};border-radius:8px;padding:.9rem 1.2rem">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
-                        <strong style="font-size:1rem;color:{{ $isLast ? '#166534' : '#374151' }}">{{ $event->title }}</strong>
-                        <span style="font-size:.8rem;color:#9ca3af">{{ \Carbon\Carbon::parse($event->created_at)->format('M d, Y g:i A') }}</span>
-                    </div>
-                    @if($event->description)<p style="font-size:.9rem;color:#6b7280;margin:.3rem 0 0">{{ $event->description }}</p>@endif
-                    @if($event->location)<p style="font-size:.8rem;color:#9ca3af;margin:.25rem 0 0"><i class="fas fa-map-marker-alt"></i> {{ $event->location }}</p>@endif
-                </div>
-            </div>
-            @endforeach
-        </div>
-    </div>
-    @endif
-
-    {{-- Report Section --}}
     @auth
-    <div style="text-align:right;margin-top:1.5rem">
         @if($order->orderItems->count() > 0)
-        <a href="{{ route('report.create', ['type'=>'product', 'id'=>$order->orderItems->first()->product_id]) }}"
-           style="color:#dc2626;font-size:.9rem;text-decoration:none">
-            <i class="fas fa-flag"></i> Report a product in this order
-        </a>
+            <div style="text-align:right;margin-top:0.8rem;">
+                <a href="{{ route('report.create', ['type'=>'product', 'id'=>$order->orderItems->first()->product_id]) }}" style="font-size:.82rem;color:#dc2626;text-decoration:none;">
+                    <i class="fas fa-flag"></i> Report a product in this order
+                </a>
+            </div>
         @endif
-    </div>
     @endauth
 </section>
 
-<!-- Review Modal -->
 <div id="reviewModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
     <div style="background: white; padding: 3rem; border-radius: 15px; max-width: 500px; width: 90%; position: relative;">
         <button onclick="closeReviewModal()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 2rem; cursor: pointer; color: #666;">&times;</button>
-        
         <h2 style="color: #27ae60; margin-bottom: 2rem; font-size: 2rem;">Rate this Product</h2>
         <p id="reviewProductName" style="font-size: 1.6rem; color: #333; margin-bottom: 2rem; font-weight: 600;"></p>
-        
         <div style="margin-bottom: 2rem;">
             <p style="font-size: 1.4rem; margin-bottom: 1rem; color: #666;">Your Rating:</p>
             <div id="starRating" style="font-size: 3rem; color: #ffd700; cursor: pointer; display: flex; gap: 0.5rem;">
-                <span onclick="setRating(1)">☆</span>
-                <span onclick="setRating(2)">☆</span>
-                <span onclick="setRating(3)">☆</span>
-                <span onclick="setRating(4)">☆</span>
-                <span onclick="setRating(5)">☆</span>
+                <span onclick="setRating(1)">&#9734;</span>
+                <span onclick="setRating(2)">&#9734;</span>
+                <span onclick="setRating(3)">&#9734;</span>
+                <span onclick="setRating(4)">&#9734;</span>
+                <span onclick="setRating(5)">&#9734;</span>
             </div>
         </div>
-        
         <div style="margin-bottom: 2rem;">
             <label style="display: block; font-size: 1.4rem; margin-bottom: 0.8rem; color: #666;">Your Review (Optional):</label>
             <textarea id="reviewComment" rows="5" style="width: 100%; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; font-size: 1.4rem; font-family: inherit;" placeholder="Share your experience with this product..."></textarea>
         </div>
-        
         <button onclick="submitReview()" style="width: 100%; padding: 1.2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1.6rem; font-weight: 600; cursor: pointer;">
             Submit Review
         </button>
@@ -534,12 +412,9 @@ function openReviewModal(productId, productName, orderId) {
     currentProductId = productId;
     currentOrderId = orderId;
     currentRating = 5;
-    
     document.getElementById('reviewProductName').textContent = productName;
     document.getElementById('reviewModal').style.display = 'flex';
     document.getElementById('reviewComment').value = '';
-    
-    // Set default 5 stars
     setRating(5);
 }
 
@@ -551,34 +426,23 @@ function setRating(rating) {
     currentRating = rating;
     const stars = document.querySelectorAll('#starRating span');
     stars.forEach((star, index) => {
-        star.textContent = index < rating ? '★' : '☆';
+        star.textContent = index < rating ? '\u2605' : '\u2606';
     });
 }
 
 function submitReview() {
     const comment = document.getElementById('reviewComment').value;
     const submitButton = document.querySelector('#reviewModal button[onclick="submitReview()"]');
-    
-    // Get CSRF token
     const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    
+
     if (!token) {
         alert('Security token not found. Please refresh the page.');
         return;
     }
 
-    // Debug log
-    console.log('Submitting review:', {
-        product_id: currentProductId,
-        order_id: currentOrderId,
-        rating: currentRating,
-        comment: comment
-    });
-    
-    // Disable submit button
     submitButton.disabled = true;
     submitButton.textContent = 'Submitting...';
-    
+
     fetch('{{ route("reviews.store") }}', {
         method: 'POST',
         headers: {
@@ -605,7 +469,7 @@ function submitReview() {
         if (data.status === 'success') {
             alert(data.message);
             closeReviewModal();
-            location.reload(); // Reload to show updated review status
+            location.reload();
         } else {
             alert(data.message || 'Failed to submit review');
             submitButton.disabled = false;
@@ -613,14 +477,12 @@ function submitReview() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
         alert(error.message || 'An error occurred. Please try again.');
         submitButton.disabled = false;
         submitButton.textContent = 'Submit Review';
     });
 }
 
-// Close modal when clicking outside
 document.getElementById('reviewModal')?.addEventListener('click', function(e) {
     if (e.target === this) {
         closeReviewModal();
