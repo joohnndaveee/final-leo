@@ -180,12 +180,14 @@ class UserAuthController extends Controller
             'pass' => 'required|max:20',
             'cpass' => 'required|same:pass',
             'shop_name' => 'required|string|max:255',
-            'gcash_number_used' => 'required|string|max:30',
+            'gcash_number_used' => ['required', 'regex:/^[0-9]+$/', 'max:30'],
             'reference_number' => 'required|string|max:100',
             'payment_proof' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ], [
             'email.unique' => 'Email already exists!',
             'cpass.same' => 'Confirm password not matched!',
+            'reference_number.required' => 'GCash reference number is required.',
+            'gcash_number_used.regex' => 'GCash number must contain digits only.',
         ]);
 
         $proofImageName = null;

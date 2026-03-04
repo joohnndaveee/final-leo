@@ -204,8 +204,7 @@
             @csrf
 
             <div id="step-1">
-            <div id="password-mismatch-error" class="field-message" style="display: none;"></div>
-
+            <div id="email-error" class="field-message" style="{{ $errors->has('email') ? '' : 'display: none;' }}">{{ $errors->first('email') }}</div>
             <label for="email">Email</label>
             <input
                 type="email"
@@ -217,6 +216,7 @@
                 oninput="this.value = this.value.replace(/\s/g, '')"
             >
 
+            <div id="shop_name-error" class="field-message" style="{{ $errors->has('shop_name') ? '' : 'display: none;' }}">{{ $errors->first('shop_name') }}</div>
             <label for="shop_name">Shop Name</label>
             <input
                 type="text"
@@ -227,6 +227,7 @@
                 maxlength="255"
             >
 
+            <div id="pass-error" class="field-message" style="{{ $errors->has('pass') ? '' : 'display: none;' }}">{{ $errors->first('pass') }}</div>
             <label for="pass">Password</label>
             <input
                 type="password"
@@ -237,6 +238,7 @@
                 oninput="this.value = this.value.replace(/\s/g, '')"
             >
 
+            <div id="cpass-error" class="field-message" style="{{ $errors->has('cpass') ? '' : 'display: none;' }}">{{ $errors->first('cpass') }}</div>
             <label for="cpass">Confirm Password</label>
             <input
                 type="password"
@@ -246,10 +248,8 @@
                 maxlength="20"
                 oninput="this.value = this.value.replace(/\s/g, '')"
             >
-            @error('cpass')
-                <div class="field-message">{{ $message }}</div>
-            @enderror
 
+            <div id="gcash_number_used-error" class="field-message" style="{{ $errors->has('gcash_number_used') ? '' : 'display: none;' }}">{{ $errors->first('gcash_number_used') }}</div>
             <label for="gcash_number_used">GCash Number You Used</label>
             <input
                 type="text"
@@ -258,7 +258,10 @@
                 value="{{ old('gcash_number_used') }}"
                 required
                 maxlength="30"
+                inputmode="numeric"
+                pattern="[0-9]+"
                 placeholder="09XXXXXXXXX"
+                oninput="this.value = this.value.replace(/\D/g, '')"
             >
 
             <button type="button" id="proceed-to-payment">Proceed to Payment</button>
@@ -288,7 +291,7 @@
                     </div>
                 </div>
 
-                <label for="reference_number">GCash Reference Number</label>
+                <label for="reference_number">GCash Reference Number (required)</label>
                 <input
                     type="text"
                     id="reference_number"
@@ -298,6 +301,9 @@
                     maxlength="100"
                     placeholder="Enter the reference number from GCash"
                 >
+                @error('reference_number')
+                    <div class="field-message">{{ $message }}</div>
+                @enderror
 
                 <label for="payment_proof">Upload Proof of Payment (Screenshot/Image)</label>
                 <input
@@ -329,46 +335,94 @@
         const backBtn = document.getElementById('back-to-step-1');
         const step1 = document.getElementById('step-1');
         const step2 = document.getElementById('step-2');
-        const passwordMismatchError = document.getElementById('password-mismatch-error');
+
+        const labels = {
+            email: 'Email',
+            shop_name: 'Shop Name',
+            pass: 'Password',
+            cpass: 'Confirm Password',
+            gcash_number_used: 'GCash Number You Used',
+        };
 
         function isFilled(id) {
             const el = document.getElementById(id);
             return el && String(el.value || '').trim().length > 0;
         }
 
-        function showPasswordMismatch(message) {
-            if (!passwordMismatchError) {
+        function showFieldError(id, message) {
+            const errorEl = document.getElementById(id + '-error');
+            if (!errorEl) {
                 return;
             }
-            passwordMismatchError.textContent = message;
-            passwordMismatchError.style.display = 'block';
+            errorEl.textContent = message;
+            errorEl.style.display = 'block';
         }
 
-        function hidePasswordMismatch() {
-            if (!passwordMismatchError) {
+        function hideFieldError(id) {
+            const errorEl = document.getElementById(id + '-error');
+            if (!errorEl) {
                 return;
             }
-            passwordMismatchError.textContent = '';
-            passwordMismatchError.style.display = 'none';
+            errorEl.textContent = '';
+            errorEl.style.display = 'none';
+        }
+
+        function clearStep1Errors() {
+            Object.keys(labels).forEach(hideFieldError);
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function isDigitsOnly(value) {
+            return /^[0-9]+$/.test(value);
         }
 
         if (proceedBtn) {
             proceedBtn.addEventListener('click', function () {
                 const required = ['email', 'shop_name', 'pass', 'cpass', 'gcash_number_used'];
-                const missing = required.filter((id) => !isFilled(id));
                 const pass = document.getElementById('pass');
                 const cpass = document.getElementById('cpass');
+                const email = document.getElementById('email');
+                const gcashNumber = document.getElementById('gcash_number_used');
+                const invalidFields = [];
 
-                hidePasswordMismatch();
+                clearStep1Errors();
 
-                if (missing.length > 0) {
-                    alert('Please complete all required fields before proceeding to payment.');
-                    return;
+                required.forEach(function (id) {
+                    if (!isFilled(id)) {
+                        showFieldError(id, labels[id] + ' is required.');
+                        invalidFields.push(id);
+                    }
+                });
+
+                if (email && isFilled('email') && !isValidEmail(String(email.value).trim())) {
+                    showFieldError('email', 'Please enter a valid email address (must include @).');
+                    if (!invalidFields.includes('email')) {
+                        invalidFields.push('email');
+                    }
                 }
 
                 if (pass && cpass && pass.value !== cpass.value) {
-                    showPasswordMismatch('Confirm password does not match.');
-                    cpass.focus();
+                    showFieldError('cpass', 'Confirm password does not match.');
+                    if (!invalidFields.includes('cpass')) {
+                        invalidFields.push('cpass');
+                    }
+                }
+
+                if (gcashNumber && isFilled('gcash_number_used') && !isDigitsOnly(String(gcashNumber.value).trim())) {
+                    showFieldError('gcash_number_used', 'GCash number must contain digits only.');
+                    if (!invalidFields.includes('gcash_number_used')) {
+                        invalidFields.push('gcash_number_used');
+                    }
+                }
+
+                if (invalidFields.length > 0) {
+                    const firstInvalid = document.getElementById(invalidFields[0]);
+                    if (firstInvalid) {
+                        firstInvalid.focus();
+                    }
                     return;
                 }
 
@@ -379,11 +433,35 @@
 
         const passInput = document.getElementById('pass');
         const cpassInput = document.getElementById('cpass');
+        const emailInput = document.getElementById('email');
+        const shopNameInput = document.getElementById('shop_name');
+        const gcashInput = document.getElementById('gcash_number_used');
+
+        if (emailInput) {
+            emailInput.addEventListener('input', function () {
+                hideFieldError('email');
+            });
+        }
+        if (shopNameInput) {
+            shopNameInput.addEventListener('input', function () {
+                hideFieldError('shop_name');
+            });
+        }
         if (passInput) {
-            passInput.addEventListener('input', hidePasswordMismatch);
+            passInput.addEventListener('input', function () {
+                hideFieldError('pass');
+                hideFieldError('cpass');
+            });
         }
         if (cpassInput) {
-            cpassInput.addEventListener('input', hidePasswordMismatch);
+            cpassInput.addEventListener('input', function () {
+                hideFieldError('cpass');
+            });
+        }
+        if (gcashInput) {
+            gcashInput.addEventListener('input', function () {
+                hideFieldError('gcash_number_used');
+            });
         }
 
         if (backBtn) {
