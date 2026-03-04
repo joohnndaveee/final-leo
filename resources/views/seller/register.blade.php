@@ -170,25 +170,19 @@
         .message i {
             cursor: pointer;
         }
+
+        .field-message {
+            margin: 0 0 1rem;
+            background: #fef2f2;
+            color: #b91c1c;
+            padding: 0.8rem 1rem;
+            border-radius: 0.8rem;
+            font-size: 1.2rem;
+            border: 1px solid #fecaca;
+        }
     </style>
 </head>
 <body>
-
-@if ($errors->any())
-    @foreach ($errors->all() as $error)
-        <div class="message">
-            <span>{{ $error }}</span>
-            <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
-        </div>
-    @endforeach
-@endif
-
-@if (session('success'))
-    <div class="message">
-        <span>{{ session('success') }}</span>
-        <i class="fas fa-times" onclick="this.parentElement.remove();"></i>
-    </div>
-@endif
 
 <header class="seller-login-header">
     <div class="brand">
@@ -210,6 +204,8 @@
             @csrf
 
             <div id="step-1">
+            <div id="password-mismatch-error" class="field-message" style="display: none;"></div>
+
             <label for="email">Email</label>
             <input
                 type="email"
@@ -250,6 +246,9 @@
                 maxlength="20"
                 oninput="this.value = this.value.replace(/\s/g, '')"
             >
+            @error('cpass')
+                <div class="field-message">{{ $message }}</div>
+            @enderror
 
             <label for="gcash_number_used">GCash Number You Used</label>
             <input
@@ -330,23 +329,61 @@
         const backBtn = document.getElementById('back-to-step-1');
         const step1 = document.getElementById('step-1');
         const step2 = document.getElementById('step-2');
+        const passwordMismatchError = document.getElementById('password-mismatch-error');
 
         function isFilled(id) {
             const el = document.getElementById(id);
             return el && String(el.value || '').trim().length > 0;
         }
 
+        function showPasswordMismatch(message) {
+            if (!passwordMismatchError) {
+                return;
+            }
+            passwordMismatchError.textContent = message;
+            passwordMismatchError.style.display = 'block';
+        }
+
+        function hidePasswordMismatch() {
+            if (!passwordMismatchError) {
+                return;
+            }
+            passwordMismatchError.textContent = '';
+            passwordMismatchError.style.display = 'none';
+        }
+
         if (proceedBtn) {
             proceedBtn.addEventListener('click', function () {
                 const required = ['email', 'shop_name', 'pass', 'cpass', 'gcash_number_used'];
                 const missing = required.filter((id) => !isFilled(id));
+                const pass = document.getElementById('pass');
+                const cpass = document.getElementById('cpass');
+
+                hidePasswordMismatch();
+
                 if (missing.length > 0) {
                     alert('Please complete all required fields before proceeding to payment.');
                     return;
                 }
+
+                if (pass && cpass && pass.value !== cpass.value) {
+                    showPasswordMismatch('Confirm password does not match.');
+                    cpass.focus();
+                    return;
+                }
+
                 step1.style.display = 'none';
                 step2.style.display = 'block';
             });
+        }
+
+        const passInput = document.getElementById('pass');
+        const cpassInput = document.getElementById('cpass');
+        if (passInput) {
+            passInput.addEventListener('input', hidePasswordMismatch);
+        }
+        if (cpassInput) {
+            cpassInput.addEventListener('input', hidePasswordMismatch);
         }
 
         if (backBtn) {
