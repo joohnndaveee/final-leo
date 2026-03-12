@@ -3,690 +3,1029 @@
 @section('title', $product->name . ' - U-KAY HUB')
 
 @push('styles')
-<!-- SweetAlert2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-
 <style>
-    .product-detail-section {
-        padding: 1.6rem;
-        max-width: 1180px;
-        margin: 0 auto;
-    }
+/* ─── Base ──────────────────────────────────────────── */
+.pd-wrap {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.6rem 2rem 4rem;
+    font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    color: #333;
+}
 
-    .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.8rem 1.5rem;
-        background: white;
-        color: #27ae60;
-        border: 2px solid #27ae60;
-        border-radius: 6px;
-        text-decoration: none;
-        font-size: 1.3rem;
-        font-weight: 600;
-        margin-bottom: 1.2rem;
-        transition: all 0.3s ease;
-    }
+/* ─── Breadcrumb ────────────────────────────────────── */
+.pd-breadcrumb {
+    font-size: 1.25rem;
+    color: #757575;
+    margin-bottom: 1.4rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .3rem;
+}
+.pd-breadcrumb a {
+    color: #2563eb;
+    text-decoration: none;
+    transition: color .15s;
+}
+.pd-breadcrumb a:hover { color: #ee4d2d; }
+.pd-breadcrumb span { color: #bbb; margin: 0 .1rem; }
 
-    .back-button:hover {
-        background: #27ae60;
-        color: white;
-    }
+/* ─── Main Product Card ─────────────────────────────── */
+.pd-main {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 2.4rem;
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2.4rem;
+    margin-bottom: 1.2rem;
+}
 
-    .product-main {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        background: white;
-        padding: 2rem;
-        border-radius: 12px;
-        border: 1px solid #e5e7eb;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
-        margin-bottom: 2rem;
-    }
+/* ─── Image Gallery ─────────────────────────────────── */
+.pd-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: .9rem;
+}
+.pd-gallery-main {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: #f5f5f5;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: zoom-in;
+}
+.pd-gallery-main img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform .3s ease;
+}
+.pd-gallery-main:hover img { transform: scale(1.06); }
+.pd-thumbs {
+    display: flex;
+    gap: .6rem;
+}
+.pd-thumb {
+    width: 64px;
+    height: 64px;
+    border: 2px solid transparent;
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #f5f5f5;
+    transition: border-color .18s;
+    flex-shrink: 0;
+}
+.pd-thumb.active,
+.pd-thumb:hover { border-color: #ee4d2d; }
+.pd-thumb img { width: 100%; height: 100%; object-fit: cover; }
 
-    .product-images {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
+/* ─── Product Info ──────────────────────────────────── */
+.pd-info { display: flex; flex-direction: column; }
 
-    .main-image-container {
-        width: 100%;
-        height: 390px;
-        background: #f8f9fa;
-        border-radius: 10px;
-        overflow: hidden;
-        border: 1px solid #d1fae5;
-    }
+.pd-name {
+    font-size: 2rem;
+    font-weight: 400;
+    color: #333;
+    line-height: 1.35;
+    margin: 0 0 1rem;
+}
 
-    .main-image {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
+/* Rating row */
+.pd-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    font-size: 1.3rem;
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid #f0f0f0;
+    flex-wrap: wrap;
+}
+.pd-rating-val {
+    color: #16a34a;
+    font-weight: 600;
+    border-bottom: 1px solid #16a34a;
+}
+.pd-stars { color: #f59e0b; letter-spacing: .05em; font-size: 1.35rem; }
+.pd-sep { color: #e0e0e0; }
+.pd-reviews-count { color: #757575; }
+.pd-sold { color: #757575; }
 
-    .product-info {
-        display: flex;
-        flex-direction: column;
-        gap: 1.1rem;
-    }
+/* Price strip */
+.pd-price-strip {
+    background: #f0fdf4;
+    padding: 1.4rem 1.6rem;
+    margin: 1.2rem 0;
+    border-radius: 2px;
+}
+.pd-price-main {
+    font-size: 3rem;
+    color: #16a34a;
+    font-weight: 500;
+    display: flex;
+    align-items: baseline;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+}
+.pd-price-old {
+    font-size: 1.7rem;
+    color: #aaa;
+    text-decoration: line-through;
+    font-weight: 400;
+}
+.pd-sale-badge {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #fff;
+    background: #16a34a;
+    padding: .3rem .7rem;
+    border-radius: 2px;
+    line-height: 1;
+}
 
-    .product-title {
-        font-size: 2.2rem;
-        color: #333;
-        font-weight: 700;
-        margin: 0;
-        line-height: 1.2;
-    }
+/* Info rows (Shipping, Guarantee, etc.) */
+.pd-row {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    align-items: start;
+    gap: .8rem;
+    padding: .9rem 0;
+    border-bottom: 1px solid #f5f5f5;
+    font-size: 1.3rem;
+}
+.pd-row-label { color: #757575; padding-top: .1rem; }
+.pd-row-val { color: #333; display: flex; align-items: flex-start; gap: .5rem; flex-wrap: wrap; }
+.pd-row-val i { color: #16a34a; margin-top: .15rem; flex-shrink: 0; }
+.pd-guarantee-icon { color: #16a34a; }
 
-    .product-rating {
-        display: flex;
-        align-items: center;
-        gap: .8rem;
-        font-size: 1.35rem;
-    }
+/* Variant chips */
+.pd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+.pd-chip {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    padding: .45rem .9rem;
+    font-size: 1.25rem;
+    color: #333;
+    cursor: pointer;
+    background: #fff;
+    transition: border-color .15s, color .15s;
+    white-space: nowrap;
+}
+.pd-chip:hover,
+.pd-chip.selected {
+    border-color: #16a34a;
+    color: #16a34a;
+}
 
-    .stars {
-        color: #ffd700;
-        font-size: 1.7rem;
-    }
+/* Quantity stepper */
+.pd-qty {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.pd-qty-ctrl {
+    display: flex;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.pd-qty-btn {
+    width: 36px;
+    height: 36px;
+    background: #fff;
+    border: none;
+    cursor: pointer;
+    font-size: 1.6rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.pd-qty-btn:hover:not(:disabled) { background: #f5f5f5; }
+.pd-qty-btn:disabled { color: #ccc; cursor: not-allowed; }
+.pd-qty-input {
+    width: 50px;
+    height: 36px;
+    border: none;
+    border-left: 1px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    text-align: center;
+    font-size: 1.4rem;
+    color: #333;
+    outline: none;
+    background: #fff;
+}
+/* hide number input arrows */
+.pd-qty-input::-webkit-inner-spin-button,
+.pd-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.pd-qty-input[type=number] { -moz-appearance: textfield; }
+.pd-stock-info { font-size: 1.25rem; color: #757575; }
+.pd-stock-low  { color: #ee4d2d; }
 
-    .rating-summary {
-        color: #666;
-    }
+/* Action buttons */
+.pd-actions {
+    display: flex;
+    gap: 1.2rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+.pd-btn-cart {
+    flex: 1;
+    min-width: 180px;
+    padding: 1.1rem 1.6rem;
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #16a34a;
+    border-radius: 2px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    transition: background .18s;
+    font-family: inherit;
+}
+.pd-btn-cart:hover:not(:disabled) { background: #dcfce7; }
+.pd-btn-buy {
+    flex: 1;
+    min-width: 180px;
+    padding: 1.1rem 1.6rem;
+    background: #16a34a;
+    color: #fff;
+    border: 1px solid #16a34a;
+    border-radius: 2px;
+    font-size: 1.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .7rem;
+    transition: background .18s;
+    font-family: inherit;
+}
+.pd-btn-buy:hover:not(:disabled) { background: #15803d; }
+.pd-btn-cart:disabled,
+.pd-btn-buy:disabled {
+    background: #e0e0e0;
+    border-color: #e0e0e0;
+    color: #aaa;
+    cursor: not-allowed;
+}
 
-    .product-price {
-        font-size: 2.7rem;
-        color: #27ae60;
-        font-weight: 700;
-        display: flex;
-        align-items: baseline;
-        gap: 1.2rem;
-        flex-wrap: wrap;
-    }
+/* ─── Seller Card ────────────────────────────────────── */
+.pd-seller-card {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 2rem 2.4rem;
+    margin-bottom: 1.2rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 2rem;
+    align-items: center;
+}
+.pd-seller-left {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    padding-right: 2rem;
+    border-right: 1px solid #f0f0f0;
+}
+.pd-seller-logo {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #e8e8e8;
+    background: #f5f5f5;
+}
+.pd-seller-name {
+    font-size: 1.55rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 .2rem;
+}
+.pd-seller-active {
+    font-size: 1.2rem;
+    color: #757575;
+}
+.pd-seller-btns {
+    display: flex;
+    gap: .7rem;
+    margin-top: .6rem;
+    flex-wrap: wrap;
+}
+.pd-seller-btn {
+    padding: .5rem 1.1rem;
+    font-size: 1.25rem;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .18s;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+}
+.pd-seller-btn-chat {
+    background: #16a34a;
+    color: #fff;
+    border: 1px solid #16a34a;
+}
+.pd-seller-btn-chat:hover { background: #15803d; }
+.pd-seller-btn-shop {
+    background: #fff;
+    color: #555;
+    border: 1px solid #ccc;
+}
+.pd-seller-btn-shop:hover { border-color: #999; }
+.pd-seller-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem 2rem;
+    font-size: 1.28rem;
+}
+.pd-seller-stat-label { color: #757575; }
+.pd-seller-stat-val { color: #16a34a; font-weight: 500; }
 
-    .product-price .price-old {
-        font-size: 1.55rem;
-        color: #9ca3af;
-        font-weight: 600;
-        text-decoration: line-through;
-    }
+/* ─── Content Sections ───────────────────────────────── */
+.pd-section {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+}
+.pd-section-head {
+    background: #fafafa;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 1.4rem 2.4rem;
+    font-size: 1.55rem;
+    font-weight: 500;
+    color: #333;
+    letter-spacing: .01em;
+}
+.pd-section-body {
+    padding: 2rem 2.4rem;
+}
 
-    .product-price .sale-pill {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #fff;
-        background: #111827;
-        padding: .45rem .9rem;
-        border-radius: 999px;
-        line-height: 1;
-    }
+/* Specs table */
+.pd-specs {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: .1rem;
+}
+.pd-spec-row {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    font-size: 1.35rem;
+    padding: .85rem .6rem;
+    border-bottom: 1px solid #f5f5f5;
+}
+.pd-spec-key { color: #757575; }
+.pd-spec-val { color: #333; }
 
-    .product-bundle {
-        font-size: 1.35rem;
-        color: #374151;
-    }
+/* Description */
+.pd-desc {
+    font-size: 1.38rem;
+    color: #444;
+    line-height: 1.8;
+    white-space: pre-line;
+}
 
-    .product-stock {
-        font-size: 1.35rem;
-        padding: 0.6rem 1rem;
-        border-radius: 7px;
-        display: inline-block;
-    }
+/* ─── Ratings Section ────────────────────────────────── */
+.pd-ratings-top {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid #f0f0f0;
+    margin-bottom: 1.8rem;
+    flex-wrap: wrap;
+}
+.pd-rating-big-num {
+    font-size: 4.5rem;
+    font-weight: 500;
+    color: #16a34a;
+    line-height: 1;
+}
+.pd-rating-big-stars { color: #f59e0b; font-size: 2rem; margin: .4rem 0; }
+.pd-rating-big-total { font-size: 1.3rem; color: #757575; }
+.pd-rating-bars {
+    flex: 1;
+    min-width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: .65rem;
+}
+.pd-bar-row {
+    display: flex;
+    align-items: center;
+    gap: .9rem;
+    font-size: 1.25rem;
+}
+.pd-bar-lbl { color: #757575; min-width: 50px; white-space: nowrap; }
+.pd-bar-track {
+    flex: 1;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+.pd-bar-fill { height: 100%; background: #22c55e; border-radius: 4px; transition: width .4s; }
+.pd-bar-cnt { color: #757575; min-width: 28px; text-align: right; }
 
-    .in-stock {
-        background: #d4edda;
-        color: #155724;
-    }
+/* Filter tabs */
+.pd-filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-bottom: 2rem;
+}
+.pd-filter-tab {
+    border: 1px solid #e0e0e0;
+    border-radius: 2px;
+    padding: .5rem 1.1rem;
+    font-size: 1.28rem;
+    color: #555;
+    cursor: pointer;
+    background: #fff;
+    transition: all .18s;
+    font-family: inherit;
+}
+.pd-filter-tab:hover,
+.pd-filter-tab.active {
+    border-color: #16a34a;
+    color: #16a34a;
+}
 
-    .low-stock {
-        background: #fff3cd;
-        color: #856404;
-    }
+/* Review items */
+.pd-review-list { display: flex; flex-direction: column; gap: 0; }
+.pd-review-item {
+    padding: 2rem 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+.pd-review-item:last-child { border-bottom: 0; }
+.pd-review-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: .7rem;
+}
+.pd-reviewer-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #16a34a;
+    color: #fff;
+    font-size: 1.55rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.pd-reviewer-name { font-size: 1.35rem; font-weight: 500; color: #333; }
+.pd-review-stars { color: #f59e0b; font-size: 1.4rem; }
+.pd-review-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: .2rem;
+    flex-wrap: wrap;
+}
+.pd-review-date { font-size: 1.2rem; color: #bbb; }
+.pd-review-variation { font-size: 1.2rem; color: #999; }
+.pd-review-comment { font-size: 1.38rem; color: #444; line-height: 1.65; margin-left: 3rem; }
+.pd-no-reviews {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #999;
+    font-size: 1.45rem;
+}
+.pd-no-reviews i { font-size: 3.5rem; color: #e0e0e0; display: block; margin-bottom: .9rem; }
 
-    .out-of-stock {
-        background: #f8d7da;
-        color: #721c24;
-    }
-
-    .product-details {
-        font-size: 1.35rem;
-        color: #4b5563;
-        line-height: 1.65;
-        padding: 1rem 1.1rem;
-        background: #f9fafb;
-        border: 1px solid #e5e7eb;
-        border-radius: 9px;
-    }
-
-    .product-meta {
-        display: flex;
-        gap: 2rem;
-        font-size: 1.3rem;
-        color: #666;
-    }
-
-    .add-to-cart-btn {
-        padding: 1.1rem 2rem;
-        background: linear-gradient(135deg, #27ae60 0%, #219150 100%);
-        color: white;
-        border: none;
-        border-radius: 9px;
-        font-size: 1.5rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-    }
-
-    .add-to-cart-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
-    }
-
-    .add-to-cart-btn:disabled {
-        background: #95a5a6;
-        cursor: not-allowed;
-    }
-
-    /* Reviews Section */
-    .reviews-section {
-        background: white;
-        padding: 3rem;
-        border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .reviews-header {
-        font-size: 2.5rem;
-        color: #333;
-        margin-bottom: 2rem;
-        border-bottom: 3px solid #27ae60;
-        padding-bottom: 1rem;
-    }
-
-    .reviews-overview {
-        display: grid;
-        grid-template-columns: 200px 1fr;
-        gap: 3rem;
-        margin-bottom: 3rem;
-        padding: 2rem;
-        background: #f8f9fa;
-        border-radius: 12px;
-    }
-
-    .average-rating {
-        text-align: center;
-    }
-
-    .rating-number {
-        font-size: 5rem;
-        font-weight: 700;
-        color: #27ae60;
-        margin-bottom: 0.5rem;
-    }
-
-    .rating-stars-large {
-        font-size: 2.5rem;
-        color: #ffd700;
-        margin-bottom: 0.5rem;
-    }
-
-    .total-reviews {
-        font-size: 1.4rem;
-        color: #666;
-    }
-
-    .rating-distribution {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .rating-bar-row {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        font-size: 1.4rem;
-    }
-
-    .star-label {
-        color: #ffd700;
-        min-width: 60px;
-    }
-
-    .progress-bar {
-        flex: 1;
-        height: 12px;
-        background: #e0e0e0;
-        border-radius: 6px;
-        overflow: hidden;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
-        transition: width 0.3s ease;
-    }
-
-    .count {
-        min-width: 60px;
-        text-align: right;
-        color: #666;
-    }
-
-    .reviews-list {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
-
-    .review-item {
-        padding: 2rem;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        transition: all 0.3s ease;
-    }
-
-    .review-item:hover {
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .review-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1rem;
-        gap: 1rem;
-    }
-
-    .reviewer-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        flex: 1;
-    }
-
-    .reviewer-top {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        flex-wrap: wrap;
-    }
-
-    .reviewer-name {
-        font-size: 1.6rem;
-        font-weight: 600;
-        color: #333;
-    }
-
-    .review-stars {
-        color: #ffd700;
-        font-size: 1.6rem;
-    }
-
-    .review-quantity {
-        font-size: 1.3rem;
-        color: #666;
-        background: #f0f0f0;
-        padding: 0.3rem 0.8rem;
-        border-radius: 4px;
-    }
-
-    .review-date {
-        font-size: 1.3rem;
-        color: #999;
-        white-space: nowrap;
-    }
-
-    .review-comment {
-        font-size: 1.5rem;
-        color: #666;
-        line-height: 1.6;
-    }
-
-    .no-reviews {
-        text-align: center;
-        padding: 3rem;
-        color: #999;
-        font-size: 1.6rem;
-    }
-
-    @media (max-width: 968px) {
-        .product-detail-section {
-            padding: 1.2rem;
-        }
-
-        .product-main {
-            grid-template-columns: 1fr;
-            padding: 1.4rem;
-            gap: 1.4rem;
-        }
-
-        .reviews-overview {
-            grid-template-columns: 1fr;
-        }
-
-        .main-image-container {
-            height: 320px;
-        }
-
-        .review-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
-
-        .reviewer-top {
-            flex-direction: column;
-            align-items: flex-start;
-            width: 100%;
-        }
-    }
+/* ─── Responsive ─────────────────────────────────────── */
+@media (max-width: 900px) {
+    .pd-main { grid-template-columns: 1fr; padding: 1.6rem; }
+    .pd-gallery-main { aspect-ratio: 4/3; }
+    .pd-seller-card { grid-template-columns: 1fr; }
+    .pd-seller-left { border-right: none; border-bottom: 1px solid #f0f0f0; padding-right: 0; padding-bottom: 1.2rem; }
+    .pd-specs { grid-template-columns: 1fr; }
+    .pd-seller-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+    .pd-wrap { padding: 1rem 1rem 3rem; }
+    .pd-name { font-size: 1.7rem; }
+    .pd-price-main { font-size: 2.4rem; }
+    .pd-actions { flex-direction: column; }
+    .pd-seller-stats { grid-template-columns: 1fr 1fr; }
+    .pd-ratings-top { gap: 1.5rem; }
+    .pd-section-head, .pd-section-body { padding-left: 1.4rem; padding-right: 1.4rem; }
+}
 </style>
 @endpush
 
 @section('content')
-<section class="product-detail-section">
-    <a href="{{ route('shop') }}" class="back-button">
-        <i class="fas fa-arrow-left"></i> Back to Shop
-    </a>
+@php
+    $salePrice    = $product->sale_price ?? null;
+    $isSale       = $salePrice !== null && (float)$salePrice > 0 && (float)$salePrice < (float)$product->price;
+    $displayPrice = $isSale ? (float)$salePrice : (float)$product->price;
+    $stock        = (int)($product->stock ?? 0);
+    $pieces       = (int)($product->pieces ?? 1);
 
-    <!-- Product Main Info -->
-    <div class="product-main">
-        <div class="product-images">
-            <div class="main-image-container">
-                <img src="{{ asset('uploaded_img/' . $product->image_01) }}" 
-                     alt="{{ $product->name }}" 
-                     class="main-image">
+    $colors = $product->color ? array_filter(array_map('trim', explode(',', $product->color))) : [];
+    $sizes  = $product->size  ? array_filter(array_map('trim', explode(',', $product->size)))  : [];
+
+    $thumbs = array_filter([
+        $product->image_01 ?? null,
+        $product->image_02 ?? null,
+        $product->image_03 ?? null,
+    ]);
+
+    $sellerLogo = ($product->seller && !empty($product->seller->shop_logo))
+        ? asset('uploaded_img/' . $product->seller->shop_logo)
+        : ($siteLogoUrl ?? asset('images/logo.png'));
+
+    $discountPct = 0;
+    if ($isSale && (float)$product->price > 0) {
+        $discountPct = round((1 - (float)$salePrice / (float)$product->price) * 100);
+    }
+@endphp
+
+<div class="pd-wrap">
+
+    {{-- Breadcrumb --}}
+    <nav class="pd-breadcrumb">
+        <a href="{{ route('shop') }}">Shop</a>
+        @if($product->category)
+            <span>›</span>
+            <a href="{{ route('shop') }}?category={{ $product->category->id }}">{{ $product->category->name }}</a>
+        @endif
+        <span>›</span>
+        <span style="color:#333">{{ Str::limit($product->name, 60) }}</span>
+    </nav>
+
+    {{-- ── Main product panel ─────────────────────────── --}}
+    <div class="pd-main">
+
+        {{-- Gallery --}}
+        <div class="pd-gallery">
+            <div class="pd-gallery-main">
+                <img id="pdMainImg"
+                     src="{{ asset('uploaded_img/' . ($thumbs[0] ?? 'placeholder.png')) }}"
+                     alt="{{ $product->name }}">
             </div>
+            @if(count($thumbs) > 1)
+            <div class="pd-thumbs">
+                @foreach($thumbs as $i => $img)
+                <div class="pd-thumb {{ $i === 0 ? 'active' : '' }}"
+                     onclick="pdSwitchThumb(this, '{{ asset('uploaded_img/' . $img) }}')">
+                    <img src="{{ asset('uploaded_img/' . $img) }}" alt="">
+                </div>
+                @endforeach
+            </div>
+            @endif
         </div>
 
-        <div class="product-info">
-            <h1 class="product-title">{{ $product->name }}</h1>
+        {{-- Info --}}
+        <div class="pd-info">
+            <h1 class="pd-name">{{ $product->name }}</h1>
 
-            {{-- Seller Shop Name + Logo --}}
-            @if($product->seller)
-                @php
-                    $sellerLogo = !empty($product->seller->shop_logo)
-                        ? asset('uploaded_img/' . $product->seller->shop_logo)
-                        : ($siteLogoUrl ?? asset('images/logo.png'));
-                @endphp
-                <div style="display:flex;align-items:center;gap:0.7rem;margin-top:-0.8rem;">
-                    <img
-                        src="{{ $sellerLogo }}"
-                        alt="{{ $product->seller->shop_name ?? 'Shop' }} logo"
-                        style="width:28px;height:28px;border-radius:999px;object-fit:cover;border:1px solid #e5e7eb;background:#fff;"
-                        onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'"
-                    >
-                    <div style="display:flex;flex-direction:column;line-height:1.2;">
-                        <span style="font-size:1.2rem;color:#6b7280;">Shop</span>
-                        <strong style="font-size:1.4rem;color:#111827;">{{ $product->seller->shop_name ?? '—' }}</strong>
-                    </div>
-                </div>
-            @endif
-            
-            <div class="product-rating">
-                <div class="stars">
+            {{-- Rating row --}}
+            <div class="pd-meta-row">
+                <span class="pd-rating-val">{{ number_format($averageRating, 1) }}</span>
+                <span class="pd-stars">
                     @for($i = 1; $i <= 5; $i++)
-                        @if($i <= round($averageRating))
-                            ★
-                        @else
-                            ☆
-                        @endif
+                        {!! $i <= round($averageRating) ? '★' : '☆' !!}
                     @endfor
+                </span>
+                <span class="pd-sep">|</span>
+                <span class="pd-reviews-count">{{ number_format($totalReviews) }} Ratings</span>
+                @if($stock > 0)
+                    <span class="pd-sep">|</span>
+                    <span class="pd-sold">In Stock</span>
+                @endif
+            </div>
+
+            {{-- Price strip --}}
+            <div class="pd-price-strip">
+                <div class="pd-price-main">
+                    <span>₱{{ number_format($displayPrice, 2) }}</span>
+                    @if($isSale)
+                        <span class="pd-price-old">₱{{ number_format((float)$product->price, 2) }}</span>
+                        <span class="pd-sale-badge">-{{ $discountPct }}%</span>
+                    @endif
                 </div>
-                <span class="rating-summary">
-                    {{ number_format($averageRating, 1) }} / 5.0 ({{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }})
+            </div>
+
+            {{-- Shipping row --}}
+            <div class="pd-row">
+                <span class="pd-row-label">Shipping</span>
+                <span class="pd-row-val">
+                    <i class="fas fa-truck"></i>
+                    <span>Standard Shipping · Cash on Delivery available</span>
                 </span>
             </div>
 
-            @php
-                $salePrice = $product->sale_price ?? null;
-                $isSale = $salePrice !== null && (float) $salePrice > 0 && (float) $salePrice < (float) $product->price;
-                $pieces = (int) ($product->pieces ?? 1);
-                $displayPrice = $isSale ? $salePrice : $product->price;
-            @endphp
-
-            <div class="product-price">
-                @if($isSale)
-                    <span class="price-new">₱{{ number_format((float) $salePrice, 2) }}</span>
-                    <span class="price-old">₱{{ number_format((float) $product->price, 2) }}</span>
-                    <span class="sale-pill">Sale!</span>
-                @else
-                    ₱{{ number_format((float) $product->price, 2) }}
-                @endif
+            {{-- Shopping Guarantee --}}
+            <div class="pd-row">
+                <span class="pd-row-label">Shopping Guarantee</span>
+                <span class="pd-row-val">
+                    <i class="fas fa-shield-alt pd-guarantee-icon"></i>
+                    <span>Lowest Price Guaranteed &nbsp;·&nbsp; Free &amp; Easy Returns &nbsp;·&nbsp; Merchandise Protection</span>
+                </span>
             </div>
 
-            @if($pieces > 1)
-                <div class="product-bundle"><strong>Bundle:</strong> {{ $pieces }} pcs</div>
+            {{-- Colors --}}
+            @if(count($colors) > 0)
+            <div class="pd-row">
+                <span class="pd-row-label">Color</span>
+                <span class="pd-row-val">
+                    <div class="pd-chips">
+                        @foreach($colors as $color)
+                            <button type="button" class="pd-chip" onclick="pdSelectChip(this)">{{ $color }}</button>
+                        @endforeach
+                    </div>
+                </span>
+            </div>
             @endif
 
-            <div>
-                @php
-                    $stock = $product->stock ?? 0;
-                @endphp
-                @if($stock > 0)
-                    @if($stock <= 10)
-                        <span class="product-stock low-stock">
-                            <i class="fas fa-exclamation-triangle"></i> Low Stock ({{ $stock }} left)
-                        </span>
-                    @else
-                        <span class="product-stock in-stock">
-                            <i class="fas fa-check-circle"></i> In Stock ({{ $stock }} available)
-                        </span>
-                    @endif
-                @else
-                    <span class="product-stock out-of-stock">
-                        <i class="fas fa-times-circle"></i> Out of Stock
-                    </span>
-                @endif
+            {{-- Sizes --}}
+            @if(count($sizes) > 0)
+            <div class="pd-row">
+                <span class="pd-row-label">Size</span>
+                <span class="pd-row-val">
+                    <div class="pd-chips">
+                        @foreach($sizes as $size)
+                            <button type="button" class="pd-chip" onclick="pdSelectChip(this)">{{ $size }}</button>
+                        @endforeach
+                    </div>
+                </span>
             </div>
+            @endif
 
-            <div class="product-details">
-                <strong>Product Details:</strong><br>
-                {{ $product->details }}
-            </div>
-
+            {{-- Type --}}
             @if($product->type)
-            <div class="product-meta">
-                <div><strong>Type:</strong> {{ $product->type }}</div>
+            <div class="pd-row">
+                <span class="pd-row-label">Type</span>
+                <span class="pd-row-val">{{ $product->type }}</span>
             </div>
             @endif
 
+            {{-- Bundle --}}
+            @if($pieces > 1)
+            <div class="pd-row">
+                <span class="pd-row-label">Bundle</span>
+                <span class="pd-row-val">{{ $pieces }} pcs per set</span>
+            </div>
+            @endif
+
+            {{-- Quantity --}}
+            <div class="pd-row">
+                <span class="pd-row-label">Quantity</span>
+                <span class="pd-row-val" style="align-items:center;gap:.9rem;">
+                    <div class="pd-qty-ctrl">
+                        <button type="button" class="pd-qty-btn" id="pdQtyMinus" onclick="pdChangeQty(-1)" {{ $stock <= 0 ? 'disabled' : '' }}>−</button>
+                        <input type="number" class="pd-qty-input" id="pdQtyInput" value="1" min="1" max="{{ $stock }}" readonly>
+                        <button type="button" class="pd-qty-btn" id="pdQtyPlus" onclick="pdChangeQty(1)" {{ $stock <= 0 ? 'disabled' : '' }}>+</button>
+                    </div>
+                    @if($stock > 0)
+                        @if($stock <= 10)
+                            <span class="pd-stock-info pd-stock-low">Only {{ $stock }} left!</span>
+                        @else
+                            <span class="pd-stock-info">{{ number_format($stock) }} pieces available</span>
+                        @endif
+                    @else
+                        <span class="pd-stock-info pd-stock-low">Out of Stock</span>
+                    @endif
+                </span>
+            </div>
+
+            {{-- Action buttons --}}
             <form id="add-to-cart-form" action="{{ route('cart.add') }}" method="POST">
                 @csrf
-                <input type="hidden" name="product_id" value="{{ $product->id }}">
-                <input type="hidden" name="product_name" value="{{ $product->name }}">
+                <input type="hidden" name="product_id"    value="{{ $product->id }}">
+                <input type="hidden" name="product_name"  value="{{ $product->name }}">
                 <input type="hidden" name="product_price" value="{{ $displayPrice }}">
                 <input type="hidden" name="product_image" value="{{ $product->image_01 }}">
-                <input type="hidden" name="quantity" value="1">
-                
-                <button type="submit" class="add-to-cart-btn" {{ $stock <= 0 ? 'disabled' : '' }}>
-                    <i class="fas fa-shopping-cart"></i>
-                    {{ $stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
-                </button>
+                <input type="hidden" name="quantity"      id="pdQtyHidden" value="1">
+
+                <div class="pd-actions">
+                    <button type="submit" class="pd-btn-cart" id="pdAddCartBtn" {{ $stock <= 0 ? 'disabled' : '' }}>
+                        <i class="fas fa-shopping-cart"></i>
+                        {{ $stock > 0 ? 'Add to Cart' : 'Out of Stock' }}
+                    </button>
+                    <button type="button" class="pd-btn-buy" id="pdBuyNowBtn" {{ $stock <= 0 ? 'disabled' : '' }}
+                            onclick="pdBuyNow()">
+                        <i class="fas fa-bolt"></i>
+                        Buy Now
+                    </button>
+                </div>
             </form>
         </div>
     </div>
 
-    <!-- Reviews Section -->
-    <div class="reviews-section">
-        <h2 class="reviews-header">Customer Reviews</h2>
+    {{-- ── Seller Card ──────────────────────────────────── --}}
+    @if($product->seller)
+    <div class="pd-seller-card">
+        <div class="pd-seller-left">
+            <img src="{{ $sellerLogo }}" alt="{{ $product->seller->shop_name }} logo"
+                 class="pd-seller-logo"
+                 onerror="this.src='{{ $siteLogoUrl ?? asset('images/logo.png') }}'">
+            <div>
+                <p class="pd-seller-name">{{ $product->seller->shop_name ?? 'Shop' }}</p>
+                <p class="pd-seller-active">Active Recently</p>
+                <div class="pd-seller-btns">
+                    @auth
+                        <a href="{{ route('user.seller.chat.show', $product->seller->id) }}"
+                           class="pd-seller-btn pd-seller-btn-chat" style="text-decoration:none;">
+                            <i class="fas fa-comment-dots"></i> Chat Now
+                        </a>
+                    @else
+                        <a href="{{ route('login') }}"
+                           class="pd-seller-btn pd-seller-btn-chat" style="text-decoration:none;">
+                            <i class="fas fa-comment-dots"></i> Chat Now
+                        </a>
+                    @endauth
+                    <a href="{{ route('seller.shop', $product->seller->id) }}"
+                       class="pd-seller-btn pd-seller-btn-shop" style="text-decoration:none;">
+                        <i class="fas fa-store"></i> View Shop
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="pd-seller-stats">
+            <div>
+                <div class="pd-seller-stat-label">Ratings</div>
+                <div class="pd-seller-stat-val">{{ number_format($product->seller->products()->withCount('reviews')->get()->sum('reviews_count')) }}</div>
+            </div>
+            <div>
+                <div class="pd-seller-stat-label">Products</div>
+                <div class="pd-seller-stat-val">{{ number_format($product->seller->products()->count()) }}</div>
+            </div>
+            <div>
+                <div class="pd-seller-stat-label">Response Rate</div>
+                <div class="pd-seller-stat-val" style="color:#16a34a;">High</div>
+            </div>
+            <div>
+                <div class="pd-seller-stat-label">Response Time</div>
+                <div class="pd-seller-stat-val" style="color:#16a34a;">Within hours</div>
+            </div>
+            <div>
+                <div class="pd-seller-stat-label">Joined</div>
+                <div class="pd-seller-stat-val" style="color:#333;">{{ $product->seller->created_at ? $product->seller->created_at->diffForHumans() : '—' }}</div>
+            </div>
+            <div>
+                <div class="pd-seller-stat-label">Followers</div>
+                <div class="pd-seller-stat-val" style="color:#333;">—</div>
+            </div>
+        </div>
+    </div>
+    @endif
 
-        @if($totalReviews > 0)
-            <div class="reviews-overview">
-                <div class="average-rating">
-                    <div class="rating-number">{{ number_format($averageRating, 1) }}</div>
-                    <div class="rating-stars-large">
+    {{-- ── Product Specifications ────────────────────────── --}}
+    <div class="pd-section">
+        <div class="pd-section-head">Product Specifications</div>
+        <div class="pd-section-body">
+            <div class="pd-specs">
+                @if($product->category)
+                <div class="pd-spec-row" style="grid-column:1/-1">
+                    <span class="pd-spec-key">Category</span>
+                    <span class="pd-spec-val" style="color:#2563eb;">
+                        U-KAY HUB
+                        @if($product->category)
+                            › <a href="{{ route('shop') }}?category={{ $product->category->id }}"
+                                 style="color:#2563eb;text-decoration:none;">{{ $product->category->name }}</a>
+                        @endif
+                    </span>
+                </div>
+                @endif
+                <div class="pd-spec-row">
+                    <span class="pd-spec-key">Stock</span>
+                    <span class="pd-spec-val">{{ $stock > 0 ? 'IN STOCK' : 'OUT OF STOCK' }}</span>
+                </div>
+                @if($product->type)
+                <div class="pd-spec-row">
+                    <span class="pd-spec-key">Type</span>
+                    <span class="pd-spec-val">{{ $product->type }}</span>
+                </div>
+                @endif
+                @if($product->color)
+                <div class="pd-spec-row">
+                    <span class="pd-spec-key">Color</span>
+                    <span class="pd-spec-val">{{ $product->color }}</span>
+                </div>
+                @endif
+                @if($product->size)
+                <div class="pd-spec-row">
+                    <span class="pd-spec-key">Size</span>
+                    <span class="pd-spec-val">{{ $product->size }}</span>
+                </div>
+                @endif
+                @if($pieces > 1)
+                <div class="pd-spec-row">
+                    <span class="pd-spec-key">Bundle</span>
+                    <span class="pd-spec-val">{{ $pieces }} pcs</span>
+                </div>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- ── Product Description ──────────────────────────── --}}
+    <div class="pd-section">
+        <div class="pd-section-head">Product Description</div>
+        <div class="pd-section-body">
+            <div class="pd-desc">{{ $product->details }}</div>
+        </div>
+    </div>
+
+    {{-- ── Product Ratings ──────────────────────────────── --}}
+    <div class="pd-section">
+        <div class="pd-section-head">Product Ratings</div>
+        <div class="pd-section-body">
+            @if($totalReviews > 0)
+            <div class="pd-ratings-top">
+                <div style="text-align:center;">
+                    <div class="pd-rating-big-num">{{ number_format($averageRating, 1) }}</div>
+                    <div class="pd-rating-big-stars">
                         @for($i = 1; $i <= 5; $i++)
-                            @if($i <= round($averageRating))
-                                ★
-                            @else
-                                ☆
-                            @endif
+                            {!! $i <= round($averageRating) ? '★' : '☆' !!}
                         @endfor
                     </div>
-                    <div class="total-reviews">{{ $totalReviews }} {{ $totalReviews == 1 ? 'review' : 'reviews' }}</div>
+                    <div class="pd-rating-big-total">out of 5</div>
                 </div>
-
-                <div class="rating-distribution">
+                <div class="pd-rating-bars">
                     @foreach($starDistribution as $star => $data)
-                        <div class="rating-bar-row">
-                            <span class="star-label">{{ $star }} ★</span>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: {{ $data['percentage'] }}%"></div>
-                            </div>
-                            <span class="count">{{ $data['count'] }}</span>
+                    <div class="pd-bar-row">
+                        <span class="pd-bar-lbl">{{ $star }} Star</span>
+                        <div class="pd-bar-track">
+                            <div class="pd-bar-fill" style="width:{{ $data['percentage'] }}%"></div>
                         </div>
+                        <span class="pd-bar-cnt">{{ $data['count'] }}</span>
+                    </div>
                     @endforeach
                 </div>
             </div>
 
-            <div class="reviews-list">
-                @foreach($reviews as $review)
-                    <div class="review-item">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <div class="reviewer-top">
-                                    <span class="reviewer-name">{{ $review->user->name }}</span>
-                                    <span class="review-stars">
-                                        @for($i = 1; $i <= 5; $i++)
-                                            @if($i <= $review->rating)
-                                                ★
-                                            @else
-                                                ☆
-                                            @endif
-                                        @endfor
-                                    </span>
-                                    @if($review->orderItem)
-                                        <span class="review-quantity">
-                                            <i class="fas fa-shopping-bag"></i> Purchased: {{ $review->orderItem->quantity }} {{ $review->orderItem->quantity > 1 ? 'items' : 'item' }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                            <span class="review-date">{{ $review->created_at->format('M d, Y') }}</span>
-                        </div>
-                        @if($review->comment)
-                            <div class="review-comment">{{ $review->comment }}</div>
-                        @else
-                            <div class="review-comment" style="color: #999; font-style: italic;">No written review</div>
-                        @endif
-                    </div>
+            {{-- Filter tabs --}}
+            <div class="pd-filter-tabs">
+                <button type="button" class="pd-filter-tab active" onclick="pdFilterReviews('all', this)">
+                    All ({{ $totalReviews }})
+                </button>
+                @foreach([5,4,3,2,1] as $s)
+                    @if(($starDistribution[$s]['count'] ?? 0) > 0)
+                    <button type="button" class="pd-filter-tab" onclick="pdFilterReviews({{ $s }}, this)">
+                        {{ $s }} Star ({{ $starDistribution[$s]['count'] }})
+                    </button>
+                    @endif
                 @endforeach
             </div>
-        @else
-            <div class="no-reviews">
-                <i class="fas fa-star" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+
+            {{-- Review list --}}
+            <div class="pd-review-list" id="pdReviewList">
+                @foreach($reviews as $review)
+                <div class="pd-review-item" data-rating="{{ $review->rating }}">
+                    <div class="pd-review-top">
+                        <div class="pd-reviewer-avatar">{{ strtoupper(substr($review->user->name ?? 'U', 0, 1)) }}</div>
+                        <div>
+                            <div class="pd-reviewer-name">{{ $review->user->name ?? 'Anonymous' }}</div>
+                            <div class="pd-review-stars">
+                                @for($i = 1; $i <= 5; $i++)
+                                    {!! $i <= $review->rating ? '★' : '☆' !!}
+                                @endfor
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pd-review-meta" style="margin-left:3rem;">
+                        <span class="pd-review-date">{{ $review->created_at->format('Y-m-d H:i') }}</span>
+                        @if($review->orderItem)
+                            <span class="pd-review-variation">Qty: {{ $review->orderItem->quantity }}</span>
+                        @endif
+                    </div>
+                    <div class="pd-review-comment">
+                        {{ $review->comment ?? 'No written review.' }}
+                    </div>
+                </div>
+                @endforeach
+            </div>
+            @else
+            <div class="pd-no-reviews">
+                <i class="fas fa-star"></i>
                 <p>No reviews yet. Be the first to review this product!</p>
             </div>
-        @endif
+            @endif
+        </div>
     </div>
-</section>
+
+</div>
+@endsection
 
 @push('scripts')
-<!-- SweetAlert2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
 <script>
-    // Intercept the 'Add to Cart' form submission
-    document.getElementById('add-to-cart-form').addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent the default form submission
+(function () {
 
-        const form = this;
-        const button = form.querySelector('.add-to-cart-btn');
-        const formData = new FormData(form);
+    /* ── Thumbnail switcher ── */
+    window.pdSwitchThumb = function (el, src) {
+        document.getElementById('pdMainImg').src = src;
+        document.querySelectorAll('.pd-thumb').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    };
 
-        // Disable button and show loading state
-        button.disabled = true;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+    /* ── Chip selector ── */
+    window.pdSelectChip = function (el) {
+        const group = el.closest('.pd-chips');
+        group.querySelectorAll('.pd-chip').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+    };
 
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                // The 'X-CSRF-TOKEN' is crucial for Laravel's security
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Accept': 'application/json'
-            },
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Update cart count in the header
-                updateCartCount(data.cart_count);
-                if (window.refreshCartDrawer) window.refreshCartDrawer();
+    /* ── Quantity stepper ── */
+    const maxStock = {{ $stock }};
+    window.pdChangeQty = function (delta) {
+        const input  = document.getElementById('pdQtyInput');
+        const hidden = document.getElementById('pdQtyHidden');
+        let val = parseInt(input.value, 10) + delta;
+        val = Math.max(1, Math.min(maxStock, val));
+        input.value  = val;
+        hidden.value = val;
+        document.getElementById('pdQtyMinus').disabled = val <= 1;
+        document.getElementById('pdQtyPlus').disabled  = val >= maxStock;
+    };
 
-                // Show a success notification
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Added to Cart!',
-                    text: data.message,
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 2000,
-                    timerProgressBar: true
-                });
-            } else if (data.redirect) {
-                // This handles cases where the user is not logged in
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Login Required',
-                    text: data.message,
-                    showCancelButton: true,
-                    confirmButtonText: 'Login',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = data.redirect;
-                    }
-                });
-            } else {
-                // Handle other server-side errors (e.g., out of stock)
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Action Failed',
-                    text: data.message || 'Could not add item to cart.',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: 'Something went wrong. Please try again.',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        })
-        .finally(() => {
-            // Re-enable the button and restore its text
-            button.disabled = false;
-            button.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
+    /* ── Review filter tabs ── */
+    window.pdFilterReviews = function (rating, btn) {
+        document.querySelectorAll('.pd-filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        document.querySelectorAll('.pd-review-item').forEach(item => {
+            item.style.display = (rating === 'all' || parseInt(item.dataset.rating) === rating) ? '' : 'none';
         });
-    });
+    };
 
-    // Function to update the cart count in the header
-    function updateCartCount(count) {
-        // This selector might need to be adjusted based on your header's HTML structure
-        const cartCountElements = document.querySelectorAll('.header .icons a[href*="cart"] span');
-        cartCountElements.forEach(element => {
-            element.textContent = `(${count})`;
+    /* ── Add to Cart (AJAX) ── */
+    const form = document.getElementById('add-to-cart-form');
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const btn  = document.getElementById('pdAddCartBtn');
+            const data = new FormData(form);
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding…';
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                body: data
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    if (typeof updateCartCount === 'function') updateCartCount(res.cart_count);
+                    if (window.refreshCartDrawer) window.refreshCartDrawer();
+                    Swal.fire({ icon:'success', title:'Added to Cart!', text: res.message,
+                        toast:true, position:'top-end', showConfirmButton:false, timer:2000, timerProgressBar:true });
+                } else if (res.redirect) {
+                    Swal.fire({ icon:'warning', title:'Login Required', text: res.message,
+                        showCancelButton:true, confirmButtonText:'Login', cancelButtonText:'Cancel' })
+                    .then(r => { if (r.isConfirmed) window.location.href = res.redirect; });
+                } else {
+                    Swal.fire({ icon:'error', title:'Failed', text: res.message || 'Could not add item.',
+                        toast:true, position:'top-end', showConfirmButton:false, timer:3000 });
+                }
+            })
+            .catch(() => Swal.fire({ icon:'error', title:'Oops…', text:'Something went wrong.',
+                toast:true, position:'top-end', showConfirmButton:false, timer:3000 }))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-shopping-cart"></i> Add to Cart';
+            });
         });
     }
+
+    /* ── Buy Now ── */
+    window.pdBuyNow = function () {
+        const hidden = document.getElementById('pdQtyHidden');
+        const qty = hidden ? hidden.value : 1;
+        document.getElementById('add-to-cart-form').querySelector('[name="quantity"]').value = qty;
+        document.getElementById('add-to-cart-form').dispatchEvent(new Event('submit'));
+    };
+
+})();
 </script>
 @endpush
-@endsection

@@ -240,8 +240,8 @@
             
             <!-- CTA Button -->
             <div style="text-align: center;">
-                <a href="{{ route('seller.wallet.index') }}" class="cta-button">
-                    Go to Wallet
+                <a href="{{ route('seller.subscription.pay-rent.form') }}" class="cta-button">
+                    Manage Subscription Payment
                 </a>
             </div>
             
@@ -261,3 +261,4 @@
     </div>
 </body>
 </html>
+

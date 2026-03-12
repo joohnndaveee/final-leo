@@ -57,6 +57,11 @@ class Seller extends Authenticatable
         return $this->hasMany(Product::class, 'seller_id');
     }
 
+    public function followers()
+    {
+        return $this->hasMany(\App\Models\SellerFollow::class, 'seller_id');
+    }
+
     /**
      * Subscriptions for this seller
      */
@@ -73,21 +78,6 @@ class Seller extends Authenticatable
         return $this->hasMany(SellerPayment::class);
     }
 
-    /**
-     * Wallet for this seller
-     */
-    public function wallet()
-    {
-        return $this->hasOne(SellerWallet::class);
-    }
-
-    /**
-     * Wallet transactions for this seller
-     */
-    public function walletTransactions()
-    {
-        return $this->hasMany(WalletTransaction::class);
-    }
 
     /**
      * Chat messages with admin
@@ -158,12 +148,4 @@ class Seller extends Authenticatable
         return $this->sellerSubscriptions()->latest()->first();
     }
 
-    /**
-     * Get wallet balance
-     */
-    public function getWalletBalance(): float
-    {
-        $wallet = $this->wallet;
-        return $wallet ? (float) $wallet->balance : 0.0;
-    }
 }

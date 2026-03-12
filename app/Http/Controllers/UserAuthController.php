@@ -9,7 +9,6 @@ use App\Models\User;
 use App\Models\Seller;
 use App\Models\SellerPayment;
 use App\Models\SellerSubscription;
-use App\Models\SellerWallet;
 
 class UserAuthController extends Controller
 {
@@ -245,13 +244,6 @@ class UserAuthController extends Controller
                 'auto_renew' => true,
             ]);
 
-            // Create wallet for the seller (used by existing subscription flow)
-            SellerWallet::create([
-                'seller_id' => $seller->id,
-                'balance' => 0.00,
-                'total_deposited' => 0.00,
-                'total_withdrawn' => 0.00,
-            ]);
         });
 
         return redirect()->route('seller.login')->with('success', 'Registered as seller. Your application is pending approval.');

@@ -40,6 +40,8 @@ Route::post('/seller/register', [UserAuthController::class, 'sellerRegister'])->
 // User routes (placeholders for now)
 Route::get('/about', function () { return view('about'); })->name('about');
 Route::get('/shop', [UserShopController::class, 'index'])->name('shop');
+Route::get('/shop/seller/{id}', [\App\Http\Controllers\SellerShopController::class, 'show'])->name('seller.shop');
+Route::post('/shop/seller/{id}/follow', [\App\Http\Controllers\SellerFollowController::class, 'toggle'])->name('seller.follow.toggle');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 Route::get('/search', function () { return view('search'); })->name('search');
@@ -50,6 +52,7 @@ Route::middleware(['auth:web'])->group(function () {
     Route::get('/orders', [OrderController::class, 'index'])->name('orders');
     Route::get('/order/{id}/details', [OrderController::class, 'show'])->name('order.details');
     Route::post('/order/{id}/received', [OrderController::class, 'markReceived'])->name('order.received');
+    Route::post('/order/{id}/not-received', [OrderController::class, 'reportNotReceived'])->name('order.not.received');
     Route::post('/order/{id}/return-request', [OrderController::class, 'requestReturn'])->name('order.return.request');
 
     // Cart routes
@@ -64,6 +67,9 @@ Route::middleware(['auth:web'])->group(function () {
     // User Profile routes (edit & change password)
     Route::get('/profile', [UserProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [UserProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile/orders-panel', [UserProfileController::class, 'ordersPanel'])->name('profile.orders.panel');
+    Route::get('/profile/order/{id}/detail', [UserProfileController::class, 'orderDetail'])->name('profile.order.detail');
+    Route::get('/profile/notifications-panel', [UserProfileController::class, 'notificationsPanel'])->name('profile.notifications.panel');
 
     // Checkout & Order routes
     Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
@@ -85,6 +91,13 @@ Route::middleware('auth:web')->group(function () {
     Route::get('/chat', [ChatController::class, 'index'])->name('chat');
     Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
     Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('chat.getMessages');
+    Route::get('/chat/widget/conversations', [ChatController::class, 'widgetConversations'])->name('chat.widget.conversations');
+
+    // User ↔ Seller chat
+    Route::get('/chat/sellers', [\App\Http\Controllers\UserSellerChatController::class, 'index'])->name('user.seller.chats');
+    Route::get('/chat/seller/{sellerId}', [\App\Http\Controllers\UserSellerChatController::class, 'show'])->name('user.seller.chat.show');
+    Route::post('/chat/seller/{sellerId}/send', [\App\Http\Controllers\UserSellerChatController::class, 'send'])->name('user.seller.chat.send');
+    Route::get('/chat/seller/{sellerId}/messages', [\App\Http\Controllers\UserSellerChatController::class, 'getMessages'])->name('user.seller.chat.messages');
 });
 
 // Notification unread count (public AJAX - checks auth itself)
@@ -223,17 +236,12 @@ Route::prefix('seller')->middleware(['auth:seller', 'check.seller.subscription']
     Route::put('/subscription/{subscriptionId}', [\App\Http\Controllers\SellerSubscriptionController::class, 'update'])->name('seller.subscription.update');
 });
 
-// Routes accessible even with expired subscription (settings and wallet)
+// Routes accessible even with expired subscription (settings and subscription payment)
 Route::prefix('seller')->middleware('auth:seller')->group(function () {
-    // Wallet routes (allow payment even when expired)
-    Route::get('/wallet', [\App\Http\Controllers\WalletController::class, 'index'])->name('seller.wallet.index');
-    Route::get('/wallet/deposit', [\App\Http\Controllers\WalletController::class, 'showDepositForm'])->name('seller.wallet.deposit.form');
-    Route::post('/wallet/deposit', [\App\Http\Controllers\WalletController::class, 'deposit'])->name('seller.wallet.deposit');
-    Route::get('/wallet/pay-rent', [\App\Http\Controllers\WalletController::class, 'showPayRentForm'])->name('seller.wallet.pay-rent.form');
-    Route::post('/wallet/pay-rent', [\App\Http\Controllers\WalletController::class, 'payRent'])->name('seller.wallet.pay-rent');
-    Route::get('/wallet/payment-receipt/{payment}', [\App\Http\Controllers\WalletController::class, 'showPaymentReceipt'])->name('seller.wallet.payment-receipt');
-    Route::get('/wallet/withdraw', [\App\Http\Controllers\WalletController::class, 'showWithdrawalForm'])->name('seller.wallet.withdraw.form');
-    Route::post('/wallet/withdraw', [\App\Http\Controllers\WalletController::class, 'withdraw'])->name('seller.wallet.withdraw');
+    // Subscription rent payment routes (allow payment even when expired)
+    Route::get('/subscription/pay-rent', [\App\Http\Controllers\SellerRentPaymentController::class, 'showForm'])->name('seller.subscription.pay-rent.form');
+    Route::post('/subscription/pay-rent', [\App\Http\Controllers\SellerRentPaymentController::class, 'submit'])->name('seller.subscription.pay-rent.submit');
+    Route::get('/subscription/payment-receipt/{payment}', [\App\Http\Controllers\SellerRentPaymentController::class, 'receipt'])->name('seller.subscription.payment-receipt');
 
     // Settings route (allow access even when expired)
     Route::get('/settings', [\App\Http\Controllers\SellerController::class, 'settings'])->name('seller.settings');
@@ -249,38 +257,11 @@ Route::prefix('seller')->middleware('auth:seller')->group(function () {
     Route::get('/chat/messages', [\App\Http\Controllers\SellerChatController::class, 'getMessages'])->name('seller.chat.messages');
     Route::get('/chat/files/{file}/view', [\App\Http\Controllers\SellerChatController::class, 'viewFile'])->name('seller.chat.files.view');
     Route::get('/chat/files/{file}/download', [\App\Http\Controllers\SellerChatController::class, 'downloadFile'])->name('seller.chat.files.download');
-    
-    // Temporary debug route
-    Route::get('/debug-wallet', function() {
-        $seller = auth('seller')->user();
-        
-        if (!$seller) {
-            return response()->json(['error' => 'Not logged in as seller']);
-        }
-        
-        $wallet = $seller->wallet;
-        $subscription = $seller->sellerSubscriptions()->latest()->first();
-        
-        return response()->json([
-            'seller' => [
-                'id' => $seller->id,
-                'name' => $seller->name,
-                'email' => $seller->email,
-                'subscription_status' => $seller->subscription_status,
-                'subscription_end_date' => $seller->subscription_end_date,
-            ],
-            'wallet' => $wallet ? [
-                'id' => $wallet->id,
-                'balance' => $wallet->balance,
-                'total_deposited' => $wallet->total_deposited,
-            ] : 'NO WALLET FOUND',
-            'subscription' => $subscription ? [
-                'id' => $subscription->id,
-                'amount' => $subscription->amount,
-                'status' => $subscription->status,
-                'end_date' => $subscription->end_date,
-            ] : 'NO SUBSCRIPTION FOUND',
-            'can_pay' => $wallet && $subscription && $wallet->balance >= $subscription->amount,
-        ]);
-    });
+
+    // Seller ↔ Buyer chat
+    Route::get('/buyer-chats', [\App\Http\Controllers\SellerBuyerChatController::class, 'index'])->name('seller.buyer.chats');
+    Route::get('/buyer-chats/{userId}', [\App\Http\Controllers\SellerBuyerChatController::class, 'show'])->name('seller.buyer.chat.show');
+    Route::post('/buyer-chats/{userId}/send', [\App\Http\Controllers\SellerBuyerChatController::class, 'send'])->name('seller.buyer.chat.send');
+    Route::get('/buyer-chats/{userId}/messages', [\App\Http\Controllers\SellerBuyerChatController::class, 'getMessages'])->name('seller.buyer.chat.messages');
+    Route::get('/buyer-chats/unread-count', [\App\Http\Controllers\SellerBuyerChatController::class, 'unreadCount'])->name('seller.buyer.chat.unread');
 });

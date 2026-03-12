@@ -931,9 +931,22 @@
             </a>
         </div>
         <div class="nav-item">
-            <a href="{{ route('seller.wallet.index') }}" class="nav-link {{ request()->routeIs('seller.wallet.*') ? 'active' : '' }}">
-                <i class="fas fa-wallet nav-icon"></i>
-                <span class="nav-text">Wallet</span>
+            <a href="{{ route('seller.subscription.pay-rent.form') }}" class="nav-link {{ request()->routeIs('seller.subscription.pay-rent.*') || request()->routeIs('seller.subscription.payment-receipt') ? 'active' : '' }}">
+                <i class="fas fa-money-bill-wave nav-icon"></i>
+                <span class="nav-text">Pay Monthly Rent</span>
+            </a>
+        </div>
+        <div class="nav-item">
+            <a href="{{ route('seller.buyer.chats') }}" class="nav-link {{ request()->routeIs('seller.buyer.*') ? 'active' : '' }}">
+                <i class="fas fa-inbox nav-icon"></i>
+                <span class="nav-text">Buyer Messages</span>
+                @php
+                    $buyerUnread = \App\Models\UserSellerChat::where('seller_id', Auth::guard('seller')->id())
+                        ->where('sender_type', 'user')->where('is_read', 0)->count();
+                @endphp
+                @if($buyerUnread)
+                    <span style="background:#16a34a;color:#fff;font-size:.9rem;font-weight:700;border-radius:999px;padding:.1rem .45rem;margin-left:auto;">{{ $buyerUnread }}</span>
+                @endif
             </a>
         </div>
         <div class="nav-item">
@@ -1122,3 +1135,4 @@
 </script>
 </body>
 </html>
+

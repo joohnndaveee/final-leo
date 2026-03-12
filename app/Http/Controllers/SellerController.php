@@ -343,7 +343,7 @@ class SellerController extends Controller
         $this->ensureSellerOwnsOrder($order);
 
         $validated = $request->validate([
-            'status' => 'required|in:confirmed,packed,shipped,out_for_delivery,delivered,cancelled,in_transit,return_pickup_scheduled,return_picked_up,return_preparing,return_in_transit_to_seller,returned,refunded',
+            'status' => 'required|in:confirmed,packed,shipped,out_for_delivery,delivered,cancelled,in_transit,not_received,return_pickup_scheduled,return_picked_up,return_preparing,return_in_transit_to_seller,returned,refunded',
             'description' => 'nullable|string|max:255',
             'location' => 'nullable|string|max:255',
             'event_date' => 'required|date',
@@ -370,6 +370,7 @@ class SellerController extends Controller
             'out_for_delivery' => 'Courier is delivering your package now.',
             'delivered' => 'Package was marked as delivered.',
             'cancelled' => 'Order was cancelled.',
+            'not_received' => 'Customer reported the parcel was not received. Dispute under review.',
             'return_pickup_scheduled' => 'Courier was assigned to pick up the return parcel from customer address.',
             'return_picked_up' => 'Courier picked up the return parcel from the customer.',
             'return_preparing' => 'Return parcel is being processed at the sorting facility.',
@@ -412,13 +413,14 @@ class SellerController extends Controller
 
         if ($newOrderStatus === 'delivered') {
             $order->payment_status = 'completed';
-        } elseif (in_array($newOrderStatus, ['cancelled'], true)) {
+        } elseif ($newOrderStatus === 'cancelled') {
             $order->payment_status = 'cancelled';
         } elseif ($newOrderStatus === 'refunded') {
             $order->payment_status = 'refunded';
         } elseif ($newOrderStatus === 'returned') {
             $order->payment_status = 'completed';
         }
+        // not_received stays as-is; only becomes refunded when seller confirms
 
         if (in_array($newOrderStatus, ['shipped', 'in_transit', 'out_for_delivery'], true) && !$order->shipped_at) {
             $order->shipped_at = now();
@@ -532,19 +534,20 @@ class SellerController extends Controller
     private function trackingStatusText(): array
     {
         return [
-            'confirmed' => 'Order Confirmed',
-            'packed' => 'Seller is preparing your order',
-            'shipped' => 'Order Shipped',
-            'in_transit' => 'In Transit',
-            'out_for_delivery' => 'Out for Delivery',
-            'delivered' => 'Package Delivered',
-            'cancelled' => 'Order Cancelled',
-            'return_pickup_scheduled' => 'Rider is going to get the parcel to your home',
-            'return_picked_up' => 'Rider received the parcel',
-            'return_preparing' => 'Parcel is being prepared',
-            'return_in_transit_to_seller' => 'Parcel is being back to owner',
-            'returned' => 'Owner received the parcel',
-            'refunded' => 'Completed and refunded',
+            'confirmed'                   => 'Order Confirmed',
+            'packed'                      => 'Order Packed & Ready',
+            'shipped'                     => 'Order Shipped',
+            'in_transit'                  => 'Parcel In Transit',
+            'out_for_delivery'            => 'Out for Delivery',
+            'delivered'                   => 'Package Delivered',
+            'cancelled'                   => 'Order Cancelled',
+            'not_received'                => 'Dispute: Item Not Received',
+            'return_pickup_scheduled'     => 'Return Pickup Scheduled',
+            'return_picked_up'            => 'Return Parcel Picked Up',
+            'return_preparing'            => 'Return Parcel Being Processed',
+            'return_in_transit_to_seller' => 'Return Parcel In Transit to Seller',
+            'returned'                    => 'Return Received by Seller',
+            'refunded'                    => 'Refund Completed',
         ];
     }
 
@@ -553,24 +556,30 @@ class SellerController extends Controller
         $status = strtolower(trim((string) ($order->status ?? 'pending')));
 
         $map = [
-            'pending' => ['packed'],
-            'paid' => ['packed'],
-            'confirmed' => ['packed'],
-            'packed' => ['shipped'],
-            'shipped' => ['in_transit'],
-            'in_transit' => ['in_transit', 'out_for_delivery'],
-            'out_for_delivery' => ['delivered'],
-            'delivered' => [],
-            'completed' => [],
-            'complete' => [],
-            'cancelled' => [],
-            'return_requested' => ['return_pickup_scheduled'],
-            'return_pickup_scheduled' => ['return_picked_up'],
-            'return_picked_up' => ['return_preparing'],
-            'return_preparing' => ['return_in_transit_to_seller'],
+            // Seller must confirm first, or can cancel at early stages
+            'pending'                     => ['confirmed', 'cancelled'],
+            'paid'                        => ['confirmed', 'cancelled'],
+            'confirmed'                   => ['packed',    'cancelled'],
+            'packed'                      => ['shipped',   'cancelled'],
+            // Once shipped the delivery flow is linear — no more cancels
+            'shipped'                     => ['in_transit'],
+            'in_transit'                  => ['out_for_delivery'],
+            'out_for_delivery'            => ['delivered'],
+            // Customer confirms receipt → completed (seller has nothing to do)
+            'delivered'                   => [],
+            'completed'                   => [],
+            'complete'                    => [],
+            'cancelled'                   => [],
+            // Dispute: customer says item was never received → seller refunds directly (no pickup)
+            'not_received'                => ['refunded'],
+            // Return sub-flow (customer HAS the item and wants to return it)
+            'return_requested'            => ['return_pickup_scheduled'],
+            'return_pickup_scheduled'     => ['return_picked_up'],
+            'return_picked_up'            => ['return_preparing'],
+            'return_preparing'            => ['return_in_transit_to_seller'],
             'return_in_transit_to_seller' => ['returned'],
-            'returned' => ['refunded'],
-            'refunded' => [],
+            'returned'                    => ['refunded'],
+            'refunded'                    => [],
         ];
 
         if (isset($map[$status])) {
@@ -591,7 +600,6 @@ class SellerController extends Controller
     public function settings()
     {
         $seller = Auth::user();
-        $wallet = $seller->wallet ?? \App\Models\SellerWallet::create(['seller_id' => $seller->id]);
         $subscription = $seller->sellerSubscriptions()->latest()->first();
 
         if (!$subscription) {
@@ -616,9 +624,7 @@ class SellerController extends Controller
         }
 
         $payments = $seller->sellerPayments()->latest()->paginate(10);
-        $transactions = $seller->walletTransactions()->latest()->paginate(10);
-
-        return view('seller.settings', compact('seller', 'wallet', 'subscription', 'payments', 'transactions'));
+        return view('seller.settings', compact('seller', 'subscription', 'payments'));
     }
 
     /**

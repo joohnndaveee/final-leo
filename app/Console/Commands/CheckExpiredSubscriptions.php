@@ -3,34 +3,18 @@
 namespace App\Console\Commands;
 
 use App\Models\Seller;
-use App\Models\SellerSubscription;
 use App\Models\SellerChat;
 use Illuminate\Console\Command;
 
 class CheckExpiredSubscriptions extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
     protected $signature = 'subscriptions:check-expired';
-
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
     protected $description = 'Check and update expired seller subscriptions';
 
-    /**
-     * Execute the console command.
-     */
     public function handle()
     {
         $this->info('Checking for expired subscriptions...');
 
-        // Find sellers with expired subscriptions
         $expiredSellers = Seller::where('subscription_end_date', '<', now()->toDateString())
             ->whereIn('subscription_status', ['active', 'inactive'])
             ->get();
@@ -38,39 +22,32 @@ class CheckExpiredSubscriptions extends Command
         $count = 0;
 
         foreach ($expiredSellers as $seller) {
-            // Update seller subscription status
-            $seller->update([
-                'subscription_status' => 'expired',
-            ]);
+            $seller->update(['subscription_status' => 'expired']);
 
-            // Update the subscription record
             $subscription = $seller->sellerSubscriptions()->latest()->first();
             if ($subscription && $subscription->status === 'active') {
-                $subscription->update([
-                    'status' => 'expired',
-                ]);
+                $subscription->update(['status' => 'expired']);
             }
 
-            $this->line("Expired subscription for seller: {$seller->shop_name} (ID: {$seller->id})");
             $count++;
+            $this->line("Expired subscription for seller: {$seller->shop_name} (ID: {$seller->id})");
 
             $name = $seller->name ?: ($seller->shop_name ?? 'Seller');
             $rentAmount = number_format((float) ($seller->monthly_rent ?? 500.00), 2);
-            $endDateStr = $seller->subscription_end_date ? \Carbon\Carbon::parse($seller->subscription_end_date)->format('M d, Y') : now()->format('M d, Y');
+            $endDateStr = $seller->subscription_end_date
+                ? \Carbon\Carbon::parse($seller->subscription_end_date)->format('M d, Y')
+                : now()->format('M d, Y');
 
             SellerChat::create([
                 'seller_id' => $seller->id,
-                'message' => "Hello {$name}!\n\nYour subscription has expired.\nDue date: {$endDateStr}\nAmount: ₱{$rentAmount}\nAction: Wallet → Pay Monthly Rent",
+                'message' => "Hello {$name}!\n\nYour subscription has expired.\nDue date: {$endDateStr}\nAmount: PHP {$rentAmount}\nAction: Subscription -> Pay Monthly Rent (GCash)",
                 'sender_type' => 'admin',
                 'is_read' => false,
             ]);
-
-            // TODO: Send expiration notification email
-            // Mail::to($seller->email)->queue(new SubscriptionExpired($seller));
         }
 
         $this->info("Total subscriptions expired: {$count}");
-
         return Command::SUCCESS;
     }
 }
+

@@ -158,7 +158,7 @@
                 </div>
                 <div class="subscription-alert-actions">
                     @if(($seller->suspension_reason ?? '') === 'Overdue Payment')
-                        <a href="{{ route('seller.wallet.pay-rent.form') }}" class="subscription-alert-btn primary">Pay Now</a>
+                        <a href="{{ route('seller.subscription.pay-rent.form') }}" class="subscription-alert-btn primary">Pay Now</a>
                     @else
                         <a href="{{ route('seller.violations') }}" class="subscription-alert-btn primary">View Violation Details</a>
                     @endif
@@ -181,9 +181,10 @@
                     @endif
                 </div>
                 <div class="subscription-alert-actions">
-                    <a href="{{ route('seller.wallet.pay-rent.form') }}" class="subscription-alert-btn primary">Pay Now</a>
+                    <a href="{{ route('seller.subscription.pay-rent.form') }}" class="subscription-alert-btn primary">Pay Now</a>
                 </div>
             </div>
         </div>
     @endif
 @endif
+

@@ -4,7 +4,9 @@
 
 @section('content')
 @php
-    $walletBalance = (float) $seller->getWalletBalance();
+    $monthlyRent = (float) ($seller->monthly_rent ?? 0);
+    $subscriptionEndDate = $seller->subscription_end_date;
+    $daysUntilExpiration = $subscriptionEndDate ? now()->diffInDays($subscriptionEndDate, false) : null;
 
     $recentPending = $recentOrders->filter(function ($order) {
         $status = strtolower((string) ($order->status ?? $order->payment_status ?? ''));
@@ -21,13 +23,13 @@
     $recentFulfilledPct = round(($recentFulfilled / $recentTotal) * 100);
 
     $scaledSales = $salesTotal / 1000;
-    $scaledWallet = $walletBalance / 1000;
-    $maxBar = max($productsCount, $ordersCount, $scaledSales, $scaledWallet, 1);
+    $scaledRent = $monthlyRent / 1000;
+    $maxBar = max($productsCount, $ordersCount, $scaledSales, $scaledRent, 1);
 
     $barProducts = max(8, min(100, round(($productsCount / $maxBar) * 100)));
     $barOrders = max(8, min(100, round(($ordersCount / $maxBar) * 100)));
     $barSales = max(8, min(100, round(($scaledSales / $maxBar) * 100)));
-    $barWallet = max(8, min(100, round(($scaledWallet / $maxBar) * 100)));
+    $barRent = max(8, min(100, round(($scaledRent / $maxBar) * 100)));
 
     $statusClass = function ($order) {
         $status = strtolower((string) ($order->status ?? $order->payment_status ?? 'pending'));
@@ -446,7 +448,7 @@
         <div class="alert-banner alert-warning">
             <div class="alert-content">
                 <h3>Subscription Expiring Soon</h3>
-                <p>Your subscription expires in {{ $seller->getDaysUntilExpiration() }} days.</p>
+                <p>Your subscription expires in {{ $daysUntilExpiration ?? 0 }} days.</p>
             </div>
             <a href="{{ route('seller.settings') }}" class="alert-btn">Renew Now</a>
         </div>
@@ -487,11 +489,11 @@
 
         <article class="kpi-card">
             <div class="kpi-top">
-                <span class="kpi-label">Wallet</span>
-                <span class="kpi-icon"><i class="fas fa-wallet"></i></span>
+                <span class="kpi-label">Monthly Rent</span>
+                <span class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></span>
             </div>
-            <h3 class="kpi-value">PHP {{ number_format($walletBalance, 2) }}</h3>
-            <div class="kpi-sub">Available balance</div>
+            <h3 class="kpi-value">PHP {{ number_format($monthlyRent, 2) }}</h3>
+            <div class="kpi-sub">Current billing amount</div>
         </article>
     </section>
 
@@ -512,8 +514,8 @@
                     <div class="micro-track"><div class="micro-fill" style="width: {{ $barSales }}%"></div></div>
                 </div>
                 <div class="micro-row">
-                    <div class="micro-label"><span>Wallet (scaled)</span><strong>{{ number_format($walletBalance, 0) }}</strong></div>
-                    <div class="micro-track"><div class="micro-fill" style="width: {{ $barWallet }}%"></div></div>
+                    <div class="micro-label"><span>Rent (scaled)</span><strong>{{ number_format($monthlyRent, 0) }}</strong></div>
+                    <div class="micro-track"><div class="micro-fill" style="width: {{ $barRent }}%"></div></div>
                 </div>
             </div>
         </article>

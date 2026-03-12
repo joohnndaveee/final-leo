@@ -260,6 +260,7 @@
                    <th>End Date</th>
                    <th>Days Left</th>
                    <th>Last Payment</th>
+                   <th>Pending Proof</th>
                    <th>Actions</th>
                </tr>
            </thead>
@@ -311,6 +312,30 @@
                            {{ \Carbon\Carbon::parse($seller->last_payment_date)->format('M d, Y') }}
                        @else
                            <span style="color: #9ca3af;">Never</span>
+                       @endif
+                   </td>
+                   @php
+                       $pendingSubscriptionPayment = $seller->sellerPayments()
+                           ->where('payment_type', 'subscription')
+                           ->where('payment_status', 'pending')
+                           ->latest()
+                           ->first();
+                   @endphp
+                   <td>
+                       @if($pendingSubscriptionPayment)
+                           <div style="font-size:1.2rem;line-height:1.45;">
+                               <div><strong>Ref:</strong> {{ $pendingSubscriptionPayment->reference_number ?? '-' }}</div>
+                               <div><strong>GCash:</strong> {{ $pendingSubscriptionPayment->gcash_number_used ?? '-' }}</div>
+                               <div>
+                                   @if(!empty($pendingSubscriptionPayment->proof_image))
+                                       <a href="{{ asset('uploaded_img/' . $pendingSubscriptionPayment->proof_image) }}" target="_blank" style="color:#2563eb;font-weight:600;">View proof</a>
+                                   @else
+                                       <span style="color:#9ca3af;">No image</span>
+                                   @endif
+                               </div>
+                           </div>
+                       @else
+                           <span style="color:#9ca3af;">No pending</span>
                        @endif
                    </td>
                    <td>
@@ -451,4 +476,3 @@ document.querySelectorAll('.suspension-btn').forEach(btn => {
 
 </body>
 </html>
-

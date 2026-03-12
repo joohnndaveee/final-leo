@@ -28,17 +28,14 @@ class CheckSellerSubscription
 
         // Treat inactive as locked (unpaid) as well
         if (in_array($seller->subscription_status, ['inactive', 'expired', 'suspended']) || !$seller->subscription_end_date) {
-            // Allow access to settings and wallet pages even when subscription expired
+            // Allow access to settings and subscription payment pages even when expired
             $allowedRoutes = [
                 'seller.settings',
                 'seller.settings.update',
                 'seller.subscription.show',
-                'seller.wallet.index',
-                'seller.wallet.deposit.form',
-                'seller.wallet.deposit',
-                'seller.wallet.pay-rent.form',
-                'seller.wallet.pay-rent',
-                'seller.wallet.payment-receipt',
+                'seller.subscription.pay-rent.form',
+                'seller.subscription.pay-rent.submit',
+                'seller.subscription.payment-receipt',
                 'seller.violations',
                 'seller.support.send',
             ];
@@ -52,7 +49,7 @@ class CheckSellerSubscription
                 }
 
                 return redirect()
-                    ->route('seller.wallet.pay-rent.form')
+                    ->route('seller.subscription.pay-rent.form')
                     ->with('error', 'Your subscription is not active. Please pay your monthly rent to access this feature.');
             }
         }

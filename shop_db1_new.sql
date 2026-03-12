@@ -374,7 +374,7 @@ CREATE TABLE `seller_payments` (
   `subscription_id` int(100) DEFAULT NULL,
   `payment_type` enum('subscription','registration') NOT NULL DEFAULT 'subscription',
   `amount` decimal(10,2) NOT NULL,
-  `payment_method` enum('bank_transfer','card','wallet','manual') DEFAULT 'manual',
+  `payment_method` enum('bank_transfer','card','wallet','manual','gcash') DEFAULT 'manual',
   `payment_status` enum('pending','completed','failed','cancelled') DEFAULT 'pending',
   `reference_number` varchar(100) DEFAULT NULL,
   `gcash_number_used` varchar(30) DEFAULT NULL,
@@ -791,3 +791,37 @@ ALTER TABLE `orders`
 ALTER TABLE `order_tracking`
   MODIFY COLUMN `status` VARCHAR(50) NOT NULL
   COMMENT 'order_placed, confirmed, packed, shipped, in_transit, out_for_delivery, delivered, cancelled, return_pickup_scheduled, return_picked_up, return_preparing, return_in_transit_to_seller, returned, refunded';
+
+-- --------------------------------------------------------
+--
+-- Table structure for table `user_seller_chats`
+--
+CREATE TABLE IF NOT EXISTS `user_seller_chats` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `user_id` int(100) NOT NULL,
+  `seller_id` int(100) NOT NULL,
+  `message` text NOT NULL,
+  `sender_type` enum('user','seller') NOT NULL DEFAULT 'user',
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `seller_id` (`seller_id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+--
+-- Table structure for table `seller_follows`
+--
+CREATE TABLE IF NOT EXISTS `seller_follows` (
+  `id` int(100) NOT NULL AUTO_INCREMENT,
+  `user_id` int(100) NOT NULL,
+  `seller_id` int(100) NOT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_seller_unique` (`user_id`, `seller_id`),
+  KEY `seller_id` (`seller_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -235,10 +235,14 @@
 @section('content')
 @php
     $orderStatus = strtolower((string) ($order->status ?? $order->payment_status ?? 'pending'));
-    $canMarkReceived = $orderStatus === 'delivered';
-    $isReceived = in_array($orderStatus, ['completed', 'complete'], true);
-    $canRequestReturn = in_array($orderStatus, ['completed', 'complete'], true);
-    $hasReturnProcess = in_array($orderStatus, [
+    // Show "Order Received" + "Not Received" when out for delivery or awaiting confirmation
+    $canMarkReceived = in_array($orderStatus, ['out_for_delivery', 'delivered'], true);
+    // Order is fully confirmed as received by the customer
+    $isCompleted = in_array($orderStatus, ['completed', 'complete'], true);
+    // Delivery dispute (item was never received — no physical return needed)
+    $isDispute = $orderStatus === 'not_received';
+    // Physical return flow (item was received, customer wants to send it back)
+    $hasReturnProcess = $isDispute || in_array($orderStatus, [
         'return_requested',
         'return_pickup_scheduled',
         'return_picked_up',
@@ -247,6 +251,8 @@
         'returned',
         'refunded',
     ], true);
+    // "Return Order" button appears only after user marks received (completed), before any return
+    $canRequestReturn = $isCompleted && !$hasReturnProcess;
     $timelineEvents = $order->tracking->sortByDesc('id')->values();
 
     $baseDate = $order->shipped_at ? \Carbon\Carbon::parse($order->shipped_at) : \Carbon\Carbon::parse($order->placed_on);
@@ -305,32 +311,70 @@
         <div class="order-head">
             <div class="order-no">Order #{{ $order->id }} - {{ date('M d, Y', strtotime($order->placed_on)) }}</div>
             @if($canMarkReceived)
-                <form action="{{ route('order.received', $order->id) }}" method="POST" onsubmit="return confirm('Mark this order as received?');">
-                    @csrf
-                    <button type="submit" class="received-btn">Mark as Received</button>
-                </form>
-            @elseif($isReceived)
-                <span style="color:#166534;font-size:0.84rem;font-weight:700;">Order marked as received</span>
+                {{-- Two-button confirmation: Order is out for delivery --}}
+                <div style="display:flex;gap:.45rem;align-items:center;">
+                    <form action="{{ route('order.received', $order->id) }}" method="POST" onsubmit="return confirm('Confirm you have received this order?');" style="margin:0;">
+                        @csrf
+                        <button type="submit" class="received-btn" style="background:#16a34a;color:#fff;border:0;border-radius:8px;padding:.45rem .85rem;font-size:.84rem;font-weight:700;cursor:pointer;">
+                            <i class="fas fa-check"></i> Order Received
+                        </button>
+                    </form>
+                    <button type="button" onclick="toggleNotReceived()" style="background:#b91c1c;color:#fff;border:0;border-radius:8px;padding:.45rem .85rem;font-size:.84rem;font-weight:700;cursor:pointer;">
+                        <i class="fas fa-times"></i> Not Received
+                    </button>
+                </div>
+            @elseif($isCompleted)
+                <span style="color:#166534;font-size:0.84rem;font-weight:700;"><i class="fas fa-check-circle"></i> Order received</span>
+            @elseif($isDispute)
+                <span style="color:#b91c1c;font-size:0.84rem;font-weight:700;">
+                    <i class="fas fa-exclamation-triangle"></i> Dispute filed — awaiting seller review
+                </span>
             @elseif($hasReturnProcess)
                 <span style="color:#92400e;font-size:0.84rem;font-weight:700;">Return process: {{ strtoupper(str_replace('_', ' ', $orderStatus)) }}</span>
             @endif
         </div>
 
-        @if($canRequestReturn && !$hasReturnProcess)
-            <form action="{{ route('order.return.request', $order->id) }}" method="POST" style="margin:0 0 .8rem;">
-                @csrf
-                <div style="display:grid;grid-template-columns:1fr auto;gap:.45rem;">
-                    <input type="text" name="reason" placeholder="Reason (e.g. parcel not received)" style="border:1px solid #d1d5db;border-radius:8px;padding:.45rem .6rem;font-size:.88rem;">
-                    <button type="submit" style="border:0;background:#b91c1c;color:#fff;border-radius:8px;padding:.45rem .75rem;font-size:.84rem;font-weight:700;">Not Received / Return</button>
+        {{-- Not Received form (shown when user clicks "Not Received" during delivery) --}}
+        @if($canMarkReceived)
+            <div id="notReceivedForm" style="display:none;margin:.6rem 0 .8rem;">
+                <form action="{{ route('order.not.received', $order->id) }}" method="POST">
+                    @csrf
+                    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:.75rem;display:grid;gap:.5rem;">
+                        <p style="margin:0;font-size:.85rem;color:#991b1b;font-weight:600;"><i class="fas fa-exclamation-triangle"></i> Report as Not Received</p>
+                        <input type="text" name="reason" placeholder="Describe the issue (e.g. parcel not arrived, wrong address...)" style="border:1px solid #d1d5db;border-radius:6px;padding:.45rem .6rem;font-size:.88rem;width:100%;box-sizing:border-box;">
+                        <div style="display:flex;gap:.45rem;justify-content:flex-end;">
+                            <button type="button" onclick="toggleNotReceived()" style="background:#e5e7eb;color:#374151;border:0;border-radius:6px;padding:.4rem .7rem;font-size:.84rem;cursor:pointer;">Cancel</button>
+                            <button type="submit" style="background:#b91c1c;color:#fff;border:0;border-radius:6px;padding:.4rem .75rem;font-size:.84rem;font-weight:700;cursor:pointer;">Submit Report</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        @endif
+
+        {{-- Return Order form (only available after order is confirmed received = completed) --}}
+        @if($canRequestReturn)
+            <div style="margin:0 0 .8rem;">
+                <button type="button" onclick="toggleReturnForm()" style="background:#fff;color:#b91c1c;border:1px solid #b91c1c;border-radius:8px;padding:.4rem .8rem;font-size:.84rem;font-weight:600;cursor:pointer;">
+                    <i class="fas fa-undo-alt"></i> Return Order
+                </button>
+                <div id="returnOrderForm" style="display:none;margin-top:.5rem;">
+                    <form action="{{ route('order.return.request', $order->id) }}" method="POST">
+                        @csrf
+                        <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:.75rem;display:grid;gap:.5rem;">
+                            <p style="margin:0;font-size:.85rem;color:#92400e;font-weight:600;"><i class="fas fa-box-open"></i> Return Request</p>
+                            <input type="text" name="reason" placeholder="Reason for return (e.g. damaged item, wrong product...)" style="border:1px solid #d1d5db;border-radius:6px;padding:.45rem .6rem;font-size:.88rem;width:100%;box-sizing:border-box;">
+                            <div style="display:flex;gap:.45rem;justify-content:flex-end;">
+                                <button type="button" onclick="toggleReturnForm()" style="background:#e5e7eb;color:#374151;border:0;border-radius:6px;padding:.4rem .7rem;font-size:.84rem;cursor:pointer;">Cancel</button>
+                                <button type="submit" style="background:#b45309;color:#fff;border:0;border-radius:6px;padding:.4rem .75rem;font-size:.84rem;font-weight:700;cursor:pointer;">Submit Return</button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         @endif
 
         @foreach($order->orderItems as $item)
             @php
-                $statusValue = strtolower($order->status ?? $order->payment_status ?? '');
-                $isCompleted = in_array($statusValue, ['completed', 'complete'], true) ||
-                              in_array(strtolower($order->payment_status ?? ''), ['completed', 'complete'], true);
                 $hasReviewed = false;
                 if (Auth::check()) {
                     $hasReviewed = \App\Models\Review::where('user_id', Auth::id())
@@ -488,6 +532,15 @@ document.getElementById('reviewModal')?.addEventListener('click', function(e) {
         closeReviewModal();
     }
 });
+
+function toggleNotReceived() {
+    const f = document.getElementById('notReceivedForm');
+    if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+function toggleReturnForm() {
+    const f = document.getElementById('returnOrderForm');
+    if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
 </script>
 @endpush
 @endsection

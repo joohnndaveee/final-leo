@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\Storage;
 
 class SellerChatController extends Controller
 {
-    /**
-     * Display all seller chat conversations
-     */
     public function index()
     {
         if (!Auth::guard('admin')->check()) {
@@ -43,9 +40,6 @@ class SellerChatController extends Controller
         return view('admin.seller-chats.index', compact('conversations'));
     }
 
-    /**
-     * Display conversation with a specific seller
-     */
     public function show($sellerId)
     {
         if (!Auth::guard('admin')->check()) {
@@ -63,18 +57,18 @@ class SellerChatController extends Controller
         $daysLeft = $endDate ? now()->diffInDays($endDate, false) : null;
         $endDateStr = $endDate ? $endDate->format('M d, Y') : 'N/A';
 
-        $quickReplies = [];
-
-        $quickReplies[] = [
-            'label' => 'Greeting',
-            'text' => "Hello {$name}!\n\nThanks for messaging us.\nHow can I help you today?",
+        $quickReplies = [
+            [
+                'label' => 'Greeting',
+                'text' => "Hello {$name}!\n\nThanks for messaging us.\nHow can I help you today?",
+            ],
         ];
 
         if ($seller->subscription_status === 'suspended') {
             if (($seller->suspension_reason ?? '') === 'Overdue Payment') {
                 $quickReplies[] = [
                     'label' => 'Overdue Payment',
-                    'text' => "Hello {$name}!\n\nYour seller account is suspended due to overdue payment.\n\nMonthly rent: ₱{$rentAmount}\nAction: Wallet → Pay Monthly Rent",
+                    'text' => "Hello {$name}!\n\nYour seller account is suspended due to overdue payment.\n\nMonthly rent: PHP {$rentAmount}\nAction: Subscription -> Pay Monthly Rent (GCash)",
                 ];
             } else {
                 $reason = $seller->suspension_reason ?? 'Administrative Action';
@@ -88,12 +82,12 @@ class SellerChatController extends Controller
             if (in_array($seller->subscription_status, ['expired', 'inactive']) || ($daysLeft !== null && $daysLeft < 0)) {
                 $quickReplies[] = [
                     'label' => 'Subscription Expired',
-                    'text' => "Hello {$name}!\n\nYour subscription is expired.\nDue date: {$endDateStr}\nAmount: ₱{$rentAmount}\nAction: Wallet → Pay Monthly Rent",
+                    'text' => "Hello {$name}!\n\nYour subscription is expired.\nDue date: {$endDateStr}\nAmount: PHP {$rentAmount}\nAction: Subscription -> Pay Monthly Rent (GCash)",
                 ];
             } elseif ($daysLeft !== null && $daysLeft <= 7) {
                 $quickReplies[] = [
                     'label' => 'Expiring Soon',
-                    'text' => "Hello {$name}!\n\nJust a reminder: your subscription will expire soon.\nExpiry: {$endDateStr}\nDays left: {$daysLeft}\nAmount: ₱{$rentAmount}\nAction: Wallet → Pay Monthly Rent",
+                    'text' => "Hello {$name}!\n\nJust a reminder: your subscription will expire soon.\nExpiry: {$endDateStr}\nDays left: {$daysLeft}\nAmount: PHP {$rentAmount}\nAction: Subscription -> Pay Monthly Rent (GCash)",
                 ];
             }
         }
@@ -103,7 +97,6 @@ class SellerChatController extends Controller
             'text' => "Hello {$name}!\n\nThanks for your message.\n\nPlease share more details so we can assist faster:\n- What happened\n- Screenshots\n- Order IDs\n- Dates/times",
         ];
 
-        // Mark seller messages as read
         SellerChat::where('seller_id', $sellerId)
             ->where('sender_type', 'seller')
             ->where('is_read', false)
@@ -112,9 +105,6 @@ class SellerChatController extends Controller
         return view('admin.seller-chats.show', compact('seller', 'messages', 'quickReplies'));
     }
 
-    /**
-     * Send reply to seller
-     */
     public function reply(Request $request, $sellerId)
     {
         if (!Auth::guard('admin')->check()) {
@@ -127,9 +117,7 @@ class SellerChatController extends Controller
 
         Seller::findOrFail($sellerId);
 
-        $message = $request->message;
-        // Normalize common newline formats, and also convert literal "\n" sequences (from some clients) to real newlines.
-        $message = str_replace(["\r\n", "\r"], "\n", $message);
+        $message = str_replace(["\r\n", "\r"], "\n", (string) $request->message);
         $message = str_replace(["\\r\\n", "\\n", "\\r"], "\n", $message);
 
         $chat = SellerChat::create([
@@ -145,9 +133,6 @@ class SellerChatController extends Controller
         ]);
     }
 
-    /**
-     * Get messages for a seller (for AJAX)
-     */
     public function getMessages($sellerId)
     {
         if (!Auth::guard('admin')->check()) {
@@ -208,3 +193,4 @@ class SellerChatController extends Controller
         return response()->download($path, $name);
     }
 }
+

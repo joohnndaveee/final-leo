@@ -426,8 +426,8 @@ class OrderController extends Controller
             ->firstOrFail();
 
         $status = strtolower((string) ($order->status ?? ''));
-        if (!in_array($status, ['delivered', 'completed', 'complete'], true)) {
-            return redirect()->back()->with('error', 'Only delivered orders can be marked as received.');
+        if (!in_array($status, ['out_for_delivery', 'delivered', 'completed', 'complete'], true)) {
+            return redirect()->back()->with('error', 'Only orders that are out for delivery or delivered can be marked as received.');
         }
 
         if (in_array($status, ['completed', 'complete'], true)) {
@@ -472,7 +472,78 @@ class OrderController extends Controller
     }
 
     /**
-     * Customer requests return when item was not received.
+     * Customer reports item was NOT received during delivery.
+     * Different from a return — there is nothing to physically send back.
+     * Creates a dispute: seller must either refund directly or provide proof of delivery.
+     */
+    public function reportNotReceived(Request $request, $orderId)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        $order = Order::with('orderItems.product')
+            ->where('id', $orderId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $request->validate([
+            'reason' => 'nullable|string|max:255',
+        ]);
+
+        $status = strtolower((string) ($order->status ?? ''));
+
+        // Only allowed when the seller has marked it out for delivery or delivered
+        if (!in_array($status, ['out_for_delivery', 'delivered'], true)) {
+            return redirect()->back()->with('error', 'You can only report a non-delivery while the order is out for delivery or awaiting confirmation.');
+        }
+
+        if (in_array($status, ['not_received', 'refunded', 'return_requested', 'returned'], true)) {
+            return redirect()->back()->with('info', 'A dispute has already been filed for this order.');
+        }
+
+        $reason = trim((string) $request->input('reason', 'Customer reports the parcel was not received.'));
+
+        // Set a dedicated "not_received" status — no physical return pickup required
+        $order->status = 'not_received';
+        $order->save();
+
+        OrderTracking::log(
+            $order->id,
+            'not_received',
+            'Delivery Dispute – Item Not Received',
+            $reason
+        );
+
+        Notification::notifyUser(
+            $order->user_id,
+            'order_not_received',
+            'Dispute Filed',
+            "Order #{$order->id}: your non-delivery report has been submitted. The seller will review and process a refund.",
+            $order->id,
+            'order'
+        );
+
+        $sellerIds = $order->orderItems
+            ->map(fn ($item) => $item->product?->seller_id)
+            ->filter()->unique()->values();
+
+        $customerName = Auth::user()->name ?? 'Customer';
+        foreach ($sellerIds as $sellerId) {
+            SellerChat::create([
+                'seller_id'   => (int) $sellerId,
+                'message'     => "⚠️ Delivery Dispute\n\nOrder #{$order->id} — {$customerName} reports the parcel was NOT received.\nReason: {$reason}\n\nPlease verify with the courier and issue a refund if the claim is valid.",
+                'sender_type' => 'admin',
+                'is_read'     => false,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'Dispute filed. The seller has been notified and will process your refund if the claim is verified.');
+    }
+
+    /**
+     * Customer requests a return for an item that WAS received but they want to send back.
+     * Triggers the full physical return pickup chain.
      */
     public function requestReturn(Request $request, $orderId)
     {
@@ -490,15 +561,17 @@ class OrderController extends Controller
         ]);
 
         $status = strtolower((string) ($order->status ?? ''));
+
+        // Only allowed after the customer has confirmed receipt (completed)
         if (!in_array($status, ['completed', 'complete'], true)) {
-            return redirect()->back()->with('error', 'Return request is allowed only for completed orders.');
+            return redirect()->back()->with('error', 'Return requests are only allowed after you have confirmed receipt of the order.');
         }
 
-        if (in_array($status, ['return_requested', 'returned', 'refunded'], true)) {
-            return redirect()->back()->with('info', 'This order already has a return request/process.');
+        if (in_array($status, ['return_requested', 'returned', 'refunded', 'not_received'], true)) {
+            return redirect()->back()->with('info', 'This order already has an active return/dispute process.');
         }
 
-        $reason = trim((string) $request->input('reason', 'Product not received by customer.'));
+        $reason = trim((string) $request->input('reason', 'Customer requested a return.'));
 
         $order->status = 'return_requested';
         $order->save();
@@ -514,28 +587,26 @@ class OrderController extends Controller
             $order->user_id,
             'order_return_requested',
             'Return Request Submitted',
-            "Order #{$order->id}: your return request has been submitted.",
+            "Order #{$order->id}: your return request has been submitted. The seller will schedule a pickup.",
             $order->id,
             'order'
         );
 
         $sellerIds = $order->orderItems
             ->map(fn ($item) => $item->product?->seller_id)
-            ->filter()
-            ->unique()
-            ->values();
+            ->filter()->unique()->values();
 
         $customerName = Auth::user()->name ?? 'Customer';
         foreach ($sellerIds as $sellerId) {
             SellerChat::create([
-                'seller_id' => (int) $sellerId,
-                'message' => "Return requested\n\nOrder #{$order->id} has a return request from {$customerName}.\nReason: {$reason}",
+                'seller_id'   => (int) $sellerId,
+                'message'     => "Return Request\n\nOrder #{$order->id} — {$customerName} wants to return the item.\nReason: {$reason}\n\nPlease schedule a pickup.",
                 'sender_type' => 'admin',
-                'is_read' => false,
+                'is_read'     => false,
             ]);
         }
 
-        return redirect()->back()->with('success', 'Return request submitted. Seller will process this order.');
+        return redirect()->back()->with('success', 'Return request submitted. The seller will arrange a pickup.');
     }
 
     private function normalizeOrderTab(?string $tab): string

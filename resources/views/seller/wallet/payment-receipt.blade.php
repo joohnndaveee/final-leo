@@ -1,419 +1,51 @@
 @extends('layouts.seller')
 
-@section('title', 'Payment Receipt')
-
-@push('styles')
-<style>
-    .receipt-container {
-        max-width: 700px;
-        margin: 2rem auto;
-        padding: 0 1.5rem;
-    }
-    
-    .receipt-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 20px;
-        box-shadow: 0 8px 32px rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.1);
-        overflow: hidden;
-    }
-    
-    .receipt-header {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: white;
-        padding: 3rem 2rem;
-        text-align: center;
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.2);
-    }
-    
-    .success-icon {
-        font-size: 3.5rem;
-        margin-bottom: 1rem;
-        display: block;
-    }
-    
-    .receipt-header h2 {
-        margin: 0;
-        font-size: 2rem;
-    }
-    
-    .receipt-header p {
-        margin: 0.5rem 0 0 0;
-        font-size: 1.2rem;
-        opacity: 0.9;
-    }
-    
-    .receipt-body {
-        padding: 2.5rem;
-    }
-    
-    .receipt-section {
-        margin-bottom: 2.5rem;
-    }
-    
-    .receipt-section:last-of-type {
-        margin-bottom: 0;
-    }
-    
-    .section-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-    }
-    
-    .detail-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 0;
-        border-bottom: 1px solid #e5e7eb;
-        font-size: 1.3rem;
-    }
-    
-    .detail-row:last-child {
-        border-bottom: none;
-    }
-    
-    .detail-label {
-        color: #6b7280;
-        font-weight: 500;
-    }
-    
-    .detail-value {
-        color: #1f2937;
-        font-weight: 600;
-    }
-    
-    .amount-box {
-        background: linear-gradient(135deg, rgba(240, 253, 244, 0.9), rgba(220, 252, 231, 0.9));
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border: 2px solid rgba(16, 185, 129, 0.4);
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
-        text-align: center;
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.08);
-    }
-    
-    .amount-label {
-        color: #6b7280;
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .amount-value {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: #10b981;
-    }
-    
-    .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: rgba(209, 250, 229, 0.9);
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px);
-        color: #065f46;
-        padding: 0.5rem 1rem;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 1.1rem;
-    }
-    
-    .info-box {
-        background: rgba(219, 234, 254, 0.9);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-left: 4px solid rgba(59, 130, 246, 0.6);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 2rem 0;
-        color: #0c4a6e;
-    }
-    
-    .info-box h4 {
-        margin: 0 0 0.5rem 0;
-        font-size: 1.3rem;
-        color: #0c4a6e;
-    }
-    
-    .info-box p {
-        margin: 0;
-        font-size: 1.2rem;
-        line-height: 1.6;
-    }
-    
-    .action-buttons {
-        display: flex;
-        gap: 1rem;
-        margin-top: 2rem;
-        flex-wrap: wrap;
-    }
-    
-    .btn {
-        flex: 1;
-        min-width: 180px;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
-        border: none;
-        cursor: pointer;
-        font-weight: 600;
-        font-size: 1.4rem;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-    
-    .btn-primary {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 0.95));
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: white;
-        box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
-    }
-    
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
-    }
-    
-    .btn-secondary {
-        background: white;
-        color: #6b7280;
-        border: 2px solid #d1d5db;
-    }
-    
-    .btn-secondary:hover {
-        border-color: #9ca3af;
-        background: #f9fafb;
-    }
-    
-    .receipt-line {
-        border: 1px solid #e5e7eb;
-        margin: 2rem 0;
-    }
-    
-    .thank-you {
-        text-align: center;
-        color: #6b7280;
-        font-size: 1.2rem;
-        margin: 2rem 0;
-    }
-    
-    .thank-you strong {
-        color: #1f2937;
-    }
-    
-    .back-button {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.25rem;
-        margin-bottom: 1.5rem;
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: #6b7280;
-        text-decoration: none;
-        border-radius: 12px;
-        border: 1px solid rgba(16, 185, 129, 0.1);
-        font-size: 0.95rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 8px rgba(16, 185, 129, 0.05);
-    }
-    
-    .back-button:hover {
-        background: rgba(240, 253, 244, 0.9);
-        color: #059669;
-        border-color: rgba(16, 185, 129, 0.3);
-        transform: translateX(-3px);
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
-    }
-    
-    @media (max-width: 768px) {
-        .receipt-container {
-            padding: 0 1rem;
-        }
-        
-        .receipt-header {
-            padding: 2rem;
-        }
-        
-        .success-icon {
-            font-size: 2.5rem;
-        }
-        
-        .receipt-header h2 {
-            font-size: 1.6rem;
-        }
-        
-        .action-buttons {
-            flex-direction: column;
-        }
-        
-        .btn {
-            min-width: auto;
-        }
-    }
-</style>
-@endpush
+@section('title', 'Subscription Payment')
 
 @section('content')
-<div class="receipt-container">
-    <a href="{{ route('seller.wallet.index') }}" class="back-button">
-        <i class="fas fa-arrow-left"></i>
-        Back to Wallet
-    </a>
-    <div class="receipt-card">
-        <!-- Success Header -->
-        <div class="receipt-header">
-            <span class="success-icon">✓</span>
-            <h2>Payment Successful!</h2>
-            <p>Your subscription has been renewed</p>
+<div style="max-width:760px;margin:1.5rem auto;">
+    <h2 style="margin-bottom:.25rem;"><i class="fas fa-receipt"></i> Subscription Payment</h2>
+    <p style="margin-top:0;color:#6b7280;">Track your monthly rent payment submission and approval status.</p>
+
+    @php
+        $isCompleted = $payment->payment_status === 'completed';
+    @endphp
+
+    <div style="background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;">
+        @if ($isCompleted)
+            <div style="background:#dcfce7;color:#166534;padding:.8rem 1rem;border-radius:8px;margin-bottom:1rem;">
+                <strong>Approved:</strong> Your monthly rent payment has been verified and your subscription is active.
+            </div>
+        @else
+            <div style="background:#fffbeb;color:#92400e;padding:.8rem 1rem;border-radius:8px;margin-bottom:1rem;">
+                <strong>Pending:</strong> Your payment proof is waiting for admin verification.
+            </div>
+        @endif
+
+        <p><strong>Payment Type:</strong> {{ ucfirst((string) ($payment->payment_type ?? 'subscription')) }}</p>
+        <p><strong>Status:</strong> {{ ucfirst((string) $payment->payment_status) }}</p>
+        <p><strong>Amount:</strong> PHP {{ number_format((float) $payment->amount, 2) }}</p>
+        <p><strong>Method:</strong> {{ ucfirst(str_replace('_', ' ', (string) $payment->payment_method)) }}</p>
+        <p><strong>Reference:</strong> {{ $payment->reference_number ?? '-' }}</p>
+        <p><strong>GCash Number Used:</strong> {{ $payment->gcash_number_used ?? '-' }}</p>
+        <p><strong>Submitted At:</strong> {{ $payment->created_at?->format('M d, Y h:i A') ?? '-' }}</p>
+        <p><strong>Approved At:</strong> {{ $payment->paid_at?->format('M d, Y h:i A') ?? '-' }}</p>
+
+        @if (!empty($payment->proof_image))
+            <p><strong>Proof Screenshot:</strong> <a href="{{ asset('uploaded_img/' . $payment->proof_image) }}" target="_blank">View uploaded proof</a></p>
+        @endif
+
+        @if ($subscription)
+            <hr style="border:0;border-top:1px solid #e5e7eb;margin:1rem 0;">
+            <p><strong>Subscription Type:</strong> {{ ucfirst((string) $subscription->subscription_type) }}</p>
+            <p><strong>Subscription End Date:</strong> {{ $subscription->end_date?->format('M d, Y') ?? '-' }}</p>
+        @endif
+
+        <div style="margin-top:1.25rem;display:flex;gap:.6rem;flex-wrap:wrap;">
+            <a href="{{ route('seller.subscription.pay-rent.form') }}" style="text-decoration:none;padding:.7rem 1rem;border-radius:8px;background:#2563eb;color:#fff;">Back to Rent Payment</a>
+            <a href="{{ route('seller.settings') }}" style="text-decoration:none;padding:.7rem 1rem;border-radius:8px;background:#059669;color:#fff;">Open Settings</a>
         </div>
-        
-        <div class="receipt-body">
-            <!-- Payment Summary -->
-            <div class="receipt-section">
-                <div class="section-title">
-                    <i class="fas fa-receipt"></i> Payment Receipt
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Transaction ID</span>
-                    <span class="detail-value">{{ $payment->reference_number }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Shop Name</span>
-                    <span class="detail-value">{{ $seller->shop_name }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Payment Method</span>
-                    <span class="detail-value">{{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Payment Status</span>
-                    <span class="detail-value">
-                        <span class="status-badge">
-                            <i class="fas fa-check-circle"></i>Completed
-                        </span>
-                    </span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Paid At</span>
-                    <span class="detail-value">{{ $payment->paid_at->format('M d, Y g:i A') }}</span>
-                </div>
-                
-                <div class="amount-box">
-                    <div class="amount-label">Amount Paid</div>
-                    <div class="amount-value">₱{{ number_format($payment->amount, 2) }}</div>
-                </div>
-            </div>
-            
-            <div class="receipt-line"></div>
-            
-            <!-- Subscription Details -->
-            <div class="receipt-section">
-                <div class="section-title">
-                    <i class="fas fa-credit-card"></i> Subscription Details
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Subscription Type</span>
-                    <span class="detail-value">{{ ucfirst(str_replace('_', ' ', $subscription->subscription_type)) }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Monthly Cost</span>
-                    <span class="detail-value">₱{{ number_format($subscription->amount, 2) }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Billing Cycle</span>
-                    <span class="detail-value">Monthly (Renewable)</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Current Status</span>
-                    <span class="detail-value">
-                        <span class="status-badge">
-                            <i class="fas fa-check-circle"></i>Active
-                        </span>
-                    </span>
-                </div>
-            </div>
-            
-            <div class="receipt-line"></div>
-            
-            <!-- Renewal Information -->
-            <div class="receipt-section">
-                <div class="section-title">
-                    <i class="fas fa-calendar"></i> Renewal Information
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Subscription Renewed</span>
-                    <span class="detail-value">{{ now()->format('M d, Y') }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Active Until</span>
-                    <span class="detail-value">{{ $subscription->end_date->format('M d, Y') }}</span>
-                </div>
-                
-                <div class="detail-row">
-                    <span class="detail-label">Days Remaining</span>
-                    <span class="detail-value">
-                        <strong>{{ now()->diffInDays($subscription->end_date) }}</strong> days
-                    </span>
-                </div>
-            </div>
-            
-            <!-- Important Notice -->
-            <div class="info-box">
-                <h4><i class="fas fa-bell"></i> Next Payment Due</h4>
-                <p>Your next rent payment will be due on <strong>{{ $subscription->end_date->format('M d, Y') }}</strong>. You'll receive a notification reminder before the due date.</p>
-            </div>
-            
-            <!-- Thank You -->
-            <div class="thank-you">
-                <p>Thank you for choosing <strong>{{ env('APP_NAME', 'U-KAY HUB') }}</strong>!</p>
-                <p style="font-size: 1.1rem; margin-top: 0.5rem;">Your shop is now active and ready for sales.</p>
-            </div>
-            
-            <!-- Action Buttons -->
-            <div class="action-buttons">
-                <a href="{{ route('seller.dashboard') }}" class="btn btn-primary">
-                    <i class="fas fa-th-large"></i>Back to Dashboard
-                </a>
-                <a href="{{ route('seller.wallet.index') }}" class="btn btn-secondary">
-                    <i class="fas fa-wallet"></i>View Wallet
-                </a>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Print/Download Notice -->
-    <div style="text-align: center; margin-top: 2rem; color: #6b7280; font-size: 1.2rem;">
-        <p>💡 You can take a screenshot or print this page for your records</p>
     </div>
 </div>
 @endsection
+
